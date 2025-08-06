@@ -20,7 +20,6 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  // フルスクリーン対応
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -38,7 +37,6 @@
     right: new Image()
   };
 
-  // 画像パス（適切な場所に配置してください）
   mapImage.src = 'map_1.png';
   collisionImage.src = 'atarihantei.png';
   characterSprites.up.src = 'nikorihito_dot_behind.png';
@@ -47,8 +45,8 @@
   characterSprites.right.src = 'nikorihito_dot_right.png';
 
   const character = {
-    x: 400,
-    y: 300,
+    x: 0, // 後で中央に設定
+    y: 0,
     width: 64,
     height: 64,
     direction: 'down',
@@ -58,8 +56,8 @@
   const camera = {
     x: 0,
     y: 0,
-    width: canvas.width,
-    height: canvas.height
+    width: 0,
+    height: 0
   };
 
   const keys = {};
@@ -70,7 +68,6 @@
   const collisionCtx = collisionCanvas.getContext('2d');
 
   function isBlocked(x, y) {
-    // キャラ中心で衝突確認
     const cx = Math.floor(x);
     const cy = Math.floor(y);
     const pixel = collisionCtx.getImageData(cx, cy, 1, 1).data;
@@ -98,6 +95,7 @@
       character.direction = 'right';
     }
 
+    // 中心座標で判定
     if (!isBlocked(nextX, nextY)) {
       character.x = nextX;
       character.y = nextY;
@@ -152,8 +150,20 @@
     }
   }
 
+  // 初期化処理
   resizeCanvas();
-  loadAll(characterSprites, gameLoop);
+  loadAll(characterSprites, () => {
+    // マップ読み込み後の安全な初期位置設定
+    character.x = mapImage.width / 2;
+    character.y = mapImage.height / 2;
+
+    // 最初の位置が通行不可ならずらす（例：下に8px）
+    if (isBlocked(character.x, character.y)) {
+      character.y += 8;
+    }
+
+    gameLoop();
+  });
 </script>
 </body>
 </html>
