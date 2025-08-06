@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ニコリヒトのマップ</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // フルスクリーン対応
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    camera.width = canvas.width;
+    camera.height = canvas.height;
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  const mapImage = new Image();
+  const collisionImage = new Image();
+  const characterSprites = {
+    up: new Image(),
+    down: new Image(),
+    left: new Image(),
+    right: new Image()
+  };
+
+  // 画像パス（適切な場所に配置してください）
+  mapImage.src = 'map_1.png';
+  collisionImage.src = 'atarihantei.png';
+  characterSprites.up.src = 'nikorihito_dot_behind.png';
+  characterSprites.down.src = 'nikorihito_dot_front.png';
+  characterSprites.left.src = 'nikorihito_dot_left.png';
+  characterSprites.right.src = 'nikorihito_dot_right.png';
+
+  const character = {
+    x: 400,
+    y: 300,
+    width: 64,
+    height: 64,
+    direction: 'down',
+    speed: 4
+  };
+
+  const camera = {
+    x: 0,
+    y: 0,
+    width: canvas.width,
+    height: canvas.height
+  };
+
+  const keys = {};
+  window.addEventListener('keydown', e => keys[e.key] = true);
+  window.addEventListener('keyup', e => keys[e.key] = false);
+
+  const collisionCanvas = document.createElement('canvas');
+  const collisionCtx = collisionCanvas.getContext('2d');
+
+  function isBlocked(x, y) {
+    // キャラ中心で衝突確認
+    const cx = Math.floor(x);
+    const cy = Math.floor(y);
+    const pixel = collisionCtx.getImageData(cx, cy, 1, 1).data;
+    return pixel[0] === 255 && pixel[1] === 21 && pixel[2] === 0;
+  }
+
+  function update() {
+    let nextX = character.x;
+    let nextY = character.y;
+
+    if (keys['ArrowUp']) {
+      nextY -= character.speed;
+      character.direction = 'up';
+    }
+    if (keys['ArrowDown']) {
+      nextY += character.speed;
+      character.direction = 'down';
+    }
+    if (keys['ArrowLeft']) {
+      nextX -= character.speed;
+      character.direction = 'left';
+    }
+    if (keys['ArrowRight']) {
+      nextX += character.speed;
+      character.direction = 'right';
+    }
+
+    if (!isBlocked(nextX, nextY)) {
+      character.x = nextX;
+      character.y = nextY;
+    }
+
+    camera.x = character.x - camera.width / 2;
+    camera.y = character.y - camera.height / 2;
+    camera.x = Math.max(0, Math.min(camera.x, mapImage.width - camera.width));
+    camera.y = Math.max(0, Math.min(camera.y, mapImage.height - camera.height));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(
+      mapImage,
+      camera.x, camera.y, camera.width, camera.height,
+      0, 0, canvas.width, canvas.height
+    );
+
+    const sprite = characterSprites[character.direction];
+    const drawX = character.x - camera.x - character.width / 2;
+    const drawY = character.y - camera.y - character.height / 2;
+
+    ctx.drawImage(sprite, drawX, drawY, character.width, character.height);
+  }
+
+  function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function loadAll(images, callback) {
+    let loaded = 0;
+    const total = Object.keys(images).length + 2;
+
+    function check() {
+      loaded++;
+      if (loaded === total) callback();
+    }
+
+    mapImage.onload = check;
+    collisionImage.onload = () => {
+      collisionCanvas.width = collisionImage.width;
+      collisionCanvas.height = collisionImage.height;
+      collisionCtx.drawImage(collisionImage, 0, 0);
+      check();
+    };
+    for (let key in images) {
+      images[key].onload = check;
+    }
+  }
+
+  resizeCanvas();
+  loadAll(characterSprites, gameLoop);
+</script>
+</body>
+</html>
