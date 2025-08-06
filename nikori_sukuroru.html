@@ -20,6 +20,7 @@
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
+  // 画面サイズに合わせる
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -37,15 +38,16 @@
     right: new Image()
   };
 
-  mapImage.src = 'map_1.png';
-  collisionImage.src = 'atarihantei.png';
-  characterSprites.up.src = 'nikorihito_dot_behind.png';
-  characterSprites.down.src = 'nikorihito_dot_front.png';
-  characterSprites.left.src = 'nikorihito_dot_left.png';
-  characterSprites.right.src = 'nikorihito_dot_right.png';
+  // 画像ファイル読み込み（キャッシュ防止用にクエリ追加）
+  mapImage.src = 'map_1.png?v=3';
+  collisionImage.src = 'atarihantei.png?v=3';
+  characterSprites.up.src = 'nikorihito_dot_behind.png?v=3';
+  characterSprites.down.src = 'nikorihito_dot_front.png?v=3';
+  characterSprites.left.src = 'nikorihito_dot_left.png?v=3';
+  characterSprites.right.src = 'nikorihito_dot_right.png?v=3';
 
   const character = {
-    x: 710, // 後で中央に設定
+    x: 710, // ゲーセン前（初期値としても設定）
     y: 510,
     width: 64,
     height: 64,
@@ -67,6 +69,7 @@
   const collisionCanvas = document.createElement('canvas');
   const collisionCtx = collisionCanvas.getContext('2d');
 
+  // 衝突判定（赤色 #FF1500 のピクセル）
   function isBlocked(x, y) {
     const cx = Math.floor(x);
     const cy = Math.floor(y);
@@ -95,7 +98,6 @@
       character.direction = 'right';
     }
 
-    // 中心座標で判定
     if (!isBlocked(nextX, nextY)) {
       character.x = nextX;
       character.y = nextY;
@@ -110,12 +112,14 @@
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 背景描画
     ctx.drawImage(
       mapImage,
       camera.x, camera.y, camera.width, camera.height,
       0, 0, canvas.width, canvas.height
     );
 
+    // キャラ描画
     const sprite = characterSprites[character.direction];
     const drawX = character.x - camera.x - character.width / 2;
     const drawY = character.y - camera.y - character.height / 2;
@@ -153,11 +157,11 @@
   // 初期化処理
   resizeCanvas();
   loadAll(characterSprites, () => {
-    // マップ読み込み後の安全な初期位置設定
-    character.x = mapImage.width / 2;
-    character.y = mapImage.height / 2;
+    // ゲーセン前に固定スポーン
+    character.x = 710;
+    character.y = 510;
 
-    // 最初の位置が通行不可ならずらす（例：下に8px）
+    // もしそこが赤だったら少し下にずらす
     if (isBlocked(character.x, character.y)) {
       character.y += 8;
     }
@@ -167,4 +171,3 @@
 </script>
 </body>
 </html>
-
