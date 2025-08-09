@@ -1,0 +1,237 @@
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ニコリタウン - ルーム</title>
+  <style>
+    html,body{margin:0;height:100%}
+    body{display:grid;grid-template-rows:1fr auto;background:#0b1220;color:#e2e8f0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif}
+    #game{position:relative;overflow:hidden}
+    #canvas{display:block;width:100%;height:100%;background:black}
+    #hud{position:absolute;top:10px;left:10px;background:rgba(17,24,39,.75);border:1px solid rgba(148,163,184,.25);border-radius:12px;padding:8px 10px;font-size:12px}
+    #chatBar{display:flex;gap:8px;padding:10px;background:#0f172a;border-top:1px solid #111827}
+    #msg{flex:1;padding:10px 12px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:#e2e8f0}
+    #send{padding:10px 16px;border:0;border-radius:10px;background:linear-gradient(180deg,#22d3ee,#06b6d4);color:#06202a;font-weight:700;cursor:pointer}
+    .bubble{position:absolute;padding:6px 8px;background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:12px;transform:translate(-50%,-120%);pointer-events:none;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+  </style>
+</head>
+<body>
+  <div id="game">
+    <canvas id="canvas"></canvas>
+    <div id="hud">接続中…</div>
+  </div>
+  <div id="chatBar">
+    <input id="msg" placeholder="近くの人に話しかける…" />
+    <button id="send">送信</button>
+  </div>
+
+  <script type="module">
+    // ===== Firebase (v12.1.0 CDN / モジュラー) ====================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, onChildChanged, onChildRemoved, set, remove, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    // ★ あなたの Web アプリ設定（ユーザー提供値に加え databaseURL を付与）
+    const firebaseConfig = {
+      apiKey: "AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ",
+      authDomain: "nikori-town.firebaseapp.com",
+      databaseURL: "https://nikori-town-default-rtdb.firebaseio.com", // ← 重要（RTDBのURL）
+      projectId: "nikori-town",
+      storageBucket: "nikori-town.firebasestorage.app",
+      messagingSenderId: "836836010871",
+      appId: "1:836836010871:web:74ae40cb16ee6d50368f72",
+      measurementId: "G-KT3N3KKWMH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    // ===== URLパラメータ（index.html から） =======================
+    const params = new URLSearchParams(location.search);
+    const ROOM_ID = (params.get('room') || 'demo').trim().toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9_-]/g,'');
+    const PLAYER_NAME = (params.get('name') || 'guest').slice(0,16);
+    const MODE = params.get('mode') || 'join';
+
+    // ===== Canvas 準備 ============================================
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    function fitCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight - 54; }
+    addEventListener('resize', fitCanvas); fitCanvas();
+
+    // 画像
+    const mapImage = new Image(); mapImage.src = 'map_1.png';
+    const collisionImage = new Image(); collisionImage.src = 'atarihantei.png';
+    const sprites = {
+      up:    Object.assign(new Image(), { src:'nikorihito_dot_behind.png' }),
+      down:  Object.assign(new Image(), { src:'nikorihito_dot_front.png' }),
+      left:  Object.assign(new Image(), { src:'nikorihito_dot_left.png' }),
+      right: Object.assign(new Image(), { src:'nikorihito_dot_right.png' }),
+    };
+
+    // 衝突判定用オフスクリーン
+    const colCanvas = document.createElement('canvas');
+    const colCtx = colCanvas.getContext('2d');
+
+    // 自分
+    const me = { id:'', name:PLAYER_NAME, x:900, y:600, dir:'down', speed:3.0 };
+    const camera = { x:0, y:0, w:canvas.width, h:canvas.height, sw:0, sh:0 };
+    const keys = {};
+    addEventListener('keydown', e => keys[e.key] = true);
+    addEventListener('keyup',   e => keys[e.key] = false);
+
+    // 近接会話
+    const PROXIMITY = 180; // px
+    const hud = document.getElementById('hud');
+
+    // ===== Realtime Database 参照 ================================
+    const roomRef    = ref(db, `rooms/${ROOM_ID}`);
+    const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
+    const chatRef    = ref(db, `rooms/${ROOM_ID}/chat`);
+
+    // 自分のノード作成
+    const myRef = push(playersRef);
+    me.id = myRef.key;
+
+    // ルーム作成メタ（任意）
+    if (MODE === 'create') {
+      set(ref(db, `rooms/${ROOM_ID}/meta/createdAt`), serverTimestamp());
+    }
+    // 切断時に自ノードを削除
+    onDisconnect(myRef).remove();
+
+    // 他プレイヤー
+    const others = new Map(); // id -> {x,y,dir,name,ts}
+
+    // 監視: プレイヤーの出入り・更新
+    onChildAdded(playersRef, snap => { if (snap.key !== me.id) others.set(snap.key, snap.val()); });
+    onChildChanged(playersRef, snap => { if (snap.key !== me.id) others.set(snap.key, snap.val()); });
+    onChildRemoved(playersRef, snap => {
+      others.delete(snap.key);
+      const b = document.getElementById('bub-'+snap.key);
+      if (b) b.remove();
+    });
+
+    // 監視: チャット（近接のみ表示）
+    onChildAdded(chatRef, snap => {
+      const m = snap.val(); // {id,name,text,x,y,ts}
+      const dist = Math.hypot((m.x||0)-me.x, (m.y||0)-me.y);
+      if (dist <= PROXIMITY) showBubble(m.id, `${m.name}: ${m.text}`);
+    });
+
+    // ===== チャット送信 UI =======================================
+    const msg  = document.getElementById('msg');
+    const send = document.getElementById('send');
+    function sendChat(text){
+      text = (text||'').trim();
+      if (!text) return;
+      push(chatRef, { id:me.id, name:me.name, text, x:me.x, y:me.y, ts:Date.now() });
+    }
+    send.onclick = () => { sendChat(msg.value); msg.value=''; msg.focus(); };
+    msg.addEventListener('keydown', e => { if (e.key==='Enter') send.click(); });
+
+    function showBubble(id, text){
+      let el = document.getElementById('bub-'+id);
+      if (!el){
+        el = document.createElement('div');
+        el.className = 'bubble';
+        el.id = 'bub-'+id;
+        document.getElementById('game').appendChild(el);
+      }
+      el.textContent = text;
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.remove(), 3000);
+    }
+    function positionBubble(id, p){
+      const el = document.getElementById('bub-'+id); if (!el) return;
+      el.style.left = (p.x - camera.x) + 'px';
+      el.style.top  = (p.y - camera.y) + 'px';
+    }
+
+    // ===== 衝突判定（赤優勢ピクセル＝壁） ========================
+    const COLLISION_RADIUS = 10, FOOT_OFFSET_Y = 8;
+    function redBlocked(px, py){
+      if (px<0||py<0||px>=colCanvas.width||py>=colCanvas.height) return true;
+      const d = colCtx.getImageData(px,py,1,1).data;
+      return (d[3] > 128) && (d[0] > 200) && (d[1] < 80) && (d[2] < 80);
+    }
+    function isBlocked(x, y){
+      const cx = Math.floor(x), cy = Math.floor(y + FOOT_OFFSET_Y);
+      const checks = 8;
+      for (let i=0;i<checks;i++){
+        const a = (Math.PI*2*i)/checks;
+        const px = Math.floor(cx + Math.cos(a)*COLLISION_RADIUS);
+        const py = Math.floor(cy + Math.sin(a)*COLLISION_RADIUS);
+        if (redBlocked(px,py)) return true;
+      }
+      if (redBlocked(cx,cy)) return true;
+      return false;
+    }
+
+    // ===== 更新 & 描画 ===========================================
+    function update(){
+      let nx=me.x, ny=me.y;
+      if (keys['ArrowUp']||keys['w'])   { ny-=me.speed; me.dir='up'; }
+      if (keys['ArrowDown']||keys['s']) { ny+=me.speed; me.dir='down'; }
+      if (keys['ArrowLeft']||keys['a']) { nx-=me.speed; me.dir='left'; }
+      if (keys['ArrowRight']||keys['d']){ nx+=me.speed; me.dir='right'; }
+      if (!isBlocked(nx,ny)){ me.x=nx; me.y=ny; }
+
+      // カメラ（マップより画面が大きい場合も安全に）
+      camera.w = canvas.width; camera.h = canvas.height;
+      const sw = Math.min(camera.w, mapImage.width || camera.w);
+      const sh = Math.min(camera.h, mapImage.height || camera.h);
+      camera.x = Math.max(0, Math.min(me.x - sw/2, Math.max(0,(mapImage.width||sw) - sw)));
+      camera.y = Math.max(0, Math.min(me.y - sh/2, Math.max(0,(mapImage.height||sh) - sh)));
+      camera.sw = sw; camera.sh = sh;
+
+      // 自分の位置を送信（間引き）
+      const now = performance.now();
+      if (!update._last || now - update._last > 80){
+        set(myRef, { name:me.name, x:me.x, y:me.y, dir:me.dir, ts:Date.now() });
+        update._last = now;
+      }
+
+      // 吹き出し追従
+      for (const [id,p] of others) positionBubble(id,p);
+      positionBubble(me.id, me);
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // マップ（ソース矩形はマップ内に制限）
+      ctx.drawImage(mapImage, camera.x, camera.y, camera.sw, camera.sh, 0, 0, canvas.width, canvas.height);
+
+      // 他プレイヤー
+      for (const [id,p] of others){
+        const sp = sprites[p.dir] || sprites.down;
+        const sx = p.x - camera.x - 32, sy = p.y - camera.y - 32;
+        ctx.drawImage(sp, sx, sy, 64,64);
+        ctx.font = '12px system-ui'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+        ctx.fillText(p.name||'player', sx+32, sy+72);
+      }
+      // 自分
+      const sp = sprites[me.dir] || sprites.down;
+      ctx.drawImage(sp, me.x - camera.x - 32, me.y - camera.y - 32, 64,64);
+      ctx.textAlign='center'; ctx.fillStyle='#fff';
+      ctx.fillText(me.name, me.x - camera.x, me.y - camera.y + 40);
+    }
+
+    function loop(){ update(); draw(); requestAnimationFrame(loop); }
+
+    // ===== ロード完了で開始 ======================================
+    function loadAll(cb){
+      let loaded=0, total=6;
+      function done(){ if(++loaded===total) cb(); }
+      mapImage.onload=done;
+      collisionImage.onload=()=>{ colCanvas.width=collisionImage.width; colCanvas.height=collisionImage.height; colCtx.drawImage(collisionImage,0,0); done(); };
+      sprites.up.onload=done; sprites.down.onload=done; sprites.left.onload=done; sprites.right.onload=done;
+    }
+    loadAll(()=>{
+      document.getElementById('hud').textContent = `ルーム: ${ROOM_ID}｜名前: ${PLAYER_NAME}｜同期: オンライン`;
+      loop();
+    });
+
+    // 安全: タブを閉じるとき自分を消す
+    addEventListener('beforeunload', ()=>{ try{ remove(myRef); }catch(e){} });
+  </script>
+</body>
+</html>
