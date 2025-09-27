@@ -80,6 +80,7 @@ const imgRight = await loadImage('./nikorihito_dot_right.png');
 // ===== Canvas & Camera =====
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false; // ドット絵のにじみ防止
 function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
 addEventListener('resize', resize); resize();
 
@@ -97,21 +98,30 @@ function isBlocked(x,y){
   return (r >= 180 && g <= 80 && b <= 80); // 赤
 }
 
-// ===== Game State =====
-const SCALE  = 2.0;   // ★ キャラ描画2倍
-const SPEED  = 7;   // px/frame
-const RADIUS = 10;    // ★ あたり半径も上げる
+// ===== Game State（★1: delta-time で自分だけ滑らかに） =====
+const SCALE      = 1.6;   // ズーム（小さいほど広い）
+const SPEED_PPS  = 280;   // 速度 px/秒（お好みで 260〜360）
+const RADIUS     = 10;    // 当たり半径
 let dir = 'front';
 const keys = new Set();
 
-// 安全スポーンを探す
+// 安全スポーン探索
+function hits(x,y){
+  if(x<0||y<0||x>=world.w||y>=world.h) return true;
+  for(let dy=-RADIUS; dy<=RADIUS; dy++){
+    for(let dx=-RADIUS; dx<=RADIUS; dx++){
+      if(dx*dx+dy*dy>RADIUS*RADIUS) continue;
+      if(isBlocked(x+dx, y+dy)) return true;
+    }
+  }
+  return false;
+}
 function safeSpawn(maxTry=500){
   for(let i=0;i<maxTry;i++){
     const x = Math.random()*(world.w-64)+32;
     const y = Math.random()*(world.h-64)+32;
     if(!hits(x,y)) return {x,y};
   }
-  // フォールバック：中央付近をスキャン
   const cx=world.w/2, cy=world.h/2;
   for(let r=0;r<400;r+=8){
     for(let a=0;a<Math.PI*2;a+=Math.PI/8){
@@ -119,9 +129,8 @@ function safeSpawn(maxTry=500){
       if(!hits(x,y)) return {x,y};
     }
   }
-  return {x: Math.max(16,Math.min(world.w-16,cx)), y: Math.max(16,Math.min(world.h-16,cy))};
+  return {x:cx, y:cy};
 }
-
 let my = Object.assign({dir, name: NAME, ts: Date.now()}, safeSpawn());
 
 // Firebase ノード
@@ -130,7 +139,7 @@ const meId  = crypto.randomUUID();
 const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
 const chatRef = ref(db, `rooms/${ROOM}/chat`);
 
-// 匿名Auth（ルールがauth必須でも動くように）
+// 匿名Auth
 signInAnonymously(auth).catch(()=>{});
 
 // 入室
@@ -154,19 +163,7 @@ addEventListener('keyup', e=>{ keys.delete(e.key); });
 
 function spriteByDir(d){ return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront; }
 
-// 円形近似の当たり
-function hits(x,y){
-  if(x<0||y<0||x>=world.w||y>=world.h) return true;
-  for(let dy=-RADIUS; dy<=RADIUS; dy++){
-    for(let dx=-RADIUS; dx<=RADIUS; dx++){
-      if(dx*dx+dy*dy>RADIUS*RADIUS) continue;
-      if(isBlocked(x+dx, y+dy)) return true;
-    }
-  }
-  return false;
-}
-
-// カメラ
+// カメラ（フレームごとに即追従／補間は未適用）
 function camera(){
   const cx = Math.round(my.x - canvas.width/2);
   const cy = Math.round(my.y - canvas.height/2);
@@ -174,42 +171,50 @@ function camera(){
            y: Math.max(0, Math.min(world.h - canvas.height, cy)) };
 }
 
-// 位置更新＋同期
-let lastSync=0;
-function step(){
+// ===== ループ（★delta-time） =====
+let lastSync = 0;
+let lastT = performance.now();
+function step(now){
+  const dt = Math.min(0.033, (now - lastT) / 1000); // 33ms上限（保険）
+  lastT = now;
+
+  // 入力→速度ベクトル
   let vx=0, vy=0;
   if(keys.has('ArrowUp')   || keys.has('w') || keys.has('W')) vy-=1;
   if(keys.has('ArrowDown') || keys.has('s') || keys.has('S')) vy+=1;
   if(keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) vx-=1;
   if(keys.has('ArrowRight')|| keys.has('d') || keys.has('D')) vx+=1;
+
   if(vx||vy){
     const len=Math.hypot(vx,vy); vx/=len; vy/=len;
-    const nx=my.x+vx*SPEED, ny=my.y+vy*SPEED;
-    if(!hits(nx,my.y)) my.x=nx;
-    if(!hits(my.x,ny)) my.y=ny;
+    const s = SPEED_PPS * dt;
+    const nx = my.x + vx*s, ny = my.y + vy*s;
+    if(!hits(nx, my.y)) my.x = nx;
+    if(!hits(my.x, ny)) my.y = ny;
     dir = Math.abs(vx)>Math.abs(vy) ? (vx>0?'right':'left') : (vy>0?'front':'back');
   }
 
+  // 描画
   const cam = camera();
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, -cam.x, -cam.y);
 
-  // 他プレイヤー
+  // 他プレイヤー（★自分は除外）
   for(const [id,p] of Object.entries(players)){
-    if(!p) continue;
-    const im=spriteByDir(p.dir||'front');
-    const sw=im.width*SCALE, sh=im.height*SCALE;
-    const sx=Math.round(p.x - sw/2 - cam.x), sy=Math.round(p.y - sh/2 - cam.y);
+    if(!p || id===meId) continue;
+    const im = spriteByDir(p.dir||'front');
+    const sw = im.width*SCALE, sh = im.height*SCALE;
+    const sx = Math.round(p.x - sw/2 - cam.x), sy = Math.round(p.y - sh/2 - cam.y);
     ctx.drawImage(im, sx, sy, sw, sh);
-    drawName(p.name||'?', p.x - cam.x, (p.y - sh/2) - cam.y - 2, id===meId);
+    drawName(p.name||'?', p.x - cam.x, (p.y - sh/2) - cam.y - 2, false);
   }
 
   // 自分
-  const meIm=spriteByDir(dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
+  const meIm = spriteByDir(dir), mw = meIm.width*SCALE, mh = meIm.height*SCALE;
   ctx.drawImage(meIm, Math.round(my.x - mw/2 - cam.x), Math.round(my.y - mh/2 - cam.y), mw, mh);
   drawName(NAME, my.x - cam.x, (my.y - mh/2) - cam.y - 2, true);
 
-  const now=performance.now();
+  // 同期（20fps上限）
   if(now-lastSync>50){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
 
   requestAnimationFrame(step);
