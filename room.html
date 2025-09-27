@@ -1,246 +1,288 @@
-<!DOCTYPE html>
+<!-- ========================= index.html (ロビー) ========================= -->
+<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ニコリタウン 接続診断 (Improved)</title>
+<title>ニコリタウン - ロビー</title>
 <style>
-  :root{
-    --bg:#0b1220; --panel:#111827; --border:#334155; --text:#e2e8f0; --muted:#94a3b8;
-    --accent1:#22d3ee; --accent2:#06b6d4; --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
-  }
+  :root{--bg:#0b1220;--panel:#111827;--border:#334155;--text:#e2e8f0;--accent1:#22d3ee;--accent2:#06b6d4}
   *{box-sizing:border-box}
-  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:24px}
-  .wrap{max-width:960px;margin-inline:auto}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-  h2{margin:0 0 8px}
-  p{margin:8px 0}
-  label{display:flex;gap:8px;align-items:center}
-  input,button{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
-  input{min-width:12rem}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif}
+  .wrap{max-width:720px;margin:48px auto;padding:0 16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px}
+  input,button{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
   button{background:linear-gradient(180deg,var(--accent1),var(--accent2));border:0;color:#06202a;font-weight:700;cursor:pointer}
-  button.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  code{background:#0b1220;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
-  .log{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b1220;border:1px solid var(--border);border-radius:10px;padding:10px;height:220px;overflow:auto}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px;align-items:center}
-  .kv .k{color:var(--muted)}
-  .badge{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border:1px solid var(--border);border-radius:999px}
-  .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--err)}
-  .sep{height:1px;background:var(--border);margin:12px 0}
+  .hint{color:#9aa6b2;font-size:.9rem}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h2>接続診断（Realtime Database）</h2>
-    <p>同じルームに入れない・表示がズレる等の切り分け用。2つのタブや別端末で同じルームIDを入力して「入室」を押してください。</p>
-
-    <div class="row" style="margin:8px 0 12px">
-      <label>ルームID: <input id="room" placeholder="room-test" value="room-test" /></label>
-      <label>名前: <input id="name" placeholder="namae" value="diag" /></label>
-      <button id="join">入室</button>
-      <button id="leave" class="ghost">退室</button>
-      <button id="share" class="ghost" title="URLパラメータにroom/nameを含むリンクをコピー">リンクコピー</button>
-      <button id="clearLog" class="ghost">ログ消去</button>
-      <button id="saveLog" class="ghost">ログ保存</button>
-    </div>
-
-    <div class="kv" style="margin-bottom:8px">
-      <div class="k">自分のキー</div><div><code id="myid">-</code></div>
-      <div class="k">認証UID</div><div><code id="uid">(未サインイン)</code> <span class="badge" id="authBadge">匿名Auth未使用</span></div>
-      <div class="k">接続状態</div><div><code id="status">未接続</code> <span id="connIcon" class="badge">.info/connected: ?</span></div>
-      <div class="k">オンライン人数</div><div><code id="count">-</code></div>
-      <div class="k">サーバ時刻(推定)</div><div><code id="servertime">-</code></div>
-      <div class="k">往復レイテンシ</div><div><code id="rtt">-</code></div>
-    </div>
-
-    <div class="grid">
-      <div>
-        <p>プレイヤー一覧:</p>
-        <div id="list" class="log"></div>
+  <div class="wrap">
+    <div class="card">
+      <h1>ニコリタウン - ロビー</h1>
+      <p class="hint">同じ <b>ルームID</b> と <b>URL</b> を共有すると、同じマップで一緒に歩けます。WASD / ↑↓←→ で移動。右側パネルのチャットで会話できます。</p>
+      <div class="row" style="margin:8px 0 16px">
+        <label>ルームID： <input id="room" placeholder="room-001" value="room-001" /></label>
+        <label>名前： <input id="name" placeholder="こっぴー" value="こっぴー" /></label>
+        <button id="enter">入室</button>
+        <button id="share">リンクコピー</button>
       </div>
-      <div>
-        <p>ログ:</p>
-        <div id="log" class="log"></div>
-      </div>
+      <p class="hint">以下の画像を <code>room.html</code> と同じディレクトリに置いてください：<code>map_1.png</code> / <code>atarihantei.png</code> / <code>nikorihito_dot_front.png</code> / <code>..._behind.png</code> / <code>..._left.png</code> / <code>..._right.png</code></p>
+    </div>
+  </div>
+  <script>
+    const $=s=>document.querySelector(s);
+    $('#enter').onclick=()=>{
+      const r=encodeURIComponent($('#room').value.trim()||'room-001');
+      const n=encodeURIComponent($('#name').value.trim()||'guest');
+      location.href=`./room.html?room=${r}&name=${n}`;
+    };
+    $('#share').onclick=async()=>{
+      const r=encodeURIComponent($('#room').value.trim()||'room-001');
+      const n=encodeURIComponent($('#name').value.trim()||'guest');
+      const url=`${location.origin}${location.pathname.replace(/index\.html?$/,'')}room.html?room=${r}&name=${n}`;
+      try{await navigator.clipboard.writeText(url); alert('共有リンクをコピーしました');}catch{prompt('このURLを共有してください',url)}
+    };
+  </script>
+</body>
+</html>
+
+
+<!-- ========================= room.html（ゲーム＋チャット） ========================= -->
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ニコリタウン - ルーム</title>
+<style>
+  :root{--bg:#0b1220;--panel:#0e1628;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--accent1:#22d3ee;--accent2:#06b6d4}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;}
+  .app{display:grid;grid-template-columns:1fr 360px;gap:12px;max-width:1280px;margin:8px auto;padding:8px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .hud{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--border);background:var(--panel2)}
+  .hud code{background:#0b1220;border:1px solid var(--border);border-radius:8px;padding:2px 6px}
+  canvas{display:block;image-rendering:pixelated}
+  .side{display:flex;flex-direction:column}
+  .chat{flex:1;display:flex;flex-direction:column}
+  .msgs{flex:1;padding:8px;overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+  .msg{margin:4px 0}
+  .me{font-weight:700}
+  .input{display:flex;gap:6px;padding:8px;border-top:1px solid var(--border)}
+  input,button{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
+  button{background:linear-gradient(180deg,var(--accent1),var(--accent2));border:0;color:#06202a;font-weight:700;cursor:pointer}
+  .small{color:#9aa6b2;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="panel">
+    <div class="hud">
+      <div>ルーム: <code id="roomId">-</code></div>
+      <div>自分: <code id="who">-</code></div>
+      <div>人数: <code id="count">0</code></div>
+      <div class="small">WASD / ↑↓←→ で移動</div>
+    </div>
+    <canvas id="game" width="960" height="540"></canvas>
+  </div>
+  <div class="panel side">
+    <div class="hud">チャット</div>
+    <div id="msgs" class="msgs"></div>
+    <div class="input">
+      <input id="text" placeholder="メッセージ…" maxlength="200" />
+      <button id="send">送信</button>
     </div>
   </div>
 </div>
 
 <script type="module">
+// ===== Firebase SDK (v12) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-import { getDatabase, ref, push, set, update, remove, onChildAdded, onChildRemoved, onValue, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
-// === Firebase Config ===
 const firebaseConfig = {
-  apiKey: "AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ",
-  authDomain: "nikori-town.firebaseapp.com",
-  databaseURL: "https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "nikori-town",
-  storageBucket: "nikori-town.firebasestorage.app",
-  messagingSenderId: "836836010871",
-  appId: "1:836836010871:web:74ae40cb16ee6d50368f72"
+  apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
+  authDomain: 'nikori-town.firebaseapp.com',
+  databaseURL: 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'nikori-town',
+  storageBucket: 'nikori-town.firebasestorage.app',
+  messagingSenderId: '836836010871',
+  appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
 };
-
-// === App init ===
 const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
 const auth = getAuth(app);
+const db   = getDatabase(app);
 
-// === DOM helpers ===
-const $ = s => document.querySelector(s);
-const log = (m)=>{ const el=$('#log'); const ts=new Date().toLocaleTimeString(); el.textContent += `[${ts}] ${m}\n`; el.scrollTop = el.scrollHeight; };
-const setText = (sel, v) => { $(sel).textContent = v; };
-const renderList = (players)=>{
-  const lines = Object.entries(players)
-    .sort((a,b)=> (b[1]?.ts||0) - (a[1]?.ts||0))
-    .map(([k,v])=> `${k}: ${v?.name||'?'}  (${new Date(v?.ts||0).toLocaleTimeString()})`);
-  $('#list').textContent = lines.join('\n');
+// ===== URL params =====
+const u = new URL(location.href);
+const ROOM = (u.searchParams.get('room')||'room-001').toLowerCase();
+const NAME = u.searchParams.get('name')||'guest';
+
+document.getElementById('roomId').textContent = ROOM;
+document.getElementById('who').textContent    = NAME;
+
+// ===== Assets =====
+function loadImage(src){
+  return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; });
+}
+const imgMap   = await loadImage('./map_1.png');
+const imgMask  = await loadImage('./atarihantei.png'); // 赤い部分=通行不可
+const imgFront = await loadImage('./nikorihito_dot_front.png');
+const imgBack  = await loadImage('./nikorihito_dot_behind.png');
+const imgLeft  = await loadImage('./nikorihito_dot_left.png');
+const imgRight = await loadImage('./nikorihito_dot_right.png');
+
+const size = { w: imgMap.width, h: imgMap.height };
+const canvas = document.getElementById('game');
+canvas.width = size.w; canvas.height = size.h;
+const ctx = canvas.getContext('2d');
+
+// マスクを読み込んでピクセル判定用に保持
+const maskC = new OffscreenCanvas(imgMask.width, imgMask.height);
+const maskX = maskC.getContext('2d');
+maskX.drawImage(imgMask, 0, 0);
+
+function isBlocked(x,y){
+  // 赤い画素（#ff0000 付近）を通行不可にする。透明は通行可。
+  const d = maskX.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+  const r=d[0], g=d[1], b=d[2], a=d[3];
+  if (a < 10) return false;               // ほぼ透明は通行可
+  return (r >= 180 && g <= 80 && b <= 80); // 赤しきい値（必要に応じて調整）
+}
+
+// ===== ゲーム状態 =====
+const SPEED = 2.0; // px/frame
+const RADIUS = 6;  // 当たり半径
+let dir = 'front';
+let keys = new Set();
+let my = { x: Math.random()*(size.w-32)+16, y: Math.random()*(size.h-32)+16, dir, name: NAME, ts: Date.now() };
+
+// Firebase ノード
+const playersRef = ref(db, `rooms/${ROOM}/players`);
+const meId  = crypto.randomUUID();
+const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
+const chatRef = ref(db, `rooms/${ROOM}/chat`);
+
+// 匿名Auth（RTDBがauth必須でも動くように）
+signInAnonymously(auth).catch(()=>{});
+
+// 入室
+await set(meRef, { name: NAME, x: my.x, y: my.y, dir: my.dir, ts: Date.now() });
+onDisconnect(meRef).remove();
+
+// 人数 & 他プレイヤー追跡
+let players = {}; // {id:{name,x,y,dir,ts}}
+onValue(playersRef, snap=>{
+  players = snap.val()||{};
+  document.getElementById('count').textContent = Object.keys(players).length;
+});
+
+// ===== 入力 =====
+addEventListener('keydown', e=>{
+  const k = e.key; if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(k)) e.preventDefault();
+  keys.add(k);
+});
+addEventListener('keyup', e=>{ keys.delete(e.key); });
+
+// 方向からスプライトを選択
+function spriteByDir(d){
+  return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront;
+}
+
+// 当たり判定（半径Rで円形近似）
+function hits(x,y){
+  for(let dy=-RADIUS; dy<=RADIUS; dy++){
+    for(let dx=-RADIUS; dx<=RADIUS; dx++){
+      if(dx*dx+dy*dy>RADIUS*RADIUS) continue;
+      if(isBlocked(x+dx, y+dy)) return true;
+    }
+  }
+  return false;
+}
+
+// 位置更新＋同期（スロットル）
+let lastSync = 0;
+function step(){
+  let vx=0, vy=0; const k=keys;
+  if(k.has('ArrowUp')||k.has('w')||k.has('W'))    vy-=1;
+  if(k.has('ArrowDown')||k.has('s')||k.has('S'))  vy+=1;
+  if(k.has('ArrowLeft')||k.has('a')||k.has('A'))  vx-=1;
+  if(k.has('ArrowRight')||k.has('d')||k.has('D')) vx+=1;
+  if(vx||vy){
+    const len=Math.hypot(vx,vy); vx/=len; vy/=len;
+    const nx = my.x + vx*SPEED;
+    const ny = my.y + vy*SPEED;
+    // 斜めで引っかかりにくいように軸ごとにチェック
+    if(!hits(nx, my.y)) my.x = nx;
+    if(!hits(my.x, ny)) my.y = ny;
+    if(Math.abs(vx)>Math.abs(vy)) dir = (vx>0?'right':'left'); else dir = (vy>0?'front':'back');
+  }
+
+  // 描画
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(imgMap,0,0);
+  // 他プレイヤー
+  for(const [id,p] of Object.entries(players)){
+    if(id===meId) continue; if(!p) continue;
+    const im = spriteByDir(p.dir||'front');
+    ctx.drawImage(im, Math.round(p.x)-im.width/2, Math.round(p.y)-im.height/2);
+    drawName(p.name||'?', p.x, p.y-16);
+  }
+  // 自分
+  ctx.drawImage(spriteByDir(dir), Math.round(my.x)-imgFront.width/2, Math.round(my.y)-imgFront.height/2);
+  drawName(NAME, my.x, my.y-16, true);
+
+  // 必要なときだけ同期（20fps上限）
+  const now=performance.now();
+  if(now-lastSync>50){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
+
+  requestAnimationFrame(step);
+}
+requestAnimationFrame(step);
+
+function drawName(name, x, y, me=false){
+  ctx.font='12px system-ui, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,0,0,.6)';
+  ctx.fillRect(x-32, y-14, 64, 16);
+  ctx.fillStyle= me? '#22d3ee' : '#e2e8f0';
+  ctx.fillText(name, x, y-2);
+}
+
+// ===== チャット =====
+const msgsEl = document.getElementById('msgs');
+const textEl = document.getElementById('text');
+const sendBtn= document.getElementById('send');
+
+function addMsgDom(m){
+  const div=document.createElement('div');
+  div.className='msg';
+  const mine = m.id===meId || (m.name===NAME);
+  div.innerHTML=`<span class="${mine?'me':''}">${m.name||'?'}:</span> ${escapeHtml(m.text||'')}`;
+  msgsEl.appendChild(div); msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+// 最新50件を購読
+const chatQ = query(chatRef, limitToLast(50));
+onValue(chatQ, snap=>{
+  const v = snap.val()||{}; const arr = Object.entries(v).map(([k,val])=>({id:k, ...val}));
+  arr.sort((a,b)=> (a.ts||0)-(b.ts||0));
+  msgsEl.innerHTML=''; arr.forEach(addMsgDom);
+});
+
+sendBtn.onclick = async ()=>{
+  const t = textEl.value.trim(); if(!t) return;
+  await push(chatRef, { name: NAME, id: meId, text: t.slice(0,200), ts: Date.now() });
+  textEl.value=''; textEl.focus();
 };
+textEl.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
 
-// === State ===
-let roomId = null, myRef = null, playersRef = null, pingsRef = null;
-let players = {};
-let heartbeatTimer = null, rttTimer = null;
-let serverOffset = 0; // ms
-
-// === Utilities ===
-const sanitizeRoom = (raw) => (raw||'room-test').toLowerCase().replace(/[^a-z0-9-]/g,'-').slice(0,32) || 'room-test';
-const sanitizeName = (raw) => (raw||'diag').replace(/[\n\r\t]/g,' ').slice(0,24);
-const now = () => Date.now() + serverOffset; // approx server time
-
-// URL params → 初期値
-(() => {
-  const u = new URL(location.href);
-  const r = u.searchParams.get('room') || u.hash.replace('#','');
-  const n = u.searchParams.get('name');
-  if (r) $('#room').value = r;
-  if (n) $('#name').value = n;
-})();
-
-// .info/connected & clock skew
-const infoConnRef = ref(db, '.info/connected');
-const infoOffsetRef = ref(db, '.info/serverTimeOffset');
-
-onValue(infoConnRef, (snap) => {
-  const connected = !!snap.val();
-  $('#connIcon').textContent = `.info/connected: ${connected ? 'true' : 'false'}`;
-  $('#connIcon').className = 'badge ' + (connected ? 'ok' : 'err');
-});
-
-onValue(infoOffsetRef, (snap) => {
-  serverOffset = snap.val() || 0;
-  setText('#servertime', new Date(now()).toLocaleString());
-});
-
-// 匿名Auth（任意）: ルールが auth 必須の環境でも検証できるように
-signInAnonymously(auth).catch(e=> log('匿名サインイン失敗: '+ e.message));
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    setText('#uid', user.uid);
-    $('#authBadge').textContent = '匿名Auth有効';
-    $('#authBadge').className = 'badge ok';
-  } else {
-    setText('#uid', '(未サインイン)');
-    $('#authBadge').textContent = '匿名Auth未使用';
-    $('#authBadge').className = 'badge warn';
-  }
-});
-
-async function joinRoom(){
-  if (myRef) return; // already joined
-  roomId = sanitizeRoom($('#room').value);
-  const name = sanitizeName($('#name').value);
-  playersRef = ref(db, `rooms/${roomId}/players`);
-  pingsRef   = ref(db, `rooms/${roomId}/pings`);
-  myRef = push(playersRef);
-  try{
-    await set(myRef, { name, ts: now() });
-    onDisconnect(myRef).remove();
-    setText('#myid', myRef.key);
-    setText('#status', '入室中');
-    log(`入室: rooms/${roomId}/players/${myRef.key}`);
-  }catch(e){
-    log('入室エラー: ' + e.message);
-    myRef = null; return;
-  }
-
-  // 参加者購読（追加/削除）
-  onChildAdded(playersRef, snap => { players[snap.key]=snap.val(); renderList(players); setText('#count', Object.keys(players).length); });
-  onChildRemoved(playersRef, snap => { delete players[snap.key]; renderList(players); setText('#count', Object.keys(players).length); });
-
-  // 全体の人数（保険: onValue で再計算）
-  onValue(playersRef, (snap)=>{ const v=snap.val()||{}; players=v; renderList(players); setText('#count', Object.keys(v).length); });
-
-  // ハートビート（最後の活動時刻を更新）
-  heartbeatTimer && clearInterval(heartbeatTimer);
-  heartbeatTimer = setInterval(()=>{
-    if (!myRef) return; update(myRef, { ts: now() }).catch(()=>{});
-    setText('#servertime', new Date(now()).toLocaleString());
-  }, 20_000);
-
-  // RTTテスト: 小さな ping ノードへ書き込み→読み戻しまでの時間
-  rttTimer && clearInterval(rttTimer);
-  rttTimer = setInterval(async ()=>{
-    if (!pingsRef || !myRef) return;
-    const pingKey = `${myRef.key}`;
-    const t0 = performance.now();
-    try{
-      await set(ref(db, `rooms/${roomId}/pings/${pingKey}`), { t: now() });
-      const snap = await get(ref(db, `rooms/${roomId}/pings/${pingKey}`));
-      if (snap.exists()){
-        const t1 = performance.now();
-        const rtt = Math.max(0, Math.round(t1 - t0));
-        setText('#rtt', rtt + ' ms');
-      }
-    }catch(e){ /* ignore */ }
-  }, 10_000);
-
-  // ページ離脱で自動退室
-  window.addEventListener('beforeunload', handleLeaveOnce, { once:true });
-}
-
-async function handleLeave(){
-  if (!myRef) return;
-  try{
-    await remove(myRef);
-    log('退室');
-  }catch(e){
-    log('退室エラー: ' + e.message);
-  }
-  clearInterval(heartbeatTimer); clearInterval(rttTimer);
-  heartbeatTimer = rttTimer = null;
-  setText('#status', '退室');
-  setText('#myid', '-');
-  myRef = null; players = {}; renderList(players); setText('#count','-');
-}
-
-function handleLeaveOnce(){ handleLeave(); }
-
-// Buttons
-$('#join').addEventListener('click', joinRoom);
-$('#leave').addEventListener('click', handleLeave);
-$('#clearLog').addEventListener('click', ()=> { $('#log').textContent=''; });
-$('#saveLog').addEventListener('click', ()=>{
-  const blob = new Blob([$('#log').textContent], { type:'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement('a'), { href:url, download:`diagnostics_${Date.now()}.txt` });
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
-$('#share').addEventListener('click', async ()=>{
-  const r = sanitizeRoom($('#room').value), n = sanitizeName($('#name').value);
-  const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(r)}&name=${encodeURIComponent(n)}`;
-  try{
-    await navigator.clipboard.writeText(url);
-    log('共有リンクをコピーしました');
-  }catch{
-    log('共有リンク: ' + url);
-  }
-});
+// ===== クリーンアップ =====
+addEventListener('beforeunload', ()=>{ remove(meRef); });
 
 </script>
 </body>
