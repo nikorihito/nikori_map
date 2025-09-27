@@ -3,78 +3,58 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム（mobile + smooth + reactions/replies/attachments）</title>
+<title>ニコリタウン - ルーム</title>
 <style>
-  :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4;--chip:#0f172a;--yellow:#fde68a33;--yellowBorder:#facc15}
+  :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4;--chip:#0f172a;--yellow:#fde68a33;--yellowBorder:#facc15;--mention:#22d3ee}
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden;touch-action:none;padding-bottom:env(safe-area-inset-bottom)}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden;touch-action:none}
   #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
 
-  .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
-  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
-  .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
-
+  /* Chat */
   #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
   #chatView .item{padding:6px 8px;border-radius:8px;margin:6px 0;position:relative}
   #chatView .me{background:rgba(34,211,238,.12)}
   #chatView .replyTo{display:block;font-size:.85rem;color:var(--muted);background:rgba(148,163,184,.12);padding:4px 6px;border-left:3px solid #64748b;border-radius:6px;margin-bottom:4px;cursor:pointer}
-  #chatView .file{display:inline-flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:8px;background:#0b1220}
-  #chatView .file img{max-width:180px;max-height:120px;display:block;border-radius:6px}
-  .reactions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:1px solid var(--border);border-radius:999px;background:rgba(15,23,42,.7);font-size:.9rem;cursor:default}
-  .pill.me{outline:1px solid var(--a1)}
   .replyToMe{background:var(--yellow); border:1px solid var(--yellowBorder)}
-  .mention{background:#1e293b; padding:0 4px; border-radius:6px}
+  .mentionSelf{color:var(--mention);font-weight:700}
+  .meta{color:var(--muted);font-size:.8rem;margin-top:2px}
 
-  #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}
-  #composer input{font:inherit;width:min(52vw,680px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
+  /* Composer */
+  #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
+  #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
   #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
-  #attachBtn{background:transparent;border:1px dashed var(--border);color:#e2e8f0}
-  #replyChip{position:fixed;left:50%;bottom:62px;transform:translateX(-50%);z-index:21;background:var(--chip);border:1px solid var(--border);border-radius:10px;padding:6px 8px;display:none;gap:8px;align-items:center}
-  #replyChip .x{cursor:pointer;opacity:.8}
 
+  /* Ctx menu */
   #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   #ctxMenu button{display:block;width:200px;text-align:left;padding:10px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
   #ctxMenu button:hover{background:#1b2540}
 
-  /* Reaction FAB（右下） */
+  /* Reaction FAB & palette */
   #reactFab{position:fixed;right:16px;bottom:96px;z-index:24;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;box-shadow:0 8px 22px rgba(0,0,0,.35)}
   #reactMenu{position:fixed;right:16px;bottom:160px;z-index:25;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px}
   #reactMenu button{font-size:22px;line-height:1.2;padding:6px 8px;background:transparent;border:0;cursor:pointer}
 
-  /* 添付ダイアログ */
-  #attachModal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:40}
-  #attachPanel{width:min(90vw,560px);background:#101826;border:1px solid var(--border);border-radius:12px;padding:16px}
-  .drop{border:2px dashed #64748b;border-radius:12px;padding:28px;text-align:center;color:#cbd5e1;background:rgba(15,23,42,.6)}
-  .drop.drag{background:rgba(34,211,238,.12);border-color:#22d3ee}
-  .drop small{display:block;color:#9aa6b2;margin-top:6px}
-
-  /* 吹き出し（リアクション） */
+  /* Bubbles */
   .bubble{position:absolute;transform:translate(-50%,-100%);background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px 10px;font-size:20px}
 
-  /* === 仮想ジョイスティック（左下） === */
-  .joy{position:fixed;left:12px;bottom:84px;width:140px;height:140px;border-radius:50%;z-index:25;background:rgba(16,24,38,.6);backdrop-filter:blur(4px);border:1px solid var(--border);touch-action:none}
-  .joy .knob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,var(--a1),var(--a2));border:0;box-shadow:0 4px 16px rgba(0,0,0,.35)}
-  @media (max-width:480px){.joy{width:120px;height:120px}.joy .knob{width:48px;height:48px}}
+  /* HUD */
+  .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
+  .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
 </style>
 </head>
 <body>
   <canvas id="game"></canvas>
 
   <div class="hud">
-    <button id="leave">退室</button>
     <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
   </div>
 
   <div id="chatView"></div>
   <div id="composer">
-    <button id="attachBtn" title="ファイル添付">📁</button>
-    <input id="text" placeholder="メッセージ… (@名前 はメンション / 返信は右クリックから)" maxlength="2000" />
+    <input id="text" placeholder="メッセージ… (@自分の名前だけ水色で強調 / 返信は右クリックから)" maxlength="2000" />
     <button id="send">送信</button>
-    <input id="filePick" type="file" style="display:none" />
   </div>
-  <div id="replyChip"><span id="replyLabel"></span> <span class="x" id="replyCancel">✕</span></div>
 
   <div id="ctxMenu">
     <button id="ctxReply">返信</button>
@@ -82,29 +62,12 @@
     <button id="editMsg">編集</button>
     <button id="delMsg">削除</button>
   </div>
-  
-  <!-- 右下のリアクションFAB & パレット -->
+
   <button id="reactFab" title="リアクション">😊</button>
   <div id="reactMenu"></div>
 
-  <!-- 添付ダイアログ -->
-  <div id="attachModal">
-    <div id="attachPanel">
-      <h3 style="margin:0 0 8px">ファイルを添付</h3>
-      <div id="drop" class="drop">
-        ドラッグ＆ドロップ<br/>
-        <small>または</small>
-        <button id="pickFromPc" style="margin-top:8px">パソコンからアップロード</button>
-      </div>
-      <div style="margin-top:10px;text-align:right"><button id="attachClose" class="ghost">閉じる</button></div>
-    </div>
-  </div>
-
-  <!-- 仮想ジョイスティック -->
-  <div id="joy" class="joy" aria-label="ジョイスティック"><div id="knob" class="knob"></div></div>
-
 <script type="module">
-/* ===== パラメータ ===== */
+/* ===== Params ===== */
 const SCALE=1.4, SPEED_PPS=320, RADIUS=10, PLAYER_INTERP=12, CAM_INTERP=10, SYNC_MS=50, MAX_MSG=120, FRAME_MIN=1000/50;
 const EMOJIS=['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
 
@@ -112,173 +75,123 @@ const EMOJIS=['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js';
 
 const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'nikori-town',storageBucket:'nikori-town.firebasestorage.app',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
-const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDatabase(app); const storage=getStorage(app);
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDatabase(app);
 
 /* ===== URL ===== */
 const u=new URL(location.href); const ROOM=(u.searchParams.get('room')||'room-001').toLowerCase(); const NAME=u.searchParams.get('name')||'guest';
 roomId.textContent=ROOM; who.textContent=NAME;
 
-/* ===== Assets ===== */
+/* ===== Assets (minimal for demo mapping) ===== */
 function loadImage(src){return new Promise((res,rej)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src;});}
-const imgMap=await loadImage('./map_1.png'); const imgMask=await loadImage('./atarihantei.png');
+const imgMap = await loadImage('./map_1.png');
 const imgFront=await loadImage('./nikorihito_dot_front.png'); const imgBack=await loadImage('./nikorihito_dot_behind.png'); const imgLeft=await loadImage('./nikorihito_dot_left.png'); const imgRight=await loadImage('./nikorihito_dot_right.png');
 
-/* ===== Canvas ===== */
-const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
-function resize(){canvas.width=innerWidth; canvas.height=innerHeight;} addEventListener('resize',resize); resize();
+/* ===== Canvas & camera ===== */
+const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false; function resize(){canvas.width=innerWidth; canvas.height=innerHeight;} addEventListener('resize',resize); resize();
 const world={w:imgMap.width,h:imgMap.height};
 
-/* ===== Collision fast ===== */
-const maskCanvas=(typeof OffscreenCanvas!=='undefined')?new OffscreenCanvas(imgMask.width,imgMask.height):Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
-const maskX=maskCanvas.getContext('2d'); maskX.drawImage(imgMask,0,0); const img=maskX.getImageData(0,0,imgMask.width,imgMask.height); const pix=img.data; const W=imgMask.width;
-function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*W+x)*4; const r=pix[i],g=pix[i+1],b=pix[i+2],a=pix[i+3]; if(a<10) return false; return (r>=180&&g<=80&&b<=80);} 
-function hits(x,y){const footY=y+(RADIUS*0.6); return isBlocked(x,footY)||isBlocked(x-RADIUS*0.7,footY)||isBlocked(x+RADIUS*0.7,footY);} 
-function safeSpawn(maxTry=500){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32,y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2,cy=world.h/2; for(let r=0;r<400;r+=8){for(let a=0;a<Math.PI*2;a+=Math.PI/8){const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r; if(!hits(x,y)) return {x,y};}} return {x:cx,y:cy};}
-
-/* ===== Game State ===== */
-let dir='front'; const keys=new Set(); let my=Object.assign({dir,name:NAME,ts:Date.now()},safeSpawn());
-const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=crypto.randomUUID(); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`); const chatRef=ref(db,`rooms/${ROOM}/chat`); const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
-
-signInAnonymously(auth).catch(()=>{}); await set(meRef,{name:NAME,x:my.x,y:my.y,dir:my.dir,ts:Date.now()}); onDisconnect(meRef).remove();
+/* ===== Players ===== */
+const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=crypto.randomUUID(); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
+let my={name:NAME,x:world.w/2,y:world.h/2,dir:'front',ts:Date.now()};
+signInAnonymously(auth).catch(()=>{}); await set(meRef,my); onDisconnect(meRef).remove();
 let players={}; const ghosts={};
 onValue(playersRef,snap=>{players=snap.val()||{}; count.textContent=Object.keys(players).length; for(const [id,p] of Object.entries(players)){ if(!ghosts[id]&&p) ghosts[id]={x:p.x,y:p.y,dir:p.dir,name:p.name}; }});
 
-/* ===== Input: keyboard (矢印のみ) ===== */
-addEventListener('keydown',e=>{const k=e.key; if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k)) e.preventDefault(); keys.add(k);});
-addEventListener('keyup',e=>{keys.delete(e.key);});
-
-/* ===== Virtual joystick ===== */
-const joy=document.getElementById('joy'), knob=document.getElementById('knob'); let joyActive=false, joyVx=0, joyVy=0, joyPointerId=null; const JOY_MAX=52;
-function joySetKnob(dx,dy){knob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;} function joyReset(){joyActive=false; joyVx=joyVy=0; joySetKnob(0,0);} function joyStart(x,y){joyActive=true; joyMove(x,y);} function joyMove(x,y){const r=joy.getBoundingClientRect(); const cx=r.left+r.width/2, cy=r.top+r.height/2; let dx=x-cx, dy=y-cy; const len=Math.hypot(dx,dy); if(len>0){const cl=Math.min(len,JOY_MAX); const nx=dx/len, ny=dy/len; dx=nx*cl; dy=ny*cl; joyVx=nx; joyVy=ny;} else {joyVx=joyVy=0;} joySetKnob(dx,dy);} 
-joy.addEventListener('pointerdown',e=>{joyPointerId=e.pointerId; joy.setPointerCapture(joyPointerId); joyStart(e.clientX,e.clientY);});
-joy.addEventListener('pointermove',e=>{if(e.pointerId!==joyPointerId) return; joyMove(e.clientX,e.clientY);});
-joy.addEventListener('pointerup',e=>{if(e.pointerId!==joyPointerId) return; joy.releasePointerCapture(joyPointerId); joyPointerId=null; joyReset();});
-joy.addEventListener('pointercancel',e=>{if(e.pointerId!==joyPointerId) return; joyPointerId=null; joyReset();});
-
-/* ===== Camera ===== */
-function spriteByDir(d){return d==='back'?imgBack:d==='left'?imgLeft:d==='right'?imgRight:imgFront;}
-let camX=0, camY=0; function camera(dt){const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2); const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k; camX=Math.max(0,Math.min(world.w-canvas.width,camX)); camY=Math.max(0,Math.min(world.h-canvas.height,camY)); return {x:camX,y:camY};}
-
-/* ===== Reaction bubbles (全員に見える) ===== */
-const bubbles=new Map();
-function showBubbleFor(uid,emoji){ let b=bubbles.get(uid); if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); } b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{b.style.display='none';},1800); }
-// 送信
-function emitBubble(emoji){ push(bubblesRef,{uid:meId,emoji,ts:Date.now()}); }
-// 受信
-onChildAdded(query(bubblesRef,limitToLast(50)), s=>{ const {uid,emoji,ts}=s.val()||{}; if(!uid||!emoji) return; if(Date.now()-ts>5000) return; showBubbleFor(uid,emoji); });
-
 /* ===== Chat ===== */
-const chatView=document.getElementById('chatView'); const textEl=document.getElementById('text'); const sendBtn=document.getElementById('send'); const ctxMenu=document.getElementById('ctxMenu');
-const attachBtn=document.getElementById('attachBtn'); const filePick=document.getElementById('filePick'); const attachModal=document.getElementById('attachModal'); const dropEl=document.getElementById('drop'); const pickFromPc=document.getElementById('pickFromPc'); const attachClose=document.getElementById('attachClose');
-const reactFab=document.getElementById('reactFab'); const reactMenu=document.getElementById('reactMenu');
-let ctxTargetId=null, replyToMsgId=null; const replyChip=document.getElementById('replyChip'); const replyLabel=document.getElementById('replyLabel'); const replyCancel=document.getElementById('replyCancel');
+const chatRef=ref(db,`rooms/${ROOM}/chat`);
+const chatView=document.getElementById('chatView'); const textEl=document.getElementById('text'); const sendBtn=document.getElementById('send');
+const ctxMenu=document.getElementById('ctxMenu'); let ctxTargetId=null; let replyToMsgId=null; const items=new Map(); const msgIndex=new Map();
 
 function openCtx(x,y){ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px';}
 function closeCtx(){ctxMenu.style.display='none'; ctxTargetId=null;}
 addEventListener('click',()=>closeCtx());
 
-function openReactMenu(x,y){reactMenu.innerHTML=''; EMOJIS.forEach(e=>{const b=document.createElement('button'); b.textContent=e; b.onclick=()=>{reactMenu.style.display='none'; emitBubble(e);}; reactMenu.appendChild(b);}); reactMenu.style.display='block'; if(x!=null){reactMenu.style.left=x+'px'; reactMenu.style.top=y+'px';} else {reactMenu.style.left='auto'; reactMenu.style.right='16px'; reactMenu.style.bottom='160px';}}
-function closeReactMenu(){reactMenu.style.display='none';}
-reactFab.onclick=()=>{ if(reactMenu.style.display==='block') closeReactMenu(); else openReactMenu(); };
-
-// メッセージ索引用
-const msgIndex=new Map();
-
 function highlightMentions(container, text){
-  const meTag = '@'+NAME;
-  const parts = text.split(new RegExp(`(${meTag.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&')})`,'g'));
+  // @自分 だけを水色にする
+  const meTag='@'+NAME;
+  const parts = text.split(/(@[^\s]+)/g);
   for(const part of parts){
-    if(part===meTag){ const span=document.createElement('span'); span.className='mention'; span.textContent=part; container.appendChild(span); }
+    if(part===meTag){ const span=document.createElement('span'); span.className='mentionSelf'; span.textContent=part; container.appendChild(span); }
     else { container.appendChild(document.createTextNode(part)); }
   }
 }
 
 function messageEl(id,m){
   const el=document.createElement('div'); el.className='item'+(m.uid===meId?' me':''); el.dataset.id=id; el.dataset.uid=m.uid||'';
-  // 返信先
-  if(m.replyTo){ const parent=msgIndex.get(m.replyTo); const r=document.createElement('div'); r.className='replyTo'; r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）'; r.onclick=()=>{ const target=items.get(m.replyTo); if(target){ target.scrollIntoView({behavior:'smooth',block:'center'}); target.classList.add('me'); setTimeout(()=>target.classList.remove('me'),800);} }; el.appendChild(r); if(parent && parent.uid===meId) el.classList.add('replyToMe'); }
-  // 本文（@メンション強調。@は保存されたまま）
+  // 返信
+  if(m.replyTo){ const parent=msgIndex.get(m.replyTo); const r=document.createElement('div'); r.className='replyTo'; r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）'; r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'}); }}; el.appendChild(r); if(parent && parent.uid===meId) el.classList.add('replyToMe'); }
+  // 本文（@自分だけ水色）
   const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line);
-  // 添付
-  if(m.file){ const f=document.createElement('div'); f.className='file'; if(m.file.type?.startsWith('image/')){ const im=document.createElement('img'); im.src=m.file.url; im.alt=m.file.name||''; f.appendChild(im);} const name=document.createElement('a'); name.href=m.file.url; name.target='_blank'; name.rel='noopener'; name.textContent=m.file.name||'file'; f.appendChild(name); el.appendChild(f); }
-  // リアクション集計（※今回はFABの全体バブルを優先。必要なら per-message も拡張可）
-  // メタ
+  // 時刻
   const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta);
-
-  // 右クリ / 長押し
-  el.oncontextmenu=(e)=>{e.preventDefault(); ctxTargetId=id; openCtx(e.clientX,e.clientY);} ;
-  let pressTimer; el.addEventListener('touchstart', (e)=>{ pressTimer=setTimeout(()=>{ ctxTargetId=id; const t=e.touches[0]; openCtx(t.clientX,t.clientY); },600);}); el.addEventListener('touchend',()=>clearTimeout(pressTimer));
+  // 右クリ/長押し
+  el.oncontextmenu=(e)=>{ e.preventDefault(); ctxTargetId=id; openCtx(e.clientX,e.clientY); };
+  let pressTimer; el.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>{ ctxTargetId=id; const t=e.touches[0]; openCtx(t.clientX,t.clientY); },600); }); el.addEventListener('touchend',()=>clearTimeout(pressTimer));
   return el;
 }
 
-const chatQ=query(chatRef,limitToLast(MAX_MSG)); const items=new Map();
-onChildAdded(chatQ,s=>{const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const el=messageEl(id,m); items.set(id,el); chatView.appendChild(el); while (chatView.children.length>MAX_MSG){const first=chatView.firstChild; items.delete(first?.dataset?.id); msgIndex.delete(first?.dataset?.id); first?.remove();} chatView.scrollTop=chatView.scrollHeight;});
-onChildChanged(chatQ,s=>{const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const old=items.get(id); if(old){ const el=messageEl(id,m); chatView.replaceChild(el,old); items.set(id,el);} });
-onChildRemoved(chatQ,s=>{const id=s.key; const el=items.get(id); if(el){el.remove(); items.delete(id);} msgIndex.delete(id); });
+const chatQ=query(chatRef,limitToLast(MAX_MSG));
+onChildAdded(chatQ,s=>{ const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const el=messageEl(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop=chatView.scrollHeight; });
+onChildChanged(chatQ,s=>{ const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const old=items.get(id); if(old){ const el=messageEl(id,m); chatView.replaceChild(el,old); items.set(id,el);} });
+onChildRemoved(chatQ,s=>{ const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id);} msgIndex.delete(id); });
 
 async function sendMessage(payload){ await push(chatRef, Object.assign({uid:meId,name:NAME,ts:Date.now()}, payload)); }
 
-// 返信は右クリ選択でのみ設定（存在しないIDを防ぐ）
-const ctxReply=document.getElementById('ctxReply'); ctxReply.onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; const m=msgIndex.get(replyToMsgId); replyLabel.textContent = m ? `↪ ${m.name||'someone'} さんへ返信` : '↪ 返信'; replyChip.style.display='inline-flex'; closeCtx(); textEl.focus(); };
-replyCancel.onclick=()=>{ replyToMsgId=null; replyChip.style.display='none'; };
+// 返信：右クリックのみ
+ctxReply.onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeCtx(); textEl.focus(); };
+document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return; const old=items.get(ctxTargetId); const cur=old?.querySelector('div')?.textContent||''; const t=prompt('メッセージを編集',cur); if(t==null) return; await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,2000), edited:true, ts:Date.now() }); closeCtx(); };
+document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return; await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx(); };
 
-// FABのリアクション（全員に見える泡）
-const ctxReactOpen=document.getElementById('ctxReactOpen');
-ctxReactOpen.onclick=()=>{ if(!ctxTargetId) return; const rect=items.get(ctxTargetId).getBoundingClientRect(); openReactMenu(rect.right-160, rect.top-8); };
-reactFab.onclick=()=>{ if(reactMenu.style.display==='block') closeReactMenu(); else openReactMenu(); };
-
-// 送信
-let sendPendingFile=null;
-sendBtn.onclick=async()=>{ const text=textEl.value; const file=sendPendingFile; if(!text && !file) return; const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo = replyToMsgId; }
-  if(file){ msg.file=file; sendPendingFile=null; }
-  await sendMessage(msg); textEl.value=''; replyToMsgId=null; replyChip.style.display='none'; };
+sendBtn.onclick=async()=>{ const text=textEl.value.trim(); if(!text) return; const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } await sendMessage(msg); textEl.value=''; };
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 
-/* ===== Attachments ===== */
-function showAttach(){ attachModal.style.display='flex'; }
-function hideAttach(){ attachModal.style.display='none'; dropEl.classList.remove('drag'); }
-attachBtn.onclick=showAttach; attachClose.onclick=hideAttach; pickFromPc.onclick=()=>filePick.click();
-filePick.onchange=()=>{ if(filePick.files?.[0]) handleFiles(filePick.files); };
+/* ===== Reactions (全員に見える泡) ===== */
+const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
+const reactFab=document.getElementById('reactFab'); const reactMenu=document.getElementById('reactMenu');
+function openReactMenu(){ reactMenu.innerHTML=''; EMOJIS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.onclick=()=>{ push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()}); reactMenu.style.display='none'; }; reactMenu.appendChild(b); }); reactMenu.style.display='block'; }
+reactFab.onclick=()=>{ reactMenu.style.display = (reactMenu.style.display==='block')?'none':'block'; if(reactMenu.style.display==='block') openReactMenu(); };
 
-dropEl.addEventListener('dragover',e=>{ e.preventDefault(); dropEl.classList.add('drag'); });
-dropEl.addEventListener('dragleave',()=>dropEl.classList.remove('drag'));
-dropEl.addEventListener('drop',e=>{ e.preventDefault(); dropEl.classList.remove('drag'); if(e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files); });
+const bubbles=new Map();
+function showBubbleFor(uid,emoji){ let b=bubbles.get(uid); if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); } b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{ b.style.display='none'; },1800); }
 
-async function handleFiles(fileList){ const f=fileList[0]; if(!f) return; const path=`rooms/${ROOM}/uploads/${crypto.randomUUID()}_${f.name}`; const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r); let meta={name:f.name,url, type:f.type||'application/octet-stream'}; if(meta.type.startsWith('image/')){ try{ const im=new Image(); im.src=url; await im.decode(); meta.width=im.naturalWidth; meta.height=im.naturalHeight; }catch{} } sendPendingFile=meta; hideAttach(); }
+onChildAdded(query(bubblesRef,limitToLast(50)), s=>{ const {uid,emoji,ts}=s.val()||{}; if(!uid||!emoji) return; if(Date.now()-ts>5000) return; showBubbleFor(uid,emoji); });
 
-/* ===== Main Loop ===== */
-let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=dir; let lastT=performance.now();
+/* ===== Rendering world (minimal) ===== */
+function spriteByDir(d){return d==='back'?imgBack:d==='left'?imgLeft:d==='right'?imgRight:imgFront;}
+let camX=0, camY=0; function camera(dt){const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2); const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k; camX=Math.max(0,Math.min(world.w-canvas.width,camX)); camY=Math.max(0,Math.min(world.h-canvas.height,camY)); return {x:camX,y:camY};}
+
+// 矢印キーのみ
+const keys=new Set(); addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); keys.add(e.key); }); addEventListener('keyup',e=>keys.delete(e.key));
+
+let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir; let lastT=performance.now();
 function step(now){ if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;} const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
-  // 入力
-  let vx=0, vy=0; if(keys.has('ArrowUp')) vy-=1; if(keys.has('ArrowDown')) vy+=1; if(keys.has('ArrowLeft')) vx-=1; if(keys.has('ArrowRight')) vx+=1; if(joyActive){vx=joyVx; vy=joyVy;}
-  if(vx||vy){ const len=Math.hypot(vx,vy); vx/=len; vy/=len; const s=SPEED_PPS*dt; const nx=my.x+vx*s, ny=my.y+vy*s; if(!hits(nx,my.y)) my.x=nx; if(!hits(my.x,ny)) my.y=ny; dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back'); }
+  // 入力→移動
+  let vx=0, vy=0; if(keys.has('ArrowUp')) vy-=1; if(keys.has('ArrowDown')) vy+=1; if(keys.has('ArrowLeft')) vx-=1; if(keys.has('ArrowRight')) vx+=1;
+  if(vx||vy){ const len=Math.hypot(vx,vy); vx/=len; vy/=len; const s=SPEED_PPS*dt; const nx=my.x+vx*s, ny=my.y+vy*s; my.x=nx; my.y=ny; my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back'); }
 
-  // 描画
   const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-  const kInterp=Math.min(1,dt*PLAYER_INTERP); const left=cam.x-64,right=cam.x+canvas.width+64,top=cam.y-64,bottom=cam.y+canvas.height+64;
+
+  // 他人
+  const kInterp=Math.min(1,dt*PLAYER_INTERP);
   for(const [id,p] of Object.entries(players)){
-    if(!p||id===meId) continue; if(p.x<left||p.x>right||p.y<top||p.y>bottom) continue; const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name}); g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir; g.name=p.name||g.name; const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE; const sx=Math.round(g.x-sw/2-cam.x), sy=Math.round(g.y-sh/2-cam.y); ctx.drawImage(im,sx,sy,sw,sh); drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false);
+    if(!p||id===meId) continue; const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name}); g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir; const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE; ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh); drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false);
   }
-  const meIm=spriteByDir(dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE; const meX=Math.round(my.x-mw/2-cam.x), meY=Math.round(my.y-mh/2-cam.y); ctx.drawImage(meIm,meX,meY,mw,mh); drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
+  // 自分
+  const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE; ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh); drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
 
-  // 反映: バブル位置（全員）
-  for(const [uid,b] of bubbles){ const p = uid===meId ? {x:my.x,y:my.y} : (players[uid]||ghosts[uid]); if(!p||b.style.display==='none') continue; const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y; b.style.left=x+'px'; b.style.top=(y - (mw/2) - 24)+'px'; }
+  // バブル位置更新
+  for(const [uid,b] of bubbles){ const p = uid===meId ? my : (players[uid]||ghosts[uid]); if(!p||b.style.display==='none') continue; const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y; b.style.left=x+'px'; b.style.top=(y - (mh/2) - 24)+'px'; }
 
-  // 同期
-  if(now-lastSync>SYNC_MS){ const dx=my.x-selfLastX, dy=my.y-selfLastY; const moved=(dx*dx+dy*dy)>1; const dirChanged=dir!==selfLastDir; if(moved||dirChanged){ lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=dir; update(meRef,{x:my.x,y:my.y,dir,ts:Date.now()}); } }
+  if(now-lastSync>SYNC_MS){ const dx=my.x-selfLastX, dy=my.y-selfLastY; const moved=(dx*dx+dy*dy)>1; const dirChanged=my.dir!==selfLastDir; if(moved||dirChanged){ lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=my.dir; update(meRef,{x:my.x,y:my.y,dir:my.dir,ts:Date.now()}); } }
+
   requestAnimationFrame(step);
 }
 requestAnimationFrame(step);
 
 function drawName(name,x,y,me=false){ ctx.font='12px system-ui, sans-serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-32,y-14,64,16); ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name,x,y-2); }
-
-/* ===== Leave ===== */
-document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
-addEventListener('beforeunload', ()=>{ remove(meRef); });
 </script>
 </body>
 </html>
