@@ -3,13 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム</title>
+<title>ニコリタウン - ルーム（当たり判定 + 添付プレビュー修正）</title>
 <style>
   :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4;--chip:#0f172a;--yellow:#fde68a33;--yellowBorder:#facc15;--mention:#22d3ee}
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden;touch-action:none}
   #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+
+  /* HUD */
+  .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
+  .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
+  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
 
   /* Chat */
   #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
@@ -19,14 +24,17 @@
   .replyToMe{background:var(--yellow); border:1px solid var(--yellowBorder)}
   .mentionSelf{color:var(--mention);font-weight:700}
   .meta{color:var(--muted);font-size:.8rem;margin-top:2px}
-  .file{display:inline-flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid var(--border);border-radius:8px;background:#0b1220;margin-top:4px}
-  .file img{max-width:180px;max-height:120px;display:block;border-radius:6px}
+  .file{display:flex;align-items:flex-start;gap:8px;padding:6px;border:1px solid var(--border);border-radius:8px;background:#0b1220;margin-top:4px}
+  .file img{max-width:220px;max-height:160px;display:block;border-radius:6px}
+  .file audio,.file video{max-width:280px}
 
   /* Composer */
   #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
   #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
   #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
   #attachBtn{background:transparent;border:1px dashed var(--border);color:#e2e8f0}
+  #fileChip{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);z-index:21;display:none;gap:8px;align-items:center;background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
+  #fileChip .x{cursor:pointer;opacity:.85}
 
   /* Ctx menu */
   #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
@@ -40,11 +48,6 @@
 
   /* Bubbles */
   .bubble{position:absolute;transform:translate(-50%,-100%);background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px 10px;font-size:20px}
-
-  /* HUD */
-  .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
-  .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
-  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
 
   /* Attach modal */
   #attachModal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:40}
@@ -64,10 +67,11 @@
   <div id="chatView"></div>
   <div id="composer">
     <button id="attachBtn" title="ファイル添付">📁</button>
-    <input id="text" placeholder="メッセージ… (@自分の名前だけ水色で強調 / 返信は右クリックから)" maxlength="2000" />
+    <input id="text" placeholder="メッセージ… (@自分は水色 / 返信は右クリック)" maxlength="2000" />
     <button id="send">送信</button>
     <input id="filePick" type="file" style="display:none" />
   </div>
+  <div id="fileChip"><span id="fileName"></span> <span class="x" id="fileClear">✕</span></div>
 
   <div id="ctxMenu">
     <button id="ctxReply">返信</button>
@@ -110,18 +114,26 @@ const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDa
 const u=new URL(location.href); const ROOM=(u.searchParams.get('room')||'room-001').toLowerCase(); const NAME=u.searchParams.get('name')||'guest';
 roomId.textContent=ROOM; who.textContent=NAME;
 
-/* ===== Assets (minimal for demo mapping) ===== */
+/* ===== Assets ===== */
 function loadImage(src){return new Promise((res,rej)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src;});}
 const imgMap = await loadImage('./map_1.png');
+const imgMask= await loadImage('./atarihantei.png'); // 赤が当たり判定
 const imgFront=await loadImage('./nikorihito_dot_front.png'); const imgBack=await loadImage('./nikorihito_dot_behind.png'); const imgLeft=await loadImage('./nikorihito_dot_left.png'); const imgRight=await loadImage('./nikorihito_dot_right.png');
 
-/* ===== Canvas & camera ===== */
+/* ===== Canvas & world ===== */
 const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false; function resize(){canvas.width=innerWidth; canvas.height=innerHeight;} addEventListener('resize',resize); resize();
 const world={w:imgMap.width,h:imgMap.height};
 
+/* ===== Collision (赤=ブロック) ===== */
+const maskCanvas=(typeof OffscreenCanvas!=='undefined')?new OffscreenCanvas(imgMask.width,imgMask.height):Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
+const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0); const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
+function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);} // 赤っぽい
+function hits(x,y){const foot=y+(RADIUS*0.6); return isBlocked(x,foot)||isBlocked(x-RADIUS*0.7,foot)||isBlocked(x+RADIUS*0.7,foot);} 
+function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32, y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2, cy=world.h/2; return {x:cx,y:cy};}
+
 /* ===== Players ===== */
 const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=crypto.randomUUID(); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
-let my={name:NAME,x:world.w/2,y:world.h/2,dir:'front',ts:Date.now()};
+let my=Object.assign({name:NAME,dir:'front',ts:Date.now()}, safeSpawn());
 signInAnonymously(auth).catch(()=>{}); await set(meRef,my); onDisconnect(meRef).remove();
 let players={}; const ghosts={};
 onValue(playersRef,snap=>{players=snap.val()||{}; count.textContent=Object.keys(players).length; for(const [id,p] of Object.entries(players)){ if(!ghosts[id]&&p) ghosts[id]={x:p.x,y:p.y,dir:p.dir,name:p.name}; }});
@@ -136,9 +148,7 @@ function closeCtx(){ctxMenu.style.display='none'; ctxTargetId=null;}
 addEventListener('click',()=>closeCtx());
 
 function highlightMentions(container, text){
-  // @自分 だけを水色にする
-  const meTag='@'+NAME;
-  const parts = text.split(/(@[^\s]+)/g);
+  const meTag='@'+NAME; const parts = text.split(/(@[^\s]+)/g);
   for(const part of parts){
     if(part===meTag){ const span=document.createElement('span'); span.className='mentionSelf'; span.textContent=part; container.appendChild(span); }
     else { container.appendChild(document.createTextNode(part)); }
@@ -149,10 +159,10 @@ function messageEl(id,m){
   const el=document.createElement('div'); el.className='item'+(m.uid===meId?' me':''); el.dataset.id=id; el.dataset.uid=m.uid||'';
   // 返信
   if(m.replyTo){ const parent=msgIndex.get(m.replyTo); const r=document.createElement('div'); r.className='replyTo'; r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）'; r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'}); }}; el.appendChild(r); if(parent && parent.uid===meId) el.classList.add('replyToMe'); }
-  // 本文（@自分だけ水色）
+  // 本文
   const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line);
-  // 添付
-  if(m.file){ const f=document.createElement('div'); f.className='file'; if(m.file.type?.startsWith('image/')){ const im=document.createElement('img'); im.src=m.file.url; im.alt=m.file.name||''; f.appendChild(im);} const name=document.createElement('a'); name.href=m.file.url; name.target='_blank'; name.rel='noopener'; name.textContent=m.file.name||'file'; f.appendChild(name); el.appendChild(f); }
+  // 添付（画像/音声/動画プレビュー）
+  if(m.file){ const f=document.createElement('div'); f.className='file'; const t=(m.file.type||'').toLowerCase(); if(t.startsWith('image/')){ const im=document.createElement('img'); im.src=m.file.url; im.alt=m.file.name||''; f.appendChild(im);} else if(t.startsWith('audio/')){ const au=document.createElement('audio'); au.controls=true; au.src=m.file.url; f.appendChild(au);} else if(t.startsWith('video/')){ const vi=document.createElement('video'); vi.controls=true; vi.src=m.file.url; vi.style.maxWidth='280px'; f.appendChild(vi);} const name=document.createElement('a'); name.href=m.file.url; name.target='_blank'; name.rel='noopener'; name.textContent=m.file.name||'file'; f.appendChild(name); el.appendChild(f); }
   // 時刻
   const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta);
   // 右クリ/長押し
@@ -173,12 +183,11 @@ ctxReply.onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeC
 document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return; const old=items.get(ctxTargetId); const cur=old?.querySelector('div')?.textContent||''; const t=prompt('メッセージを編集',cur); if(t==null) return; await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,2000), edited:true, ts:Date.now() }); closeCtx(); };
 document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return; await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx(); };
 
-let sendPendingFile=null;
-sendBtn.onclick=async()=>{ const text=textEl.value.trim(); const file=sendPendingFile; if(!text && !file) return; const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } if(file){ msg.file=file; sendPendingFile=null; } await sendMessage(msg); textEl.value=''; hideAttach(); };
-textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
-
 /* ===== Attachments ===== */
 const attachBtn=document.getElementById('attachBtn'); const filePick=document.getElementById('filePick'); const attachModal=document.getElementById('attachModal'); const dropEl=document.getElementById('drop'); const pickFromPc=document.getElementById('pickFromPc'); const attachClose=document.getElementById('attachClose');
+const fileChip=document.getElementById('fileChip'); const fileNameEl=document.getElementById('fileName'); const fileClear=document.getElementById('fileClear');
+let sendPendingFile=null;
+
 function showAttach(){ attachModal.style.display='flex'; }
 function hideAttach(){ attachModal.style.display='none'; dropEl?.classList?.remove('drag'); }
 attachBtn.onclick=showAttach; attachClose.onclick=hideAttach; pickFromPc.onclick=()=>filePick.click();
@@ -186,7 +195,23 @@ filePick.onchange=()=>{ if(filePick.files?.[0]) handleFiles(filePick.files); };
 dropEl.addEventListener('dragover',e=>{ e.preventDefault(); dropEl.classList.add('drag'); });
 dropEl.addEventListener('dragleave',()=>dropEl.classList.remove('drag'));
 dropEl.addEventListener('drop',e=>{ e.preventDefault(); dropEl.classList.remove('drag'); if(e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files); });
-async function handleFiles(fileList){ const f=fileList[0]; if(!f) return; const path=`rooms/${ROOM}/uploads/${crypto.randomUUID()}_${f.name}`; const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r); let meta={name:f.name,url, type:f.type||'application/octet-stream'}; if(meta.type.startsWith('image/')){ try{ const im=new Image(); im.src=url; await im.decode(); meta.width=im.naturalWidth; meta.height=im.naturalHeight; }catch{} } sendPendingFile=meta; hideAttach(); }
+
+async function handleFiles(fileList){ const f=fileList[0]; if(!f) return; const path=`rooms/${ROOM}/uploads/${crypto.randomUUID()}_${f.name}`; const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r); let meta={name:f.name,url, type:f.type||'application/octet-stream'}; // 画像サイズ取得（任意）
+  if(meta.type.startsWith('image/')){ try{ const im=new Image(); im.src=url; await im.decode(); meta.width=im.naturalWidth; meta.height=im.naturalHeight; }catch{} }
+  // テキスト未入力なら即送信／入力中なら保持
+  if(!textEl.value.trim()){
+    await sendMessage({ text:'', file:meta });
+  }else{
+    sendPendingFile=meta; fileNameEl.textContent = `添付: ${meta.name}`; fileChip.style.display='inline-flex';
+  }
+  hideAttach();
+}
+fileClear.onclick=()=>{ sendPendingFile=null; fileChip.style.display='none'; };
+
+let sending=false;
+const sendBtn=document.getElementById('send');
+sendBtn.onclick=async()=>{ if(sending) return; const text=textEl.value.trim(); const file=sendPendingFile; if(!text && !file) return; sending=true; try{ const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } if(file){ msg.file=file; sendPendingFile=null; fileChip.style.display='none'; } await sendMessage(msg); textEl.value=''; } finally { sending=false; } };
+textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 
 /* ===== Reactions (全員に見える泡) ===== */
 const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
@@ -199,7 +224,7 @@ function showBubbleFor(uid,emoji){ let b=bubbles.get(uid); if(!b){ b=document.cr
 
 onChildAdded(query(bubblesRef,limitToLast(50)), s=>{ const {uid,emoji,ts}=s.val()||{}; if(!uid||!emoji) return; if(Date.now()-ts>5000) return; showBubbleFor(uid,emoji); });
 
-/* ===== Rendering world (minimal) ===== */
+/* ===== Camera & Render ===== */
 function spriteByDir(d){return d==='back'?imgBack:d==='left'?imgLeft:d==='right'?imgRight:imgFront;}
 let camX=0, camY=0; function camera(dt){const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2); const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k; camX=Math.max(0,Math.min(world.w-canvas.width,camX)); camY=Math.max(0,Math.min(world.h-canvas.height,camY)); return {x:camX,y:camY};}
 
@@ -208,9 +233,9 @@ const keys=new Set(); addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown',
 
 let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir; let lastT=performance.now();
 function step(now){ if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;} const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
-  // 入力→移動
+  // 入力→移動（衝突判定あり）
   let vx=0, vy=0; if(keys.has('ArrowUp')) vy-=1; if(keys.has('ArrowDown')) vy+=1; if(keys.has('ArrowLeft')) vx-=1; if(keys.has('ArrowRight')) vx+=1;
-  if(vx||vy){ const len=Math.hypot(vx,vy); vx/=len; vy/=len; const s=SPEED_PPS*dt; const nx=my.x+vx*s, ny=my.y+vy*s; my.x=nx; my.y=ny; my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back'); }
+  if(vx||vy){ const len=Math.hypot(vx,vy); vx/=len; vy/=len; const s=SPEED_PPS*dt; const nx=my.x+vx*s, ny=my.y+vy*s; if(!hits(nx,my.y)) my.x=nx; if(!hits(my.x,ny)) my.y=ny; my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back'); }
 
   const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
@@ -236,9 +261,7 @@ function drawName(name,x,y,me=false){ ctx.font='12px system-ui, sans-serif'; ctx
 
 // === 退室ボタン ===
 const leaveBtn = document.getElementById('leave');
-if (leaveBtn) {
-  leaveBtn.onclick = ()=>{ remove(meRef).finally(()=>{ location.href = './'; }); };
-}
+if (leaveBtn) { leaveBtn.onclick = ()=>{ remove(meRef).finally(()=>{ location.href = './'; }); }; }
 addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
 </script>
 </body>
