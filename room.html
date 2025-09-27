@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ニコリタウン - ルーム</title>
+<title>ニコリタウン - ルーム（smooth）</title>
 <style>
-  :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4}
+  :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--a1:#22d3ee;--a2:#06b6d4}
   *{box-sizing:border-box} html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden}
   #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
@@ -16,10 +16,10 @@
   #chatView .item{padding:4px 6px;border-radius:8px;margin:4px 0}
   #chatView .me{background:rgba(34,211,238,.15)}
   #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
-  #composer input{font:inherit;width:min(60vw,720px);padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:var(--text)}
+  #composer input{font:inherit;width:min(60vw,720px);padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
   #composer button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
-  #ctxMenu{position:fixed;z-index:50;display:none;background:var(--panel2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  #ctxMenu button{display:block;width:180px;text-align:left;padding:8px 12px;background:transparent;border:0;color:var(--text);cursor:pointer}
+  #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  #ctxMenu button{display:block;width:180px;text-align:left;padding:8px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
   #ctxMenu button:hover{background:#1b2540}
 </style>
 </head>
@@ -42,7 +42,15 @@
   </div>
 
 <script type="module">
-// ===== Firebase SDK =====
+/* --------------------- 調整パラメータ --------------------- */
+const SCALE = 1.5;            // 小さいほど視野広い
+const SPEED_PPS = 300;        // 自分の速度 (px/sec)
+const RADIUS = 10;            // 当たり半径
+const PLAYER_INTERP = 12;     // 他プレイヤー追従（8〜16）
+const CAM_INTERP = 10;        // カメラ追従（6〜14）
+const SYNC_MS = 50;           // 位置同期の間隔
+
+/* ------------------------ Firebase ------------------------ */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query,
@@ -61,14 +69,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getDatabase(app);
 
-// ===== URL params =====
+/* ------------------------ URL params ---------------------- */
 const u = new URL(location.href);
 const ROOM = (u.searchParams.get('room')||'room-001').toLowerCase();
 const NAME = u.searchParams.get('name')||'guest';
 document.getElementById('roomId').textContent = ROOM;
 document.getElementById('who').textContent    = NAME;
 
-// ===== Assets =====
+/* ------------------------- Assets ------------------------- */
 function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
 const imgMap   = await loadImage('./map_1.png');
 const imgMask  = await loadImage('./atarihantei.png'); // 赤=壁
@@ -77,16 +85,16 @@ const imgBack  = await loadImage('./nikorihito_dot_behind.png');
 const imgLeft  = await loadImage('./nikorihito_dot_left.png');
 const imgRight = await loadImage('./nikorihito_dot_right.png');
 
-// ===== Canvas & Camera =====
+/* -------------------- Canvas & Camera --------------------- */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false; // ドット絵のにじみ防止
+ctx.imageSmoothingEnabled = false; // にじみ防止
 function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
 addEventListener('resize', resize); resize();
 
 const world = { w: imgMap.width, h: imgMap.height };
 
-// マスク（当たり判定）
+/* -------------------- Collision Mask --------------------- */
 const maskC = new OffscreenCanvas(imgMask.width, imgMask.height);
 const maskX = maskC.getContext('2d');
 maskX.drawImage(imgMask, 0, 0);
@@ -97,15 +105,6 @@ function isBlocked(x,y){
   if (a < 10) return false;
   return (r >= 180 && g <= 80 && b <= 80); // 赤
 }
-
-// ===== Game State（★1: delta-time で自分だけ滑らかに） =====
-const SCALE      = 1.6;   // ズーム（小さいほど広い）
-const SPEED_PPS  = 280;   // 速度 px/秒（お好みで 260〜360）
-const RADIUS     = 10;    // 当たり半径
-let dir = 'front';
-const keys = new Set();
-
-// 安全スポーン探索
 function hits(x,y){
   if(x<0||y<0||x>=world.w||y>=world.h) return true;
   for(let dy=-RADIUS; dy<=RADIUS; dy++){
@@ -131,29 +130,34 @@ function safeSpawn(maxTry=500){
   }
   return {x:cx, y:cy};
 }
+
+/* ---------------------- Game State ----------------------- */
+let dir = 'front';
+const keys = new Set();
 let my = Object.assign({dir, name: NAME, ts: Date.now()}, safeSpawn());
 
-// Firebase ノード
 const playersRef = ref(db, `rooms/${ROOM}/players`);
 const meId  = crypto.randomUUID();
 const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
 const chatRef = ref(db, `rooms/${ROOM}/chat`);
 
-// 匿名Auth
 signInAnonymously(auth).catch(()=>{});
 
-// 入室
 await set(meRef, { name: NAME, x: my.x, y: my.y, dir: my.dir, ts: Date.now() });
 onDisconnect(meRef).remove();
 
-// 人数 & 他プレイヤー
+/* 生データと可視化用ゴースト（補間先） */
 let players = {};
+const ghosts = {}; // id -> {x,y,dir,name}
 onValue(playersRef, snap=>{
   players = snap.val()||{};
   document.getElementById('count').textContent = Object.keys(players).length;
+  for(const [id,p] of Object.entries(players)){
+    if(!ghosts[id] && p) ghosts[id] = { x:p.x, y:p.y, dir:p.dir, name:p.name };
+  }
 });
 
-// 入力
+/* 入力 */
 addEventListener('keydown', e=>{
   const k=e.key;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(k)) e.preventDefault();
@@ -163,22 +167,27 @@ addEventListener('keyup', e=>{ keys.delete(e.key); });
 
 function spriteByDir(d){ return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront; }
 
-// カメラ（フレームごとに即追従／補間は未適用）
-function camera(){
-  const cx = Math.round(my.x - canvas.width/2);
-  const cy = Math.round(my.y - canvas.height/2);
-  return { x: Math.max(0, Math.min(world.w - canvas.width,  cx)),
-           y: Math.max(0, Math.min(world.h - canvas.height, cy)) };
+/* カメラ補間 */
+let camX = 0, camY = 0;
+function camera(dt){
+  const tx = Math.round(my.x - canvas.width/2);
+  const ty = Math.round(my.y - canvas.height/2);
+  const k  = Math.min(1, dt * CAM_INTERP);
+  camX += (tx - camX) * k;
+  camY += (ty - camY) * k;
+  camX = Math.max(0, Math.min(world.w - canvas.width,  camX));
+  camY = Math.max(0, Math.min(world.h - canvas.height, camY));
+  return { x: camX, y: camY };
 }
 
-// ===== ループ（★delta-time） =====
+/* --------------------- Main Loop ------------------------- */
 let lastSync = 0;
 let lastT = performance.now();
 function step(now){
-  const dt = Math.min(0.033, (now - lastT) / 1000); // 33ms上限（保険）
+  const dt = Math.min(0.033, (now - lastT) / 1000);
   lastT = now;
 
-  // 入力→速度ベクトル
+  // 入力→移動（delta-time）
   let vx=0, vy=0;
   if(keys.has('ArrowUp')   || keys.has('w') || keys.has('W')) vy-=1;
   if(keys.has('ArrowDown') || keys.has('s') || keys.has('S')) vy+=1;
@@ -194,19 +203,25 @@ function step(now){
     dir = Math.abs(vx)>Math.abs(vy) ? (vx>0?'right':'left') : (vy>0?'front':'back');
   }
 
-  // 描画
-  const cam = camera();
+  // 補間して描画
+  const cam = camera(dt);
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, -cam.x, -cam.y);
 
-  // 他プレイヤー（★自分は除外）
+  // 他プレイヤー（補間）
+  const kInterp = Math.min(1, dt * PLAYER_INTERP);
   for(const [id,p] of Object.entries(players)){
     if(!p || id===meId) continue;
-    const im = spriteByDir(p.dir||'front');
+    const g = (ghosts[id] ||= { x:p.x, y:p.y, dir:p.dir, name:p.name });
+    g.x += (p.x - g.x) * kInterp;
+    g.y += (p.y - g.y) * kInterp;
+    g.dir = p.dir || g.dir; g.name = p.name || g.name;
+
+    const im = spriteByDir(g.dir||'front');
     const sw = im.width*SCALE, sh = im.height*SCALE;
-    const sx = Math.round(p.x - sw/2 - cam.x), sy = Math.round(p.y - sh/2 - cam.y);
+    const sx = Math.round(g.x - sw/2 - cam.x), sy = Math.round(g.y - sh/2 - cam.y);
     ctx.drawImage(im, sx, sy, sw, sh);
-    drawName(p.name||'?', p.x - cam.x, (p.y - sh/2) - cam.y - 2, false);
+    drawName(g.name||'?', g.x - cam.x, (g.y - sh/2) - cam.y - 2, false);
   }
 
   // 自分
@@ -214,8 +229,8 @@ function step(now){
   ctx.drawImage(meIm, Math.round(my.x - mw/2 - cam.x), Math.round(my.y - mh/2 - cam.y), mw, mh);
   drawName(NAME, my.x - cam.x, (my.y - mh/2) - cam.y - 2, true);
 
-  // 同期（20fps上限）
-  if(now-lastSync>50){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
+  // 位置同期（帯域を抑えて20fps）
+  if(now-lastSync>SYNC_MS){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
 
   requestAnimationFrame(step);
 }
@@ -227,34 +242,34 @@ function drawName(name, x, y, me=false){
   ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name, x, y-2);
 }
 
-// ===== Chat =====
+/* ------------------------ Chat --------------------------- */
 const chatView=document.getElementById('chatView');
 const textEl=document.getElementById('text');
 const sendBtn=document.getElementById('send');
 const ctxMenu=document.getElementById('ctxMenu');
 let ctxTargetId=null;
 
+const chatQ=query(chatRef, limitToLast(100));
+const items=new Map();
 function itemEl(id,m){
   const el=document.createElement('div');
   el.className='item'+(m.uid===meId?' me':'');
   el.dataset.id=id; el.dataset.uid=m.uid||'';
   el.textContent=`${m.name||'?'}: ${m.text||''}`;
   el.title=new Date(m.ts||Date.now()).toLocaleString();
-  el.oncontextmenu = (e)=>{ e.preventDefault(); if(m.uid!==meId) return; ctxTargetId=id; openCtx(e.clientX,e.clientY); };
+  el.oncontextmenu=(e)=>{ e.preventDefault(); if(m.uid!==meId) return; ctxTargetId=id; openCtx(e.clientX,e.clientY); };
   return el;
 }
-function openCtx(x,y){ ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px'; }
-function closeCtx(){ ctxMenu.style.display='none'; ctxTargetId=null; }
-addEventListener('click', ()=>closeCtx());
-
-const chatQ=query(chatRef, limitToLast(100));
-const items=new Map();
 onChildAdded(chatQ, s=>{ const id=s.key, m=s.val()||{}; const el=itemEl(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop=chatView.scrollHeight; });
 onChildChanged(chatQ, s=>{ const id=s.key, m=s.val()||{}; const old=items.get(id); if(old){ const el=itemEl(id,m); chatView.replaceChild(el,old); items.set(id,el); }});
 onChildRemoved(chatQ, s=>{ const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id);} });
 
 sendBtn.onclick=async()=>{ const t=textEl.value.trim(); if(!t) return; await push(chatRef,{uid:meId,name:NAME,text:t.slice(0,200),ts:Date.now()}); textEl.value=''; textEl.focus(); };
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
+
+function openCtx(x,y){ ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px'; }
+function closeCtx(){ ctxMenu.style.display='none'; ctxTargetId=null; }
+addEventListener('click', ()=>closeCtx());
 
 document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return;
   const cur=items.get(ctxTargetId)?.textContent?.replace(/^.*?:\s*/,'')||'';
@@ -266,10 +281,9 @@ document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return;
   await remove(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx();
 };
 
-// ===== Leave =====
+/* --------------------- Leave handling -------------------- */
 document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
 addEventListener('beforeunload', ()=>{ remove(meRef); });
-
 </script>
 </body>
 </html>
