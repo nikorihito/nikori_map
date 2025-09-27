@@ -1,78 +1,247 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ニコリタウン 接続診断</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ニコリタウン 接続診断 (Improved)</title>
 <style>
-  body{font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; background:#0b1220; color:#e2e8f0; margin:0; padding:24px}
-  .card{background:#111827; border:1px solid #334155; border-radius:12px; padding:16px; max-width:720px}
-  input,button{font:inherit; padding:8px 10px; border-radius:10px; border:1px solid #334155; background:#0b1220; color:#e2e8f0}
-  button{background:linear-gradient(180deg,#22d3ee,#06b6d4); border:0; color:#06202a; font-weight:700; cursor:pointer}
-  code{background:#0b1220; padding:2px 6px; border-radius:6px; border:1px solid #334155}
-  .log{white-space:pre-wrap; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#0b1220; border:1px solid #334155; border-radius:10px; padding:10px; height:200px; overflow:auto}
+  :root{
+    --bg:#0b1220; --panel:#111827; --border:#334155; --text:#e2e8f0; --muted:#94a3b8;
+    --accent1:#22d3ee; --accent2:#06b6d4; --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:24px}
+  .wrap{max-width:960px;margin-inline:auto}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+  h2{margin:0 0 8px}
+  p{margin:8px 0}
+  label{display:flex;gap:8px;align-items:center}
+  input,button{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
+  input{min-width:12rem}
+  button{background:linear-gradient(180deg,var(--accent1),var(--accent2));border:0;color:#06202a;font-weight:700;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  code{background:#0b1220;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
+  .log{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b1220;border:1px solid var(--border);border-radius:10px;padding:10px;height:220px;overflow:auto}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px;align-items:center}
+  .kv .k{color:var(--muted)}
+  .badge{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border:1px solid var(--border);border-radius:999px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--err)}
+  .sep{height:1px;background:var(--border);margin:12px 0}
 </style>
 </head>
 <body>
+<div class="wrap">
   <div class="card">
     <h2>接続診断（Realtime Database）</h2>
-    <p>同じルームに入れない時の原因切り分け用。2つのタブで同じルームIDを入力して「入室」を押してください。</p>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
-      <label>ルームID: <input id="room" placeholder="room-test" value="room-test"></label>
-      <label>名前: <input id="name" placeholder="namae" value="diag"></label>
+    <p>同じルームに入れない・表示がズレる等の切り分け用。2つのタブや別端末で同じルームIDを入力して「入室」を押してください。</p>
+
+    <div class="row" style="margin:8px 0 12px">
+      <label>ルームID: <input id="room" placeholder="room-test" value="room-test" /></label>
+      <label>名前: <input id="name" placeholder="namae" value="diag" /></label>
       <button id="join">入室</button>
-      <button id="leave">退室</button>
+      <button id="leave" class="ghost">退室</button>
+      <button id="share" class="ghost" title="URLパラメータにroom/nameを含むリンクをコピー">リンクコピー</button>
+      <button id="clearLog" class="ghost">ログ消去</button>
+      <button id="saveLog" class="ghost">ログ保存</button>
     </div>
-    <p>自分のID: <code id="myid">-</code>　|　接続: <code id="status">未接続</code></p>
-    <p>プレイヤー一覧:</p>
-    <div id="list" class="log"></div>
-    <p>ログ:</p>
-    <div id="log" class="log"></div>
+
+    <div class="kv" style="margin-bottom:8px">
+      <div class="k">自分のキー</div><div><code id="myid">-</code></div>
+      <div class="k">認証UID</div><div><code id="uid">(未サインイン)</code> <span class="badge" id="authBadge">匿名Auth未使用</span></div>
+      <div class="k">接続状態</div><div><code id="status">未接続</code> <span id="connIcon" class="badge">.info/connected: ?</span></div>
+      <div class="k">オンライン人数</div><div><code id="count">-</code></div>
+      <div class="k">サーバ時刻(推定)</div><div><code id="servertime">-</code></div>
+      <div class="k">往復レイテンシ</div><div><code id="rtt">-</code></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <p>プレイヤー一覧:</p>
+        <div id="list" class="log"></div>
+      </div>
+      <div>
+        <p>ログ:</p>
+        <div id="log" class="log"></div>
+      </div>
+    </div>
   </div>
+</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getDatabase, ref, push, set, remove, onChildAdded, onChildRemoved, onDisconnect } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
+import { getDatabase, ref, push, set, update, remove, onChildAdded, onChildRemoved, onValue, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 
+// === Firebase Config ===
 const firebaseConfig = {
-  apiKey: "AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ",
-  authDomain: "nikori-town.firebaseapp.com",
-  databaseURL: "https://nikori-town-default-rtdb.firebaseio.com",
-  projectId: "nikori-town",
-  storageBucket: "nikori-town.firebasestorage.app",
-  messagingSenderId: "836836010871",
-  appId: "1:836836010871:web:74ae40cb16ee6d50368f72",
+  apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
+  authDomain: 'nikori-town.firebaseapp.com',
+  databaseURL: 'https://nikori-town-default-rtdb.firebaseio.com',
+  projectId: 'nikori-town',
+  storageBucket: 'nikori-town.firebasestorage.app',
+  messagingSenderId: '836836010871',
+  appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
 };
 
+// === App init ===
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
+const auth = getAuth(app);
 
+// === DOM helpers ===
 const $ = s => document.querySelector(s);
-const log = (m)=>{ const el=$("#log"); el.textContent += m + "\n"; el.scrollTop = el.scrollHeight; };
-const renderList = (players)=>{ $("#list").textContent = Object.entries(players).map(([k,v])=>`${k}: ${v?.name||'?'}`).join("\n"); };
+const log = (m)=>{ const el=$('#log'); const ts=new Date().toLocaleTimeString(); el.textContent += `[${ts}] ${m}\n`; el.scrollTop = el.scrollHeight; };
+const setText = (sel, v) => { $(sel).textContent = v; };
+const renderList = (players)=>{
+  const lines = Object.entries(players)
+    .sort((a,b)=> (b[1]?.ts||0) - (a[1]?.ts||0))
+    .map(([k,v])=> `${k}: ${v?.name||'?'}  (${new Date(v?.ts||0).toLocaleTimeString()})`);
+  $('#list').textContent = lines.join('\n');
+};
 
-let roomId = null, myRef = null, playersRef = null;
+// === State ===
+let roomId = null, myRef = null, playersRef = null, pingsRef = null;
 let players = {};
+let heartbeatTimer = null, rttTimer = null;
+let serverOffset = 0; // ms
 
-$("#join").onclick = async () => {
-  roomId = ($("#room").value || "room-test").trim().toLowerCase();
-  const name = ($("#name").value || "diag").slice(0,16);
+// === Utilities ===
+const sanitizeRoom = (raw) => (raw||'room-test').toLowerCase().replace(/[^a-z0-9-]/g,'-').slice(0,32) || 'room-test';
+const sanitizeName = (raw) => (raw||'diag').replace(/[\n\r\t]/g,' ').slice(0,24);
+const now = () => Date.now() + serverOffset; // approx server time
+
+// URL params → 初期値
+(() => {
+  const u = new URL(location.href);
+  const r = u.searchParams.get('room') || u.hash.replace('#','');
+  const n = u.searchParams.get('name');
+  if (r) $('#room').value = r;
+  if (n) $('#name').value = n;
+})();
+
+// .info/connected & clock skew
+const infoConnRef = ref(db, '.info/connected');
+const infoOffsetRef = ref(db, '.info/serverTimeOffset');
+
+onValue(infoConnRef, (snap) => {
+  const connected = !!snap.val();
+  $('#connIcon').textContent = `.info/connected: ${connected ? 'true' : 'false'}`;
+  $('#connIcon').className = 'badge ' + (connected ? 'ok' : 'err');
+});
+
+onValue(infoOffsetRef, (snap) => {
+  serverOffset = snap.val() || 0;
+  setText('#servertime', new Date(now()).toLocaleString());
+});
+
+// 匿名Auth（任意）: ルールが auth 必須の環境でも検証できるように
+signInAnonymously(auth).catch(e=> log('匿名サインイン失敗: '+ e.message));
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    setText('#uid', user.uid);
+    $('#authBadge').textContent = '匿名Auth有効';
+    $('#authBadge').className = 'badge ok';
+  } else {
+    setText('#uid', '(未サインイン)');
+    $('#authBadge').textContent = '匿名Auth未使用';
+    $('#authBadge').className = 'badge warn';
+  }
+});
+
+async function joinRoom(){
+  if (myRef) return; // already joined
+  roomId = sanitizeRoom($('#room').value);
+  const name = sanitizeName($('#name').value);
   playersRef = ref(db, `rooms/${roomId}/players`);
+  pingsRef   = ref(db, `rooms/${roomId}/pings`);
   myRef = push(playersRef);
-  await set(myRef, { name, ts: Date.now() });
-  onDisconnect(myRef).remove();
-  $("#myid").textContent = myRef.key;
-  $("#status").textContent = "入室中";
+  try{
+    await set(myRef, { name, ts: now() });
+    onDisconnect(myRef).remove();
+    setText('#myid', myRef.key);
+    setText('#status', '入室中');
+    log(`入室: rooms/${roomId}/players/${myRef.key}`);
+  }catch(e){
+    log('入室エラー: ' + e.message);
+    myRef = null; return;
+  }
 
-  onChildAdded(playersRef, snap => { players[snap.key]=snap.val(); renderList(players); });
-  onChildRemoved(playersRef, snap => { delete players[snap.key]; renderList(players); });
+  // 参加者購読（追加/削除）
+  onChildAdded(playersRef, snap => { players[snap.key]=snap.val(); renderList(players); setText('#count', Object.keys(players).length); });
+  onChildRemoved(playersRef, snap => { delete players[snap.key]; renderList(players); setText('#count', Object.keys(players).length); });
 
-  log(`入室: rooms/${roomId}/players/${myRef.key}`);
-};
+  // 全体の人数（保険: onValue で再計算）
+  onValue(playersRef, (snap)=>{ const v=snap.val()||{}; players=v; renderList(players); setText('#count', Object.keys(v).length); });
 
-$("#leave").onclick = async () => {
-  if (myRef){ await remove(myRef); $("#status").textContent = "退室"; log("退室"); }
-};
+  // ハートビート（最後の活動時刻を更新）
+  heartbeatTimer && clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(()=>{
+    if (!myRef) return; update(myRef, { ts: now() }).catch(()=>{});
+    setText('#servertime', new Date(now()).toLocaleString());
+  }, 20_000);
+
+  // RTTテスト: 小さな ping ノードへ書き込み→読み戻しまでの時間
+  rttTimer && clearInterval(rttTimer);
+  rttTimer = setInterval(async ()=>{
+    if (!pingsRef || !myRef) return;
+    const pingKey = `${myRef.key}`;
+    const t0 = performance.now();
+    try{
+      await set(ref(db, `rooms/${roomId}/pings/${pingKey}`), { t: now() });
+      const snap = await get(ref(db, `rooms/${roomId}/pings/${pingKey}`));
+      if (snap.exists()){
+        const t1 = performance.now();
+        const rtt = Math.max(0, Math.round(t1 - t0));
+        setText('#rtt', rtt + ' ms');
+      }
+    }catch(e){ /* ignore */ }
+  }, 10_000);
+
+  // ページ離脱で自動退室
+  window.addEventListener('beforeunload', handleLeaveOnce, { once:true });
+}
+
+async function handleLeave(){
+  if (!myRef) return;
+  try{
+    await remove(myRef);
+    log('退室');
+  }catch(e){
+    log('退室エラー: ' + e.message);
+  }
+  clearInterval(heartbeatTimer); clearInterval(rttTimer);
+  heartbeatTimer = rttTimer = null;
+  setText('#status', '退室');
+  setText('#myid', '-');
+  myRef = null; players = {}; renderList(players); setText('#count','-');
+}
+
+function handleLeaveOnce(){ handleLeave(); }
+
+// Buttons
+$('#join').addEventListener('click', joinRoom);
+$('#leave').addEventListener('click', handleLeave);
+$('#clearLog').addEventListener('click', ()=> { $('#log').textContent=''; });
+$('#saveLog').addEventListener('click', ()=>{
+  const blob = new Blob([$('#log').textContent], { type:'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href:url, download:`diagnostics_${Date.now()}.txt` });
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+$('#share').addEventListener('click', async ()=>{
+  const r = sanitizeRoom($('#room').value), n = sanitizeName($('#name').value);
+  const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(r)}&name=${encodeURIComponent(n)}`;
+  try{
+    await navigator.clipboard.writeText(url);
+    log('共有リンクをコピーしました');
+  }catch{
+    log('共有リンク: ' + url);
+  }
+});
+
 </script>
 </body>
 </html>
