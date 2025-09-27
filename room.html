@@ -107,7 +107,7 @@ import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/1
 import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js';
 
-const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'nikori-town',storageBucket:'nikori-town.firebasestorage.app',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
+const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.firebaseio.com',projectId:'nikori-town',storageBucket:'nikori-town.firebasestorage.app',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDatabase(app); const storage=getStorage(app);
 
 /* ===== URL ===== */
@@ -115,9 +115,10 @@ const u=new URL(location.href); const ROOM=(u.searchParams.get('room')||'room-00
 roomId.textContent=ROOM; who.textContent=NAME;
 
 /* ===== Assets ===== */
-function loadImage(src){return new Promise((res,rej)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src;});}
-const imgMap = await loadImage('./map_1.png');
-const imgMask= await loadImage('./atarihantei.png'); // 赤が当たり判定
+function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){return new Promise((res)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>{console.error('Image load failed:', src); warn(`画像読み込み失敗: ${src}`); try{const c=document.createElement('canvas'); c.width=fallbackSize[0]; c.height=fallbackSize[1]; const g=c.getContext('2d'); g.fillStyle='#0f172a'; g.fillRect(0,0,c.width,c.height); g.fillStyle='#334155'; g.fillText(label,10,20); const img=new Image(); img.onload=()=>res(img); img.src=c.toDataURL();}catch{const img=new Image(); img.src='data:image/gif;base64,R0lGODlhAQABAAAAACw='; img.onload=()=>res(img);} }; i.src=src;});}
+function warn(msg){ let box=document.getElementById('warnBox'); if(!box){ box=document.createElement('div'); box.id='warnBox'; Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'}); document.body.appendChild(box);} const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);} 
+const imgMap = await loadImage('./map_1.png',{fallbackSize:[2048,2048],label:'map'});
+const imgMask= await loadImage('./atarihantei.png',{fallbackSize:[2048,2048],label:'mask'}); // 赤が当たり判定
 const imgFront=await loadImage('./nikorihito_dot_front.png'); const imgBack=await loadImage('./nikorihito_dot_behind.png'); const imgLeft=await loadImage('./nikorihito_dot_left.png'); const imgRight=await loadImage('./nikorihito_dot_right.png');
 
 /* ===== Canvas & world ===== */
@@ -132,7 +133,7 @@ function hits(x,y){const foot=y+(RADIUS*0.6); return isBlocked(x,foot)||isBlocke
 function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32, y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2, cy=world.h/2; return {x:cx,y:cy};}
 
 /* ===== Players ===== */
-const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=crypto.randomUUID(); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
+const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=(crypto.randomUUID?crypto.randomUUID():(`m${Math.random().toString(36).slice(2)}`)); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
 let my=Object.assign({name:NAME,dir:'front',ts:Date.now()}, safeSpawn());
 signInAnonymously(auth).catch(()=>{}); await set(meRef,my); onDisconnect(meRef).remove();
 let players={}; const ghosts={};
