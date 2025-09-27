@@ -19,11 +19,14 @@
   .replyToMe{background:var(--yellow); border:1px solid var(--yellowBorder)}
   .mentionSelf{color:var(--mention);font-weight:700}
   .meta{color:var(--muted);font-size:.8rem;margin-top:2px}
+  .file{display:inline-flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid var(--border);border-radius:8px;background:#0b1220;margin-top:4px}
+  .file img{max-width:180px;max-height:120px;display:block;border-radius:6px}
 
   /* Composer */
   #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
   #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
   #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
+  #attachBtn{background:transparent;border:1px dashed var(--border);color:#e2e8f0}
 
   /* Ctx menu */
   #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
@@ -41,19 +44,29 @@
   /* HUD */
   .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
   .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
+  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
+
+  /* Attach modal */
+  #attachModal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:40}
+  #attachPanel{width:min(90vw,560px);background:#101826;border:1px solid var(--border);border-radius:12px;padding:16px}
+  .drop{border:2px dashed #64748b;border-radius:12px;padding:28px;text-align:center;color:#cbd5e1;background:rgba(15,23,42,.6)}
+  .drop.drag{background:rgba(34,211,238,.12);border-color:#22d3ee}
 </style>
 </head>
 <body>
   <canvas id="game"></canvas>
 
   <div class="hud">
+    <button id="leave" title="退室">退室</button>
     <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
   </div>
 
   <div id="chatView"></div>
   <div id="composer">
+    <button id="attachBtn" title="ファイル添付">📁</button>
     <input id="text" placeholder="メッセージ… (@自分の名前だけ水色で強調 / 返信は右クリックから)" maxlength="2000" />
     <button id="send">送信</button>
+    <input id="filePick" type="file" style="display:none" />
   </div>
 
   <div id="ctxMenu">
@@ -61,6 +74,19 @@
     <button id="ctxReactOpen">リアクション</button>
     <button id="editMsg">編集</button>
     <button id="delMsg">削除</button>
+  </div>
+
+  <!-- 添付ダイアログ -->
+  <div id="attachModal">
+    <div id="attachPanel">
+      <h3 style="margin:0 0 8px">ファイルを添付</h3>
+      <div id="drop" class="drop">
+        ドラッグ＆ドロップ<br/>
+        <small>または</small>
+        <button id="pickFromPc" style="margin-top:8px">パソコンからアップロード</button>
+      </div>
+      <div style="margin-top:10px;text-align:right"><button id="attachClose" class="ghost">閉じる</button></div>
+    </div>
   </div>
 
   <button id="reactFab" title="リアクション">😊</button>
@@ -75,9 +101,10 @@ const EMOJIS=['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js';
 
 const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'nikori-town',storageBucket:'nikori-town.firebasestorage.app',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
-const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDatabase(app);
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDatabase(app); const storage=getStorage(app);
 
 /* ===== URL ===== */
 const u=new URL(location.href); const ROOM=(u.searchParams.get('room')||'room-001').toLowerCase(); const NAME=u.searchParams.get('name')||'guest';
@@ -124,6 +151,8 @@ function messageEl(id,m){
   if(m.replyTo){ const parent=msgIndex.get(m.replyTo); const r=document.createElement('div'); r.className='replyTo'; r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）'; r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'}); }}; el.appendChild(r); if(parent && parent.uid===meId) el.classList.add('replyToMe'); }
   // 本文（@自分だけ水色）
   const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line);
+  // 添付
+  if(m.file){ const f=document.createElement('div'); f.className='file'; if(m.file.type?.startsWith('image/')){ const im=document.createElement('img'); im.src=m.file.url; im.alt=m.file.name||''; f.appendChild(im);} const name=document.createElement('a'); name.href=m.file.url; name.target='_blank'; name.rel='noopener'; name.textContent=m.file.name||'file'; f.appendChild(name); el.appendChild(f); }
   // 時刻
   const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta);
   // 右クリ/長押し
@@ -144,8 +173,20 @@ ctxReply.onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeC
 document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return; const old=items.get(ctxTargetId); const cur=old?.querySelector('div')?.textContent||''; const t=prompt('メッセージを編集',cur); if(t==null) return; await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,2000), edited:true, ts:Date.now() }); closeCtx(); };
 document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return; await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx(); };
 
-sendBtn.onclick=async()=>{ const text=textEl.value.trim(); if(!text) return; const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } await sendMessage(msg); textEl.value=''; };
+let sendPendingFile=null;
+sendBtn.onclick=async()=>{ const text=textEl.value.trim(); const file=sendPendingFile; if(!text && !file) return; const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } if(file){ msg.file=file; sendPendingFile=null; } await sendMessage(msg); textEl.value=''; hideAttach(); };
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
+
+/* ===== Attachments ===== */
+const attachBtn=document.getElementById('attachBtn'); const filePick=document.getElementById('filePick'); const attachModal=document.getElementById('attachModal'); const dropEl=document.getElementById('drop'); const pickFromPc=document.getElementById('pickFromPc'); const attachClose=document.getElementById('attachClose');
+function showAttach(){ attachModal.style.display='flex'; }
+function hideAttach(){ attachModal.style.display='none'; dropEl?.classList?.remove('drag'); }
+attachBtn.onclick=showAttach; attachClose.onclick=hideAttach; pickFromPc.onclick=()=>filePick.click();
+filePick.onchange=()=>{ if(filePick.files?.[0]) handleFiles(filePick.files); };
+dropEl.addEventListener('dragover',e=>{ e.preventDefault(); dropEl.classList.add('drag'); });
+dropEl.addEventListener('dragleave',()=>dropEl.classList.remove('drag'));
+dropEl.addEventListener('drop',e=>{ e.preventDefault(); dropEl.classList.remove('drag'); if(e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files); });
+async function handleFiles(fileList){ const f=fileList[0]; if(!f) return; const path=`rooms/${ROOM}/uploads/${crypto.randomUUID()}_${f.name}`; const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r); let meta={name:f.name,url, type:f.type||'application/octet-stream'}; if(meta.type.startsWith('image/')){ try{ const im=new Image(); im.src=url; await im.decode(); meta.width=im.naturalWidth; meta.height=im.naturalHeight; }catch{} } sendPendingFile=meta; hideAttach(); }
 
 /* ===== Reactions (全員に見える泡) ===== */
 const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
@@ -192,6 +233,13 @@ function step(now){ if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;
 requestAnimationFrame(step);
 
 function drawName(name,x,y,me=false){ ctx.font='12px system-ui, sans-serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-32,y-14,64,16); ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name,x,y-2); }
+
+// === 退室ボタン ===
+const leaveBtn = document.getElementById('leave');
+if (leaveBtn) {
+  leaveBtn.onclick = ()=>{ remove(meRef).finally(()=>{ location.href = './'; }); };
+}
+addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
 </script>
 </body>
 </html>
