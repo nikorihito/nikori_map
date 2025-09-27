@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ニコリタウン - ルーム（smooth）</title>
+<title>ニコリタウン - ルーム（smooth+light）</title>
 <style>
   :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--a1:#22d3ee;--a2:#06b6d4}
   *{box-sizing:border-box} html,body{height:100%}
@@ -43,12 +43,14 @@
 
 <script type="module">
 /* --------------------- 調整パラメータ --------------------- */
-const SCALE = 1.5;            // 小さいほど視野広い
-const SPEED_PPS = 300;        // 自分の速度 (px/sec)
+const SCALE = 1.4;            // 小さいほど視野広い（1.2〜1.6 推奨）
+const SPEED_PPS = 320;        // 自分の速度 (px/sec)
 const RADIUS = 10;            // 当たり半径
 const PLAYER_INTERP = 12;     // 他プレイヤー追従（8〜16）
 const CAM_INTERP = 10;        // カメラ追従（6〜14）
-const SYNC_MS = 50;           // 位置同期の間隔
+const SYNC_MS = 50;           // 位置同期の間隔(最短)
+const MAX_MSG = 50;           // チャット保持件数
+const FRAME_MIN = 1000/50;    // 上限fps（50fps）。重ければ 45fps=1000/45 に
 
 /* ------------------------ Firebase ------------------------ */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
@@ -95,25 +97,25 @@ addEventListener('resize', resize); resize();
 const world = { w: imgMap.width, h: imgMap.height };
 
 /* -------------------- Collision Mask --------------------- */
-const maskC = new OffscreenCanvas(imgMask.width, imgMask.height);
-const maskX = maskC.getContext('2d');
+// OffscreenCanvas が無い環境にフォールバック
+const maskCanvas = (typeof OffscreenCanvas !== 'undefined') ? new OffscreenCanvas(imgMask.width, imgMask.height)
+                                                           : Object.assign(document.createElement('canvas'), {width:imgMask.width,height:imgMask.height});
+const maskX = maskCanvas.getContext('2d');
 maskX.drawImage(imgMask, 0, 0);
+const img = maskX.getImageData(0, 0, imgMask.width, imgMask.height);
+const pix = img.data; const W = imgMask.width;
 function isBlocked(x,y){
+  x = x|0; y = y|0;
   if(x<0||y<0||x>=world.w||y>=world.h) return true;
-  const d = maskX.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-  const r=d[0], g=d[1], b=d[2], a=d[3];
+  const i = (y*W + x) * 4;
+  const r = pix[i], g = pix[i+1], b = pix[i+2], a = pix[i+3];
   if (a < 10) return false;
   return (r >= 180 && g <= 80 && b <= 80); // 赤
 }
+// 軽量版当たり（足元3点）
 function hits(x,y){
-  if(x<0||y<0||x>=world.w||y>=world.h) return true;
-  for(let dy=-RADIUS; dy<=RADIUS; dy++){
-    for(let dx=-RADIUS; dx<=RADIUS; dx++){
-      if(dx*dx+dy*dy>RADIUS*RADIUS) continue;
-      if(isBlocked(x+dx, y+dy)) return true;
-    }
-  }
-  return false;
+  const footY = y + (RADIUS*0.6);
+  return isBlocked(x, footY) || isBlocked(x - RADIUS*0.7, footY) || isBlocked(x + RADIUS*0.7, footY);
 }
 function safeSpawn(maxTry=500){
   for(let i=0;i<maxTry;i++){
@@ -142,7 +144,6 @@ const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
 const chatRef = ref(db, `rooms/${ROOM}/chat`);
 
 signInAnonymously(auth).catch(()=>{});
-
 await set(meRef, { name: NAME, x: my.x, y: my.y, dir: my.dir, ts: Date.now() });
 onDisconnect(meRef).remove();
 
@@ -181,10 +182,12 @@ function camera(dt){
 }
 
 /* --------------------- Main Loop ------------------------- */
-let lastSync = 0;
+let lastSync = 0, selfLastX = my.x, selfLastY = my.y, selfLastDir = dir;
 let lastT = performance.now();
 function step(now){
-  const dt = Math.min(0.033, (now - lastT) / 1000);
+  // fps上限
+  if (now - lastT < FRAME_MIN) { requestAnimationFrame(step); return; }
+  const dt = Math.min(0.05, (now - lastT) / 1000); // 50ms上限
   lastT = now;
 
   // 入力→移動（delta-time）
@@ -206,12 +209,21 @@ function step(now){
   // 補間して描画
   const cam = camera(dt);
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(imgMap, -cam.x, -cam.y);
 
-  // 他プレイヤー（補間）
+  // ① マップは部分描画（見える範囲だけ）
+  ctx.drawImage(
+    imgMap,
+    cam.x, cam.y, canvas.width, canvas.height,  // src rect
+    0, 0, canvas.width, canvas.height           // dst rect
+  );
+
+  // 他プレイヤー（補間＋視界外カリング＋自分除外）
   const kInterp = Math.min(1, dt * PLAYER_INTERP);
+  const left = cam.x-64, right = cam.x+canvas.width+64, top = cam.y-64, bottom = cam.y+canvas.height+64;
   for(const [id,p] of Object.entries(players)){
     if(!p || id===meId) continue;
+    if (p.x < left || p.x > right || p.y < top || p.y > bottom) continue; // ② カリング
+
     const g = (ghosts[id] ||= { x:p.x, y:p.y, dir:p.dir, name:p.name });
     g.x += (p.x - g.x) * kInterp;
     g.y += (p.y - g.y) * kInterp;
@@ -229,8 +241,17 @@ function step(now){
   ctx.drawImage(meIm, Math.round(my.x - mw/2 - cam.x), Math.round(my.y - mh/2 - cam.y), mw, mh);
   drawName(NAME, my.x - cam.x, (my.y - mh/2) - cam.y - 2, true);
 
-  // 位置同期（帯域を抑えて20fps）
-  if(now-lastSync>SYNC_MS){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
+  // ③ ネットワーク同期：動いた/向き変わった時だけ、かつ間隔制御
+  if(now-lastSync>SYNC_MS){
+    const dx = my.x - selfLastX, dy = my.y - selfLastY;
+    const moved = (dx*dx + dy*dy) > 1; // 1px^2 以上のみ
+    const dirChanged = dir !== selfLastDir;
+    if (moved || dirChanged){
+      lastSync = now;
+      selfLastX = my.x; selfLastY = my.y; selfLastDir = dir;
+      update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() });
+    }
+  }
 
   requestAnimationFrame(step);
 }
@@ -249,7 +270,7 @@ const sendBtn=document.getElementById('send');
 const ctxMenu=document.getElementById('ctxMenu');
 let ctxTargetId=null;
 
-const chatQ=query(chatRef, limitToLast(100));
+const chatQ=query(chatRef, limitToLast(MAX_MSG));
 const items=new Map();
 function itemEl(id,m){
   const el=document.createElement('div');
@@ -260,9 +281,21 @@ function itemEl(id,m){
   el.oncontextmenu=(e)=>{ e.preventDefault(); if(m.uid!==meId) return; ctxTargetId=id; openCtx(e.clientX,e.clientY); };
   return el;
 }
-onChildAdded(chatQ, s=>{ const id=s.key, m=s.val()||{}; const el=itemEl(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop=chatView.scrollHeight; });
-onChildChanged(chatQ, s=>{ const id=s.key, m=s.val()||{}; const old=items.get(id); if(old){ const el=itemEl(id,m); chatView.replaceChild(el,old); items.set(id,el); }});
-onChildRemoved(chatQ, s=>{ const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id);} });
+onChildAdded(chatQ, s=>{
+  const id=s.key, m=s.val()||{};
+  const el=itemEl(id,m); items.set(id,el); chatView.appendChild(el);
+  while (chatView.children.length > MAX_MSG) {
+    const first = chatView.firstChild; items.delete(first?.dataset?.id); first?.remove();
+  }
+  chatView.scrollTop=chatView.scrollHeight;
+});
+onChildChanged(chatQ, s=>{
+  const id=s.key, m=s.val()||{};
+  const old=items.get(id); if(old){ const el=itemEl(id,m); chatView.replaceChild(el,old); items.set(id,el); }
+});
+onChildRemoved(chatQ, s=>{
+  const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id); }
+});
 
 sendBtn.onclick=async()=>{ const t=textEl.value.trim(); if(!t) return; await push(chatRef,{uid:meId,name:NAME,text:t.slice(0,200),ts:Date.now()}); textEl.value=''; textEl.focus(); };
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
