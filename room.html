@@ -2,25 +2,60 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ニコリタウン - ルーム（smooth+light）</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>ニコリタウン - ルーム（mobile+smooth+light）</title>
 <style>
   :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--a1:#22d3ee;--a2:#06b6d4}
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+    overflow:hidden; touch-action:none; /* ← スクロール/ピンチ誤爆防止 */
+    padding-bottom: env(safe-area-inset-bottom); /* iOSノッチ */
+  }
   #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+
   .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
   .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
   .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
+
   #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
   #chatView .item{padding:4px 6px;border-radius:8px;margin:4px 0}
   #chatView .me{background:rgba(34,211,238,.15)}
-  #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
-  #composer input{font:inherit;width:min(60vw,720px);padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
-  #composer button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
+
+  #composer{
+    position:fixed;left:50%;bottom:8px;transform:translateX(-50%);
+    display:flex;gap:6px;z-index:20;background:var(--panel2);
+    border:1px solid var(--border);border-radius:12px;padding:6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom)); /* iOS */
+  }
+  #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
+  #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
+
   #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   #ctxMenu button{display:block;width:180px;text-align:left;padding:8px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
   #ctxMenu button:hover{background:#1b2540}
+
+  /* === 仮想ジョイスティック（左下） === */
+  .joy{
+    position:fixed;left:12px;bottom:84px; /* チャットと被らないように少し上に */
+    width:140px;height:140px;border-radius:50%;z-index:25;
+    background:rgba(16,24,38,.6);backdrop-filter:blur(4px);
+    border:1px solid var(--border);touch-action:none;
+  }
+  .joy .knob{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(180deg,var(--a1),var(--a2)); border:0;
+    box-shadow:0 4px 16px rgba(0,0,0,.35);
+  }
+
+  /* 小さい端末では少し縮小 */
+  @media (max-width:480px){
+    .joy{width:120px;height:120px}
+    .joy .knob{width:48px;height:48px}
+  }
 </style>
 </head>
 <body>
@@ -41,18 +76,21 @@
     <button id="delMsg">削除</button>
   </div>
 
+  <!-- 仮想ジョイスティック -->
+  <div id="joy" class="joy" aria-label="ジョイスティック"><div id="knob" class="knob"></div></div>
+
 <script type="module">
-/* --------------------- 調整パラメータ --------------------- */
-const SCALE = 1.4;            // 小さいほど視野広い（1.2〜1.6 推奨）
+/* ====== 調整パラメータ ====== */
+const SCALE = 1.4;            // 小さいほど視野広い
 const SPEED_PPS = 320;        // 自分の速度 (px/sec)
 const RADIUS = 10;            // 当たり半径
 const PLAYER_INTERP = 12;     // 他プレイヤー追従（8〜16）
 const CAM_INTERP = 10;        // カメラ追従（6〜14）
-const SYNC_MS = 50;           // 位置同期の間隔(最短)
+const SYNC_MS = 50;           // 位置同期（最短間隔）
 const MAX_MSG = 50;           // チャット保持件数
-const FRAME_MIN = 1000/50;    // 上限fps（50fps）。重ければ 45fps=1000/45 に
+const FRAME_MIN = 1000/50;    // 上限fps 50
 
-/* ------------------------ Firebase ------------------------ */
+/* ====== Firebase ====== */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query,
@@ -71,14 +109,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getDatabase(app);
 
-/* ------------------------ URL params ---------------------- */
+/* ====== URL ====== */
 const u = new URL(location.href);
 const ROOM = (u.searchParams.get('room')||'room-001').toLowerCase();
 const NAME = u.searchParams.get('name')||'guest';
 document.getElementById('roomId').textContent = ROOM;
 document.getElementById('who').textContent    = NAME;
 
-/* ------------------------- Assets ------------------------- */
+/* ====== Assets ====== */
 function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
 const imgMap   = await loadImage('./map_1.png');
 const imgMask  = await loadImage('./atarihantei.png'); // 赤=壁
@@ -87,17 +125,16 @@ const imgBack  = await loadImage('./nikorihito_dot_behind.png');
 const imgLeft  = await loadImage('./nikorihito_dot_left.png');
 const imgRight = await loadImage('./nikorihito_dot_right.png');
 
-/* -------------------- Canvas & Camera --------------------- */
+/* ====== Canvas & Camera ====== */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false; // にじみ防止
+ctx.imageSmoothingEnabled = false;
 function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
 addEventListener('resize', resize); resize();
-
 const world = { w: imgMap.width, h: imgMap.height };
 
-/* -------------------- Collision Mask --------------------- */
-// OffscreenCanvas が無い環境にフォールバック
+/* ====== Collision ====== */
+// OffscreenCanvas fallback
 const maskCanvas = (typeof OffscreenCanvas !== 'undefined') ? new OffscreenCanvas(imgMask.width, imgMask.height)
                                                            : Object.assign(document.createElement('canvas'), {width:imgMask.width,height:imgMask.height});
 const maskX = maskCanvas.getContext('2d');
@@ -112,7 +149,6 @@ function isBlocked(x,y){
   if (a < 10) return false;
   return (r >= 180 && g <= 80 && b <= 80); // 赤
 }
-// 軽量版当たり（足元3点）
 function hits(x,y){
   const footY = y + (RADIUS*0.6);
   return isBlocked(x, footY) || isBlocked(x - RADIUS*0.7, footY) || isBlocked(x + RADIUS*0.7, footY);
@@ -133,7 +169,7 @@ function safeSpawn(maxTry=500){
   return {x:cx, y:cy};
 }
 
-/* ---------------------- Game State ----------------------- */
+/* ====== Game State ====== */
 let dir = 'front';
 const keys = new Set();
 let my = Object.assign({dir, name: NAME, ts: Date.now()}, safeSpawn());
@@ -147,9 +183,8 @@ signInAnonymously(auth).catch(()=>{});
 await set(meRef, { name: NAME, x: my.x, y: my.y, dir: my.dir, ts: Date.now() });
 onDisconnect(meRef).remove();
 
-/* 生データと可視化用ゴースト（補間先） */
 let players = {};
-const ghosts = {}; // id -> {x,y,dir,name}
+const ghosts = {};
 onValue(playersRef, snap=>{
   players = snap.val()||{};
   document.getElementById('count').textContent = Object.keys(players).length;
@@ -158,7 +193,7 @@ onValue(playersRef, snap=>{
   }
 });
 
-/* 入力 */
+/* ====== Input: KB ====== */
 addEventListener('keydown', e=>{
   const k=e.key;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(k)) e.preventDefault();
@@ -166,9 +201,46 @@ addEventListener('keydown', e=>{
 });
 addEventListener('keyup', e=>{ keys.delete(e.key); });
 
-function spriteByDir(d){ return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront; }
+/* ====== Input: Virtual Joystick ====== */
+const joy = document.getElementById('joy');
+const knob = document.getElementById('knob');
+let joyActive = false, joyVx = 0, joyVy = 0;
 
-/* カメラ補間 */
+const JOY_MAX = 52;  // ノブ移動最大半径(px)
+function joySetKnob(dx, dy){
+  knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+function joyReset(){
+  joyActive=false; joyVx=joyVy=0; joySetKnob(0,0);
+}
+function joyStart(x, y){
+  joyActive=true; joyMove(x, y);
+}
+function joyMove(x, y){
+  const rect = joy.getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  let dx = x - cx, dy = y - cy;
+  const len = Math.hypot(dx,dy);
+  if(len>0){
+    const clamped = Math.min(len, JOY_MAX);
+    const nx = dx/len, ny = dy/len;
+    dx = nx * clamped; dy = ny * clamped;
+    joyVx = nx; joyVy = ny; // 正規化方向
+  }else{
+    joyVx=joyVy=0;
+  }
+  joySetKnob(dx, dy);
+}
+
+// Pointer/Touch対応（マルチタッチでも最初の指のみ採用）
+let joyPointerId = null;
+joy.addEventListener('pointerdown', (e)=>{ joyPointerId=e.pointerId; joy.setPointerCapture(joyPointerId); joyStart(e.clientX, e.clientY); });
+joy.addEventListener('pointermove', (e)=>{ if(e.pointerId!==joyPointerId) return; joyMove(e.clientX, e.clientY); });
+joy.addEventListener('pointerup',   (e)=>{ if(e.pointerId!==joyPointerId) return; joy.releasePointerCapture(joyPointerId); joyPointerId=null; joyReset(); });
+joy.addEventListener('pointercancel',(e)=>{ if(e.pointerId!==joyPointerId) return; joyPointerId=null; joyReset(); });
+
+/* ====== Sprites & Camera ====== */
+function spriteByDir(d){ return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront; }
 let camX = 0, camY = 0;
 function camera(dt){
   const tx = Math.round(my.x - canvas.width/2);
@@ -181,21 +253,25 @@ function camera(dt){
   return { x: camX, y: camY };
 }
 
-/* --------------------- Main Loop ------------------------- */
+/* ====== Main Loop ====== */
 let lastSync = 0, selfLastX = my.x, selfLastY = my.y, selfLastDir = dir;
 let lastT = performance.now();
 function step(now){
-  // fps上限
   if (now - lastT < FRAME_MIN) { requestAnimationFrame(step); return; }
-  const dt = Math.min(0.05, (now - lastT) / 1000); // 50ms上限
+  const dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
 
-  // 入力→移動（delta-time）
+  // 入力→方向（KB + ジョイスティック合成）
   let vx=0, vy=0;
   if(keys.has('ArrowUp')   || keys.has('w') || keys.has('W')) vy-=1;
   if(keys.has('ArrowDown') || keys.has('s') || keys.has('S')) vy+=1;
   if(keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) vx-=1;
   if(keys.has('ArrowRight')|| keys.has('d') || keys.has('D')) vx+=1;
+
+  // 仮想スティックを優先（指が乗っていたらそれだけ使う）
+  if(joyActive){
+    vx = joyVx; vy = joyVy;
+  }
 
   if(vx||vy){
     const len=Math.hypot(vx,vy); vx/=len; vy/=len;
@@ -206,23 +282,18 @@ function step(now){
     dir = Math.abs(vx)>Math.abs(vy) ? (vx>0?'right':'left') : (vy>0?'front':'back');
   }
 
-  // 補間して描画
+  // 描画
   const cam = camera(dt);
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  // ① マップは部分描画（見える範囲だけ）
-  ctx.drawImage(
-    imgMap,
-    cam.x, cam.y, canvas.width, canvas.height,  // src rect
-    0, 0, canvas.width, canvas.height           // dst rect
-  );
+  // 部分描画（見える範囲だけ）
+  ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
   // 他プレイヤー（補間＋視界外カリング＋自分除外）
   const kInterp = Math.min(1, dt * PLAYER_INTERP);
   const left = cam.x-64, right = cam.x+canvas.width+64, top = cam.y-64, bottom = cam.y+canvas.height+64;
   for(const [id,p] of Object.entries(players)){
     if(!p || id===meId) continue;
-    if (p.x < left || p.x > right || p.y < top || p.y > bottom) continue; // ② カリング
+    if (p.x < left || p.x > right || p.y < top || p.y > bottom) continue;
 
     const g = (ghosts[id] ||= { x:p.x, y:p.y, dir:p.dir, name:p.name });
     g.x += (p.x - g.x) * kInterp;
@@ -241,10 +312,10 @@ function step(now){
   ctx.drawImage(meIm, Math.round(my.x - mw/2 - cam.x), Math.round(my.y - mh/2 - cam.y), mw, mh);
   drawName(NAME, my.x - cam.x, (my.y - mh/2) - cam.y - 2, true);
 
-  // ③ ネットワーク同期：動いた/向き変わった時だけ、かつ間隔制御
+  // 位置同期（動いた/向き変化のみ送る）
   if(now-lastSync>SYNC_MS){
     const dx = my.x - selfLastX, dy = my.y - selfLastY;
-    const moved = (dx*dx + dy*dy) > 1; // 1px^2 以上のみ
+    const moved = (dx*dx + dy*dy) > 1;
     const dirChanged = dir !== selfLastDir;
     if (moved || dirChanged){
       lastSync = now;
@@ -263,7 +334,7 @@ function drawName(name, x, y, me=false){
   ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name, x, y-2);
 }
 
-/* ------------------------ Chat --------------------------- */
+/* ====== Chat ====== */
 const chatView=document.getElementById('chatView');
 const textEl=document.getElementById('text');
 const sendBtn=document.getElementById('send');
@@ -300,10 +371,10 @@ onChildRemoved(chatQ, s=>{
 sendBtn.onclick=async()=>{ const t=textEl.value.trim(); if(!t) return; await push(chatRef,{uid:meId,name:NAME,text:t.slice(0,200),ts:Date.now()}); textEl.value=''; textEl.focus(); };
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 
+/* ====== Ctx Menu ====== */
 function openCtx(x,y){ ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px'; }
 function closeCtx(){ ctxMenu.style.display='none'; ctxTargetId=null; }
 addEventListener('click', ()=>closeCtx());
-
 document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return;
   const cur=items.get(ctxTargetId)?.textContent?.replace(/^.*?:\s*/,'')||'';
   const t=prompt('メッセージを編集',cur); if(t==null) return;
@@ -314,7 +385,7 @@ document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return;
   await remove(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx();
 };
 
-/* --------------------- Leave handling -------------------- */
+/* ====== Leave ====== */
 document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
 addEventListener('beforeunload', ()=>{ remove(meRef); });
 </script>
