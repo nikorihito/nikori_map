@@ -110,7 +110,7 @@ import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from 'h
 const firebaseConfig={
   apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
   authDomain:'nikori-town.firebaseapp.com',
-  databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app', // リージョン付き
+  databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
   projectId:'nikori-town',
   storageBucket:'nikori-town.appspot.com',
   messagingSenderId:'836836010871',
@@ -118,29 +118,39 @@ const firebaseConfig={
 };
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
-// URL混在対策として DB URL を明示指定
-const db=getDatabase(app, 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
+// 明示 URL で DB を取得（混在排除）
+const db=getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
 const storage=getStorage(app);
 
-/* 認証が完了するまで待つ */
+/* ===== Utilities: warn / Auth ===== */
+function warn(msg){
+  let box=document.getElementById('warnBox');
+  if(!box){
+    box=document.createElement('div'); box.id='warnBox';
+    Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'});
+    document.body.appendChild(box);
+  }
+  const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);
+}
+
 async function ensureAnonAuth(auth){
   if (auth.currentUser) return auth.currentUser;
   await signInAnonymously(auth);
   return await new Promise(resolve=>{
-    const stop = onAuthStateChanged(auth, u => { if(u){ stop(); resolve(u); } });
+    const stop=onAuthStateChanged(auth,u=>{ if(u){ stop(); resolve(u); } });
   });
 }
 
 /* ===== URL（サニタイズ） ===== */
 const u=new URL(location.href);
-const rawRoom = (u.searchParams.get('room')||'room-001');
-const ROOM = rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
-const NAME = u.searchParams.get('name') || 'guest';
+const rawRoom=(u.searchParams.get('room')||'room-001');
+const ROOM=rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
+const NAME=u.searchParams.get('name')||'guest';
 roomId.textContent=ROOM; who.textContent=NAME;
 
 /* ===== Assets ===== */
 function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){return new Promise((res)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>{console.error('Image load failed:', src); warn(`画像読み込み失敗: ${src}`); try{const c=document.createElement('canvas'); c.width=fallbackSize[0]; c.height=fallbackSize[1]; const g=c.getContext('2d'); g.fillStyle='#0f172a'; g.fillRect(0,0,c.width,c.height); g.fillStyle='#334155'; g.fillText(label,10,20); const img=new Image(); img.onload=()=>res(img); img.src=c.toDataURL();}catch{const img=new Image(); img.src='data:image/gif;base64,R0lGODlhAQABAAAAACw='; img.onload=()=>res(img);} }; i.src=src;});}
-function warn(msg){ let box=document.getElementById('warnBox'); if(!box){ box=document.createElement('div'); box.id='warnBox'; Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'}); document.body.appendChild(box);} const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);} 
+
 const imgMap = await loadImage('./map_1.png?v=20250927-1',{fallbackSize:[2048,2048],label:'map'});
 const imgMask= await loadImage('./atarihantei.png?v=20250927-1',{fallbackSize:[2048,2048],label:'mask'}); // 赤が当たり判定
 const imgFront=await loadImage('./nikorihito_dot_front.png?v=20250927-1');
@@ -149,15 +159,22 @@ const imgLeft =await loadImage('./nikorihito_dot_left.png?v=20250927-1');
 const imgRight=await loadImage('./nikorihito_dot_right.png?v=20250927-1');
 
 /* ===== Canvas & world ===== */
-const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false; function resize(){canvas.width=innerWidth; canvas.height=innerHeight;} addEventListener('resize',resize); resize();
+const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
+function resize(){canvas.width=innerWidth; canvas.height=innerHeight;}
+addEventListener('resize',resize); resize();
 const world={w:imgMap.width,h:imgMap.height};
 
 /* ===== Collision (赤=ブロック) ===== */
 const maskCanvas=(typeof OffscreenCanvas!=='undefined')?new OffscreenCanvas(imgMask.width,imgMask.height):Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
-const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0); const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
+const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0);
+const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
 function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);} // 赤っぽい
 function hits(x,y){const foot=y+(RADIUS*0.6); return isBlocked(x,foot)||isBlocked(x-RADIUS*0.7,foot)||isBlocked(x+RADIUS*0.7,foot);} 
 function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32, y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2, cy=world.h/2; return {x:cx,y:cy};}
+
+/* ===== Diagnostics（任意） ===== */
+warn('dbURL: '+(app?.options?.databaseURL||'(none)'));
+onValue(ref(db,'.info/connected'), s=>warn('connected: '+s.val()));
 
 /* ===== Players ===== */
 const playersRef=ref(db,`rooms/${ROOM}/players`);
@@ -165,14 +182,11 @@ const meId=(crypto.randomUUID?crypto.randomUUID():(`m${Math.random().toString(36
 const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
 let my=Object.assign({name:NAME,dir:'front',ts:Date.now()}, safeSpawn());
 
-// 診断（任意：不要なら削除OK）
-warn('dbURL: '+ (app?.options?.databaseURL || '(none)'));
-onValue(ref(db, '.info/connected'), s => { warn('connected: '+s.val()); });
-
 await ensureAnonAuth(auth).catch(e=>{ warn('認証失敗: '+((e&&e.code)||'')+' '+((e&&e.message)||e)); throw e; });
 try{
   await set(meRef,my);
   onDisconnect(meRef).remove().catch(()=>{});
+  warn('diag: write OK (join)');
 }catch(e){
   warn('DB書き込み失敗: '+((e&&e.code)||'')+' '+((e&&e.message)||e));
 }
@@ -196,7 +210,7 @@ function closeCtx(){ctxMenu.style.display='none'; ctxTargetId=null;}
 addEventListener('click',()=>closeCtx());
 
 function highlightMentions(container, text){
-  const meTag='@'+NAME; const parts = (text||'').split(/(@[^\s]+)/g);
+  const meTag='@'+NAME; const parts=(text||'').split(/(@[^\s]+)/g);
   for(const part of parts){
     if(part===meTag){ const span=document.createElement('span'); span.className='mentionSelf'; span.textContent=part; container.appendChild(span); }
     else { container.appendChild(document.createTextNode(part)); }
@@ -206,26 +220,26 @@ function highlightMentions(container, text){
 function messageEl(id,m){
   const el=document.createElement('div'); el.className='item'+(m.uid===meId?' me':''); el.dataset.id=id; el.dataset.uid=m.uid||'';
   // 返信
-  if(m.replyTo){ 
-    const parent=msgIndex.get(m.replyTo); 
-    const r=document.createElement('div'); 
-    r.className='replyTo'; 
-    r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）'; 
+  if(m.replyTo){
+    const parent=msgIndex.get(m.replyTo);
+    const r=document.createElement('div'); r.className='replyTo';
+    r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）';
     r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'}); }};
-    el.appendChild(r); 
-    if(parent && parent.uid===meId) el.classList.add('replyToMe'); 
+    el.appendChild(r);
+    if(parent && parent.uid===meId) el.classList.add('replyToMe');
   }
   // 本文
   const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line);
   // 添付（画像/音声/動画/PDFプレビュー）
-  if(m.file){ 
-    const f=document.createElement('div'); f.className='file'; 
-    const t=(m.file.type||'').toLowerCase(); 
-    if(t.startsWith('image/')){ const im=document.createElement('img'); im.src=m.file.url; im.alt=m.file.name||''; f.appendChild(im);} 
-    else if(t.startsWith('audio/')){ const au=document.createElement('audio'); au.controls=true; au.src=m.file.url; f.appendChild(au);} 
-    else if(t.startsWith('video/')){ const vi=document.createElement('video'); vi.controls=true; vi.src=m.file.url; vi.style.maxWidth='280px'; f.appendChild(vi);} 
-    else if(t==='application/pdf'){ const fr=document.createElement('iframe'); fr.src=m.file.url; fr.loading='lazy'; fr.style.width='280px'; fr.style.height='200px'; f.appendChild(fr);} 
-    const name=document.createElement('a'); name.href=m.file.url; name.target='_blank'; name.rel='noopener'; name.textContent=m.file.name||'file'; f.appendChild(name); el.appendChild(f); 
+  if(m.file){
+    const f=document.createElement('div'); f.className='file';
+    const t=(m.file.type||'').toLowerCase();
+    if(t.startsWith('image/')){ const im=document.createElement('img'); im.src=m.file.url; im.alt=m.file.name||''; f.appendChild(im);}
+    else if(t.startsWith('audio/')){ const au=document.createElement('audio'); au.controls=true; au.src=m.file.url; f.appendChild(au);}
+    else if(t.startsWith('video/')){ const vi=document.createElement('video'); vi.controls=true; vi.src=m.file.url; vi.style.maxWidth='280px'; f.appendChild(vi);}
+    else if(t==='application/pdf'){ const fr=document.createElement('iframe'); fr.src=m.file.url; fr.loading='lazy'; fr.style.width='280px'; fr.style.height='200px'; f.appendChild(fr);}
+    const name=document.createElement('a'); name.href=m.file.url; name.target='_blank'; name.rel='noopener'; name.textContent=m.file.name||'file'; f.appendChild(name);
+    el.appendChild(f);
   }
   // 時刻
   const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta);
@@ -243,7 +257,7 @@ onChildRemoved(chatQ,s=>{ const id=s.key; const el=items.get(id); if(el){ el.rem
 async function sendMessage(payload){ await push(chatRef, Object.assign({uid:meId,name:NAME,ts:Date.now()}, payload)); }
 
 // 返信：右クリック/長押しのみ
-ctxReply.onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeCtx(); textEl.focus(); };
+document.getElementById('ctxReply').onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeCtx(); textEl.focus(); };
 document.getElementById('ctxReactOpen').onclick=()=>{ closeCtx(); openReactMenu(); };
 document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return; const old=items.get(ctxTargetId); const cur=old?.querySelector('div')?.textContent||''; const t=prompt('メッセージを編集',cur); if(t==null) return; await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,2000), edited:true, ts:Date.now() }); closeCtx(); };
 document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return; await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx(); };
@@ -263,7 +277,9 @@ dropEl.addEventListener('drop',e=>{ e.preventDefault(); dropEl.classList.remove(
 
 function guessType(name, fallback='application/octet-stream'){
   const ext=(name.split('.').pop()||'').toLowerCase();
-  const map={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',mp3:'audio/mpeg',wav:'audio/wav',m4a:'audio/mp4',ogg:'audio/ogg',mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',mpeg:'video/mpeg',pdf:'application/pdf'};
+  const map={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',
+            mp3:'audio/mpeg',wav:'audio/wav',m4a:'audio/mp4',ogg:'audio/ogg',
+            mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',mpeg:'video/mpeg',pdf:'application/pdf'};
   return map[ext]||fallback;
 }
 
@@ -310,69 +326,77 @@ async function handleFiles(fileList){
 fileClear.onclick=()=>{ sendPendingFile=null; fileChip.style.display='none'; };
 
 let sending=false;
-const sendBtn=document.getElementById('send');
-sendBtn.onclick=async()=>{ 
-  if(sending) return; 
-  const text=textEl.value.trim(); const file=sendPendingFile; if(!text && !file) return; 
-  sending=true; 
-  try{ 
-    const msg={ text:text.slice(0,2000) }; 
-    if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } 
-    if(file){ msg.file=file; sendPendingFile=null; fileChip.style.display='none'; } 
-    await sendMessage(msg); 
-    textEl.value=''; 
-  } finally { sending=false; } 
+sendBtn.onclick=async()=>{
+  if(sending) return;
+  const text=textEl.value.trim(); const file=sendPendingFile;
+  if(!text && !file) return;
+  sending=true;
+  try{
+    const msg={ text:text.slice(0,2000) };
+    if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; }
+    if(file){ msg.file=file; sendPendingFile=null; fileChip.style.display='none'; }
+    await sendMessage(msg);
+    textEl.value='';
+  } finally { sending=false; }
 };
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 
 /* ===== Reactions (全員に見える泡) ===== */
 const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
 const reactFab=document.getElementById('reactFab'); const reactMenu=document.getElementById('reactMenu');
-function openReactMenu(){ 
-  reactMenu.innerHTML=''; 
-  EMOJIS.forEach(e=>{ 
-    const b=document.createElement('button'); 
-    b.textContent=e; 
-    b.onclick=()=>{ push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()}); reactMenu.style.display='none'; }; 
-    reactMenu.appendChild(b); 
-  }); 
-  reactMenu.style.display='block'; 
+function openReactMenu(){
+  reactMenu.innerHTML='';
+  EMOJIS.forEach(e=>{
+    const b=document.createElement('button');
+    b.textContent=e;
+    b.onclick=()=>{ push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()}); reactMenu.style.display='none'; };
+    reactMenu.appendChild(b);
+  });
+  reactMenu.style.display='block';
 }
-reactFab.onclick=()=>{ reactMenu.style.display = (reactMenu.style.display==='block')?'none':'block'; if(reactMenu.style.display==='block') openReactMenu(); };
+reactFab.onclick=()=>{ reactMenu.style.display=(reactMenu.style.display==='block')?'none':'block'; if(reactMenu.style.display==='block') openReactMenu(); };
 
 const bubbles=new Map();
-function showBubbleFor(uid,emoji){ let b=bubbles.get(uid); if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); } b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{ b.style.display='none'; },1800); }
+function showBubbleFor(uid,emoji){
+  let b=bubbles.get(uid);
+  if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); }
+  b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{ b.style.display='none'; },1800);
+}
 onChildAdded(query(bubblesRef,limitToLast(50)), s=>{ const {uid,emoji,ts}=s.val()||{}; if(!uid||!emoji) return; if(Date.now()-ts>5000) return; showBubbleFor(uid,emoji); });
 
 /* ===== Camera & Render ===== */
 function spriteByDir(d){return d==='back'?imgBack:d==='left'?imgLeft:d==='right'?imgRight:imgFront;}
-let camX=0, camY=0; function camera(dt){const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2); const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k; camX=Math.max(0,Math.min(world.w-canvas.width,camX)); camY=Math.max(0,Math.min(world.h-canvas.height,camY)); return {x:camX,y:camY};}
+let camX=0, camY=0;
+function camera(dt){
+  const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2);
+  const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k;
+  camX=Math.max(0,Math.min(world.w-canvas.width,camX));
+  camY=Math.max(0,Math.min(world.h-canvas.height,camY));
+  return {x:camX,y:camY};
+}
 
 // 矢印キーのみ
-const keys=new Set(); 
-addEventListener('keydown',e=>{ 
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); 
-  keys.add(e.key); 
-}); 
+const keys=new Set();
+addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); keys.add(e.key); });
 addEventListener('keyup',e=>keys.delete(e.key));
 
 let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir; let lastT=performance.now();
-function step(now){ 
-  if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;} 
+function step(now){
+  if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;}
   const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
   // 入力→移動（衝突判定あり）
-  let vx=0, vy=0; 
-  if(keys.has('ArrowUp')) vy-=1; 
-  if(keys.has('ArrowDown')) vy+=1; 
-  if(keys.has('ArrowLeft')) vx-=1; 
+  let vx=0, vy=0;
+  if(keys.has('ArrowUp')) vy-=1;
+  if(keys.has('ArrowDown')) vy+=1;
+  if(keys.has('ArrowLeft')) vx-=1;
   if(keys.has('ArrowRight')) vx+=1;
-  if(vx||vy){ 
-    const len=Math.hypot(vx,vy); vx/=len; vy/=len; 
-    const s=SPEED_PPS*dt; 
-    const nx=my.x+vx*s, ny=my.y+vy*s; 
-    if(!hits(nx,my.y)) my.x=nx; 
-    if(!hits(my.x,ny)) my.y=ny; 
-    my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back'); 
+  if(vx||vy){
+    const len=Math.hypot(vx,vy); vx/=len; vy/=len;
+    const s=SPEED_PPS*dt;
+    const nx=my.x+vx*s, ny=my.y+vy*s;
+    if(!hits(nx,my.y)) my.x=nx;
+    if(!hits(my.x,ny)) my.y=ny;
+    my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back');
   }
 
   const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -381,43 +405,47 @@ function step(now){
   // 他人
   const kInterp=Math.min(1,dt*PLAYER_INTERP);
   for(const [id,p] of Object.entries(players)){
-    if(!p||id===meId) continue; 
-    const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name}); 
-    g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir; 
-    const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE; 
-    ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh); 
+    if(!p||id===meId) continue;
+    const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name});
+    g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir;
+    const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE;
+    ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh);
     drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false);
   }
   // 自分
-  const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE; 
-  ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh); 
+  const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
+  ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh);
   drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
 
   // バブル位置更新
-  for(const [uid,b] of bubbles){ 
-    const p = uid===meId ? my : (players[uid]||ghosts[uid]); 
-    if(!p||b.style.display==='none') continue; 
-    const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y; 
-    b.style.left=x+'px'; b.style.top=(y - (mh/2) - 24)+'px'; 
+  for(const [uid,b] of bubbles){
+    const p = uid===meId ? my : (players[uid]||ghosts[uid]);
+    if(!p||b.style.display==='none') continue;
+    const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y;
+    b.style.left=x+'px'; b.style.top=(y - (mh/2) - 24)+'px';
   }
 
-  if(now-lastSync>SYNC_MS){ 
-    const dx=my.x-selfLastX, dy=my.y-selfLastY; 
-    const moved=(dx*dx+dy*dy)>1; 
-    const dirChanged=my.dir!==selfLastDir; 
-    if(moved||dirChanged){ 
-      lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=my.dir; 
-      update(meRef,{x:my.x,y:my.y,dir:my.dir,ts:Date.now()}); 
-    } 
+  if(now-lastSync>SYNC_MS){
+    const dx=my.x-selfLastX, dy=my.y-selfLastY;
+    const moved=(dx*dx+dy*dy)>1;
+    const dirChanged=my.dir!==selfLastDir;
+    if(moved||dirChanged){
+      lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=my.dir;
+      update(meRef,{x:my.x,y:my.y,dir:my.dir,ts:Date.now()});
+    }
   }
   requestAnimationFrame(step);
 }
 requestAnimationFrame(step);
 
-function drawName(name,x,y,me=false){ ctx.font='12px system-ui, sans-serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-32,y-14,64,16); ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name,x,y-2); }
+function drawName(name,x,y,me=false){
+  ctx.font='12px system-ui, sans-serif'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-32,y-14,64,16);
+  ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name,x,y-2);
+}
 
 /* 退室ボタン */
-document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href = './'; }); };
+document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
 addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
 </script>
 </body>
