@@ -21,14 +21,14 @@
   <div class="wrap">
     <div class="card">
       <h1>ニコリタウン - ロビー</h1>
-      <p class="hint">同じ <b>ルームID</b> と <b>URL</b> を共有すると、同じマップで一緒に歩けます。WASD / ↑↓←→ で移動。右側パネルのチャットで会話できます。</p>
+      <p class="hint">同じ <b>ルームID</b> と <b>URL</b> を共有すると、同じマップで一緒に歩けます。WASD / ↑↓←→ で移動。右上にチャット、下に入力欄、左上に退室ボタンがあります。</p>
       <div class="row" style="margin:8px 0 16px">
         <label>ルームID： <input id="room" placeholder="room-001" value="room-001" /></label>
         <label>名前： <input id="name" placeholder="こっぴー" value="こっぴー" /></label>
         <button id="enter">入室</button>
         <button id="share">リンクコピー</button>
       </div>
-      <p class="hint">以下の画像を <code>room.html</code> と同じディレクトリに置いてください：<code>map_1.png</code> / <code>atarihantei.png</code> / <code>nikorihito_dot_front.png</code> / <code>..._behind.png</code> / <code>..._left.png</code> / <code>..._right.png</code></p>
+      <p class="hint">画像を <code>room.html</code> と同じ場所に置く：<code>map_1.png</code> / <code>atarihantei.png</code>（<b>赤=当たり</b>）/ <code>nikorihito_dot_front.png</code> / <code>..._behind.png</code> / <code>..._left.png</code> / <code>..._right.png</code></p>
     </div>
   </div>
   <script>
@@ -49,7 +49,7 @@
 </html>
 
 
-<!-- ========================= room.html（ゲーム＋チャット） ========================= -->
+<!-- ========================= room.html（全画面スクロール＋チャット＋編集/削除） ========================= -->
 <!doctype html>
 <html lang="ja">
 <head>
@@ -59,49 +59,51 @@
 <style>
   :root{--bg:#0b1220;--panel:#0e1628;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--accent1:#22d3ee;--accent2:#06b6d4}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;}
-  .app{display:grid;grid-template-columns:1fr 360px;gap:12px;max-width:1280px;margin:8px auto;padding:8px}
-  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-  .hud{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--border);background:var(--panel2)}
-  .hud code{background:#0b1220;border:1px solid var(--border);border-radius:8px;padding:2px 6px}
-  canvas{display:block;image-rendering:pixelated}
-  .side{display:flex;flex-direction:column}
-  .chat{flex:1;display:flex;flex-direction:column}
-  .msgs{flex:1;padding:8px;overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
-  .msg{margin:4px 0}
-  .me{font-weight:700}
-  .input{display:flex;gap:6px;padding:8px;border-top:1px solid var(--border)}
-  input,button{font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
-  button{background:linear-gradient(180deg,var(--accent1),var(--accent2));border:0;color:#06202a;font-weight:700;cursor:pointer}
-  .small{color:#9aa6b2;font-size:.9rem}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;overflow:hidden}
+  #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+  .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
+  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--accent1),var(--accent2));color:#06202a;font-weight:700;cursor:pointer}
+  .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
+
+  /* チャット表示（右上） */
+  #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
+  #chatView .item{padding:4px 6px;border-radius:8px;margin:4px 0}
+  #chatView .me{background:rgba(34,211,238,.15)}
+  #chatView .meta{color:var(--muted);font-size:.8rem;margin-left:6px}
+
+  /* 入力欄（下中央に小さく） */
+  #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
+  #composer input{font:inherit;width:min(60vw,720px);padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:var(--text)}
+  #composer button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--accent1),var(--accent2));color:#06202a;font-weight:700;cursor:pointer}
+
+  /* 右クリックメニュー */
+  #ctxMenu{position:fixed;z-index:50;display:none;background:var(--panel2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  #ctxMenu button{display:block;width:180px;text-align:left;padding:8px 12px;background:transparent;border:0;color:var(--text);cursor:pointer}
+  #ctxMenu button:hover{background:#1b2540}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="panel">
-    <div class="hud">
-      <div>ルーム: <code id="roomId">-</code></div>
-      <div>自分: <code id="who">-</code></div>
-      <div>人数: <code id="count">0</code></div>
-      <div class="small">WASD / ↑↓←→ で移動</div>
-    </div>
-    <canvas id="game" width="960" height="540"></canvas>
+  <canvas id="game"></canvas>
+  <div class="hud">
+    <button id="leave">退室</button>
+    <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
   </div>
-  <div class="panel side">
-    <div class="hud">チャット</div>
-    <div id="msgs" class="msgs"></div>
-    <div class="input">
-      <input id="text" placeholder="メッセージ…" maxlength="200" />
-      <button id="send">送信</button>
-    </div>
+  <div id="chatView"></div>
+  <div id="composer">
+    <input id="text" placeholder="メッセージ… (Enterで送信)" maxlength="200" />
+    <button id="send">送信</button>
   </div>
-</div>
+  <div id="ctxMenu">
+    <button id="editMsg">編集</button>
+    <button id="delMsg">削除</button>
+  </div>
 
 <script type="module">
 // ===== Firebase SDK (v12) =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
@@ -125,9 +127,7 @@ document.getElementById('roomId').textContent = ROOM;
 document.getElementById('who').textContent    = NAME;
 
 // ===== Assets =====
-function loadImage(src){
-  return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; });
-}
+function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
 const imgMap   = await loadImage('./map_1.png');
 const imgMask  = await loadImage('./atarihantei.png'); // 赤い部分=通行不可
 const imgFront = await loadImage('./nikorihito_dot_front.png');
@@ -135,30 +135,32 @@ const imgBack  = await loadImage('./nikorihito_dot_behind.png');
 const imgLeft  = await loadImage('./nikorihito_dot_left.png');
 const imgRight = await loadImage('./nikorihito_dot_right.png');
 
-const size = { w: imgMap.width, h: imgMap.height };
+// ===== Canvas & Camera =====
 const canvas = document.getElementById('game');
-canvas.width = size.w; canvas.height = size.h;
 const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+addEventListener('resize', resize); resize();
 
-// マスクを読み込んでピクセル判定用に保持
+// マップサイズ
+const world = { w: imgMap.width, h: imgMap.height };
+
+// マスク（当たり判定用）
 const maskC = new OffscreenCanvas(imgMask.width, imgMask.height);
 const maskX = maskC.getContext('2d');
 maskX.drawImage(imgMask, 0, 0);
-
 function isBlocked(x,y){
-  // 赤い画素（#ff0000 付近）を通行不可にする。透明は通行可。
   const d = maskX.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
   const r=d[0], g=d[1], b=d[2], a=d[3];
-  if (a < 10) return false;               // ほぼ透明は通行可
-  return (r >= 180 && g <= 80 && b <= 80); // 赤しきい値（必要に応じて調整）
+  if (a < 10) return false;               // 透明は通行可
+  return (r >= 180 && g <= 80 && b <= 80); // 赤を壁扱い
 }
 
 // ===== ゲーム状態 =====
-const SPEED = 2.0; // px/frame
+const SPEED = 2.2; // px/frame
 const RADIUS = 6;  // 当たり半径
 let dir = 'front';
 let keys = new Set();
-let my = { x: Math.random()*(size.w-32)+16, y: Math.random()*(size.h-32)+16, dir, name: NAME, ts: Date.now() };
+let my = { x: Math.max(16, Math.min(world.w-16, Math.random()*world.w)), y: Math.max(16, Math.min(world.h-16, Math.random()*world.h)), dir, name: NAME, ts: Date.now() };
 
 // Firebase ノード
 const playersRef = ref(db, `rooms/${ROOM}/players`);
@@ -187,13 +189,13 @@ addEventListener('keydown', e=>{
 });
 addEventListener('keyup', e=>{ keys.delete(e.key); });
 
-// 方向からスプライトを選択
-function spriteByDir(d){
-  return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront;
-}
+// スプライト
+function spriteByDir(d){ return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront; }
 
 // 当たり判定（半径Rで円形近似）
 function hits(x,y){
+  // マップ外もブロック
+  if(x<0||y<0||x>=world.w||y>=world.h) return true;
   for(let dy=-RADIUS; dy<=RADIUS; dy++){
     for(let dx=-RADIUS; dx<=RADIUS; dx++){
       if(dx*dx+dy*dy>RADIUS*RADIUS) continue;
@@ -201,6 +203,13 @@ function hits(x,y){
     }
   }
   return false;
+}
+
+// カメラ（自分を画面中央付近に）
+function camera(){
+  const cx = Math.round(my.x - canvas.width/2);
+  const cy = Math.round(my.y - canvas.height/2);
+  return { x: Math.max(0, Math.min(world.w - canvas.width, cx)), y: Math.max(0, Math.min(world.h - canvas.height, cy)) };
 }
 
 // 位置更新＋同期（スロットル）
@@ -215,27 +224,30 @@ function step(){
     const len=Math.hypot(vx,vy); vx/=len; vy/=len;
     const nx = my.x + vx*SPEED;
     const ny = my.y + vy*SPEED;
-    // 斜めで引っかかりにくいように軸ごとにチェック
     if(!hits(nx, my.y)) my.x = nx;
     if(!hits(my.x, ny)) my.y = ny;
     if(Math.abs(vx)>Math.abs(vy)) dir = (vx>0?'right':'left'); else dir = (vy>0?'front':'back');
   }
 
-  // 描画
+  // カメラ＆描画
+  const cam = camera();
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(imgMap,0,0);
+  ctx.drawImage(imgMap, -cam.x, -cam.y);
+
   // 他プレイヤー
   for(const [id,p] of Object.entries(players)){
-    if(id===meId) continue; if(!p) continue;
-    const im = spriteByDir(p.dir||'front');
-    ctx.drawImage(im, Math.round(p.x)-im.width/2, Math.round(p.y)-im.height/2);
-    drawName(p.name||'?', p.x, p.y-16);
+    if(!p) continue; const im = spriteByDir(p.dir||'front');
+    const sx = Math.round(p.x - im.width/2 - cam.x);
+    const sy = Math.round(p.y - im.height/2 - cam.y);
+    ctx.drawImage(im, sx, sy);
+    drawName(p.name||'?', p.x - cam.x, p.y - cam.y - 16, id===meId);
   }
-  // 自分
-  ctx.drawImage(spriteByDir(dir), Math.round(my.x)-imgFront.width/2, Math.round(my.y)-imgFront.height/2);
-  drawName(NAME, my.x, my.y-16, true);
 
-  // 必要なときだけ同期（20fps上限）
+  // 自分
+  ctx.drawImage(spriteByDir(dir), Math.round(my.x-imgFront.width/2 - cam.x), Math.round(my.y-imgFront.height/2 - cam.y));
+  drawName(NAME, my.x - cam.x, my.y - cam.y - 16, true);
+
+  // 同期（20fps上限）
   const now=performance.now();
   if(now-lastSync>50){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
 
@@ -244,44 +256,73 @@ function step(){
 requestAnimationFrame(step);
 
 function drawName(name, x, y, me=false){
-  ctx.font='12px system-ui, sans-serif';
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(0,0,0,.6)';
-  ctx.fillRect(x-32, y-14, 64, 16);
-  ctx.fillStyle= me? '#22d3ee' : '#e2e8f0';
-  ctx.fillText(name, x, y-2);
+  ctx.font='12px system-ui, sans-serif'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-32, y-14, 64, 16);
+  ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name, x, y-2);
 }
 
-// ===== チャット =====
-const msgsEl = document.getElementById('msgs');
+// ===== チャット（右上表示 / 下で送信 / 右クリックで編集・削除） =====
+const chatView = document.getElementById('chatView');
 const textEl = document.getElementById('text');
 const sendBtn= document.getElementById('send');
+const ctxMenu = document.getElementById('ctxMenu');
+let ctxTargetId = null; // 右クリックされたメッセージID
 
-function addMsgDom(m){
-  const div=document.createElement('div');
-  div.className='msg';
-  const mine = m.id===meId || (m.name===NAME);
-  div.innerHTML=`<span class="${mine?'me':''}">${m.name||'?'}:</span> ${escapeHtml(m.text||'')}`;
-  msgsEl.appendChild(div); msgsEl.scrollTop = msgsEl.scrollHeight;
+function renderItem(id, m){
+  const div = document.createElement('div');
+  div.className = 'item' + (m.uid===meId?' me':'');
+  div.dataset.id = id;
+  div.dataset.uid = m.uid||'';
+  div.textContent = `${m.name||'?'}: ${m.text||''}`;
+  div.title = new Date(m.ts||Date.now()).toLocaleString();
+  div.oncontextmenu = (e)=>{
+    e.preventDefault();
+    if(m.uid!==meId) return; // 自分の発言のみ
+    ctxTargetId = id; openCtx(e.clientX, e.clientY);
+  };
+  return div;
 }
-function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
-// 最新50件を購読
-const chatQ = query(chatRef, limitToLast(50));
-onValue(chatQ, snap=>{
-  const v = snap.val()||{}; const arr = Object.entries(v).map(([k,val])=>({id:k, ...val}));
-  arr.sort((a,b)=> (a.ts||0)-(b.ts||0));
-  msgsEl.innerHTML=''; arr.forEach(addMsgDom);
+function openCtx(x,y){ ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px'; }
+function closeCtx(){ ctxMenu.style.display='none'; ctxTargetId=null; }
+addEventListener('click', ()=> closeCtx());
+
+// 購読（増分で描画）
+const chatQ = query(chatRef, limitToLast(100));
+const items = new Map(); // id -> element
+onChildAdded(chatQ, (snap)=>{
+  const id=snap.key, m=snap.val()||{}; const el=renderItem(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop = chatView.scrollHeight;
+});
+onChildChanged(chatQ, (snap)=>{
+  const id=snap.key, m=snap.val()||{}; const old=items.get(id); if(old){ const el=renderItem(id,m); chatView.replaceChild(el, old); items.set(id, el); }
+});
+onChildRemoved(chatQ, (snap)=>{
+  const id=snap.key; const el = items.get(id); if(el){ el.remove(); items.delete(id); }
 });
 
 sendBtn.onclick = async ()=>{
   const t = textEl.value.trim(); if(!t) return;
-  await push(chatRef, { name: NAME, id: meId, text: t.slice(0,200), ts: Date.now() });
+  await push(chatRef, { uid: meId, name: NAME, text: t.slice(0,200), ts: Date.now() });
   textEl.value=''; textEl.focus();
 };
-textEl.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
+textEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); }});
 
-// ===== クリーンアップ =====
+// 右クリックメニューの処理
+const editBtn = document.getElementById('editMsg');
+const delBtn  = document.getElementById('delMsg');
+editBtn.onclick = async ()=>{
+  if(!ctxTargetId) return; const cur = items.get(ctxTargetId)?.textContent?.replace(/^.*?:\s*/,'')||'';
+  const t = prompt('メッセージを編集', cur); if(t==null) return; // cancel
+  await update(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`), { text: t.slice(0,200), edited: true, ts: Date.now() });
+  closeCtx();
+};
+delBtn.onclick = async ()=>{
+  if(!ctxTargetId) return; await remove(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx();
+};
+
+// ===== 退室 =====
+const leaveBtn = document.getElementById('leave');
+leaveBtn.onclick = ()=>{ remove(meRef).finally(()=>{ location.href = './index.html'; }); };
 addEventListener('beforeunload', ()=>{ remove(meRef); });
 
 </script>
