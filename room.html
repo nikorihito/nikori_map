@@ -1,55 +1,3 @@
-<!-- ========================= index.html (ロビー) ========================= -->
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ニコリタウン - ロビー</title>
-<style>
-  :root{--bg:#0b1220;--panel:#111827;--border:#334155;--text:#e2e8f0;--accent1:#22d3ee;--accent2:#06b6d4}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif}
-  .wrap{max-width:720px;margin:48px auto;padding:0 16px}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px}
-  input,button{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
-  button{background:linear-gradient(180deg,var(--accent1),var(--accent2));border:0;color:#06202a;font-weight:700;cursor:pointer}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .hint{color:#9aa6b2;font-size:.9rem}
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <h1>ニコリタウン - ロビー</h1>
-      <p class="hint">同じ <b>ルームID</b> と <b>URL</b> を共有すると、同じマップで一緒に歩けます。WASD / ↑↓←→ で移動。右上にチャット、下に入力欄、左上に退室ボタンがあります。</p>
-      <div class="row" style="margin:8px 0 16px">
-        <label>ルームID： <input id="room" placeholder="room-001" value="room-001" /></label>
-        <label>名前： <input id="name" placeholder="こっぴー" value="こっぴー" /></label>
-        <button id="enter">入室</button>
-        <button id="share">リンクコピー</button>
-      </div>
-      <p class="hint">画像を <code>room.html</code> と同じ場所に置く：<code>map_1.png</code> / <code>atarihantei.png</code>（<b>赤=当たり</b>）/ <code>nikorihito_dot_front.png</code> / <code>..._behind.png</code> / <code>..._left.png</code> / <code>..._right.png</code></p>
-    </div>
-  </div>
-  <script>
-    const $=s=>document.querySelector(s);
-    $('#enter').onclick=()=>{
-      const r=encodeURIComponent($('#room').value.trim()||'room-001');
-      const n=encodeURIComponent($('#name').value.trim()||'guest');
-      location.href=`./room.html?room=${r}&name=${n}`;
-    };
-    $('#share').onclick=async()=>{
-      const r=encodeURIComponent($('#room').value.trim()||'room-001');
-      const n=encodeURIComponent($('#name').value.trim()||'guest');
-      const url=`${location.origin}${location.pathname.replace(/index\.html?$/,'')}room.html?room=${r}&name=${n}`;
-      try{await navigator.clipboard.writeText(url); alert('共有リンクをコピーしました');}catch{prompt('このURLを共有してください',url)}
-    };
-  </script>
-</body>
-</html>
-
-
-<!-- ========================= room.html（全画面スクロール＋チャット＋編集/削除） ========================= -->
 <!doctype html>
 <html lang="ja">
 <head>
@@ -57,27 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>ニコリタウン - ルーム</title>
 <style>
-  :root{--bg:#0b1220;--panel:#0e1628;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--accent1:#22d3ee;--accent2:#06b6d4}
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;overflow:hidden}
+  :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden}
   #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
   .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
-  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--accent1),var(--accent2));color:#06202a;font-weight:700;cursor:pointer}
+  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
   .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
-
-  /* チャット表示（右上） */
   #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
   #chatView .item{padding:4px 6px;border-radius:8px;margin:4px 0}
   #chatView .me{background:rgba(34,211,238,.15)}
-  #chatView .meta{color:var(--muted);font-size:.8rem;margin-left:6px}
-
-  /* 入力欄（下中央に小さく） */
   #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
   #composer input{font:inherit;width:min(60vw,720px);padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:var(--text)}
-  #composer button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--accent1),var(--accent2));color:#06202a;font-weight:700;cursor:pointer}
-
-  /* 右クリックメニュー */
+  #composer button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
   #ctxMenu{position:fixed;z-index:50;display:none;background:var(--panel2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
   #ctxMenu button{display:block;width:180px;text-align:left;padding:8px 12px;background:transparent;border:0;color:var(--text);cursor:pointer}
   #ctxMenu button:hover{background:#1b2540}
@@ -85,10 +25,12 @@
 </head>
 <body>
   <canvas id="game"></canvas>
+
   <div class="hud">
     <button id="leave">退室</button>
     <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
   </div>
+
   <div id="chatView"></div>
   <div id="composer">
     <input id="text" placeholder="メッセージ… (Enterで送信)" maxlength="200" />
@@ -100,10 +42,11 @@
   </div>
 
 <script type="module">
-// ===== Firebase SDK (v12) =====
+// ===== Firebase SDK =====
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query,
+         onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
@@ -122,14 +65,13 @@ const db   = getDatabase(app);
 const u = new URL(location.href);
 const ROOM = (u.searchParams.get('room')||'room-001').toLowerCase();
 const NAME = u.searchParams.get('name')||'guest';
-
 document.getElementById('roomId').textContent = ROOM;
 document.getElementById('who').textContent    = NAME;
 
 // ===== Assets =====
 function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
 const imgMap   = await loadImage('./map_1.png');
-const imgMask  = await loadImage('./atarihantei.png'); // 赤い部分=通行不可
+const imgMask  = await loadImage('./atarihantei.png'); // 赤=壁
 const imgFront = await loadImage('./nikorihito_dot_front.png');
 const imgBack  = await loadImage('./nikorihito_dot_behind.png');
 const imgLeft  = await loadImage('./nikorihito_dot_left.png');
@@ -141,26 +83,46 @@ const ctx = canvas.getContext('2d');
 function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
 addEventListener('resize', resize); resize();
 
-// マップサイズ
 const world = { w: imgMap.width, h: imgMap.height };
 
-// マスク（当たり判定用）
+// マスク（当たり判定）
 const maskC = new OffscreenCanvas(imgMask.width, imgMask.height);
 const maskX = maskC.getContext('2d');
 maskX.drawImage(imgMask, 0, 0);
 function isBlocked(x,y){
+  if(x<0||y<0||x>=world.w||y>=world.h) return true;
   const d = maskX.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
   const r=d[0], g=d[1], b=d[2], a=d[3];
-  if (a < 10) return false;               // 透明は通行可
-  return (r >= 180 && g <= 80 && b <= 80); // 赤を壁扱い
+  if (a < 10) return false;
+  return (r >= 180 && g <= 80 && b <= 80); // 赤
 }
 
-// ===== ゲーム状態 =====
-const SPEED = 2.2; // px/frame
-const RADIUS = 6;  // 当たり半径
+// ===== Game State =====
+const SCALE  = 2.0;   // ★ キャラ描画2倍
+const SPEED  = 2.2;   // px/frame
+const RADIUS = 10;    // ★ あたり半径も上げる
 let dir = 'front';
-let keys = new Set();
-let my = { x: Math.max(16, Math.min(world.w-16, Math.random()*world.w)), y: Math.max(16, Math.min(world.h-16, Math.random()*world.h)), dir, name: NAME, ts: Date.now() };
+const keys = new Set();
+
+// 安全スポーンを探す
+function safeSpawn(maxTry=500){
+  for(let i=0;i<maxTry;i++){
+    const x = Math.random()*(world.w-64)+32;
+    const y = Math.random()*(world.h-64)+32;
+    if(!hits(x,y)) return {x,y};
+  }
+  // フォールバック：中央付近をスキャン
+  const cx=world.w/2, cy=world.h/2;
+  for(let r=0;r<400;r+=8){
+    for(let a=0;a<Math.PI*2;a+=Math.PI/8){
+      const x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r;
+      if(!hits(x,y)) return {x,y};
+    }
+  }
+  return {x: Math.max(16,Math.min(world.w-16,cx)), y: Math.max(16,Math.min(world.h-16,cy))};
+}
+
+let my = Object.assign({dir, name: NAME, ts: Date.now()}, safeSpawn());
 
 // Firebase ノード
 const playersRef = ref(db, `rooms/${ROOM}/players`);
@@ -168,33 +130,32 @@ const meId  = crypto.randomUUID();
 const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
 const chatRef = ref(db, `rooms/${ROOM}/chat`);
 
-// 匿名Auth（RTDBがauth必須でも動くように）
+// 匿名Auth（ルールがauth必須でも動くように）
 signInAnonymously(auth).catch(()=>{});
 
 // 入室
 await set(meRef, { name: NAME, x: my.x, y: my.y, dir: my.dir, ts: Date.now() });
 onDisconnect(meRef).remove();
 
-// 人数 & 他プレイヤー追跡
-let players = {}; // {id:{name,x,y,dir,ts}}
+// 人数 & 他プレイヤー
+let players = {};
 onValue(playersRef, snap=>{
   players = snap.val()||{};
   document.getElementById('count').textContent = Object.keys(players).length;
 });
 
-// ===== 入力 =====
+// 入力
 addEventListener('keydown', e=>{
-  const k = e.key; if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(k)) e.preventDefault();
+  const k=e.key;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(k)) e.preventDefault();
   keys.add(k);
 });
 addEventListener('keyup', e=>{ keys.delete(e.key); });
 
-// スプライト
 function spriteByDir(d){ return d==='back'?imgBack: d==='left'?imgLeft: d==='right'?imgRight: imgFront; }
 
-// 当たり判定（半径Rで円形近似）
+// 円形近似の当たり
 function hits(x,y){
-  // マップ外もブロック
   if(x<0||y<0||x>=world.w||y>=world.h) return true;
   for(let dy=-RADIUS; dy<=RADIUS; dy++){
     for(let dx=-RADIUS; dx<=RADIUS; dx++){
@@ -205,49 +166,49 @@ function hits(x,y){
   return false;
 }
 
-// カメラ（自分を画面中央付近に）
+// カメラ
 function camera(){
   const cx = Math.round(my.x - canvas.width/2);
   const cy = Math.round(my.y - canvas.height/2);
-  return { x: Math.max(0, Math.min(world.w - canvas.width, cx)), y: Math.max(0, Math.min(world.h - canvas.height, cy)) };
+  return { x: Math.max(0, Math.min(world.w - canvas.width,  cx)),
+           y: Math.max(0, Math.min(world.h - canvas.height, cy)) };
 }
 
-// 位置更新＋同期（スロットル）
-let lastSync = 0;
+// 位置更新＋同期
+let lastSync=0;
 function step(){
-  let vx=0, vy=0; const k=keys;
-  if(k.has('ArrowUp')||k.has('w')||k.has('W'))    vy-=1;
-  if(k.has('ArrowDown')||k.has('s')||k.has('S'))  vy+=1;
-  if(k.has('ArrowLeft')||k.has('a')||k.has('A'))  vx-=1;
-  if(k.has('ArrowRight')||k.has('d')||k.has('D')) vx+=1;
+  let vx=0, vy=0;
+  if(keys.has('ArrowUp')   || keys.has('w') || keys.has('W')) vy-=1;
+  if(keys.has('ArrowDown') || keys.has('s') || keys.has('S')) vy+=1;
+  if(keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) vx-=1;
+  if(keys.has('ArrowRight')|| keys.has('d') || keys.has('D')) vx+=1;
   if(vx||vy){
     const len=Math.hypot(vx,vy); vx/=len; vy/=len;
-    const nx = my.x + vx*SPEED;
-    const ny = my.y + vy*SPEED;
-    if(!hits(nx, my.y)) my.x = nx;
-    if(!hits(my.x, ny)) my.y = ny;
-    if(Math.abs(vx)>Math.abs(vy)) dir = (vx>0?'right':'left'); else dir = (vy>0?'front':'back');
+    const nx=my.x+vx*SPEED, ny=my.y+vy*SPEED;
+    if(!hits(nx,my.y)) my.x=nx;
+    if(!hits(my.x,ny)) my.y=ny;
+    dir = Math.abs(vx)>Math.abs(vy) ? (vx>0?'right':'left') : (vy>0?'front':'back');
   }
 
-  // カメラ＆描画
   const cam = camera();
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, -cam.x, -cam.y);
 
   // 他プレイヤー
   for(const [id,p] of Object.entries(players)){
-    if(!p) continue; const im = spriteByDir(p.dir||'front');
-    const sx = Math.round(p.x - im.width/2 - cam.x);
-    const sy = Math.round(p.y - im.height/2 - cam.y);
-    ctx.drawImage(im, sx, sy);
-    drawName(p.name||'?', p.x - cam.x, p.y - cam.y - 16, id===meId);
+    if(!p) continue;
+    const im=spriteByDir(p.dir||'front');
+    const sw=im.width*SCALE, sh=im.height*SCALE;
+    const sx=Math.round(p.x - sw/2 - cam.x), sy=Math.round(p.y - sh/2 - cam.y);
+    ctx.drawImage(im, sx, sy, sw, sh);
+    drawName(p.name||'?', p.x - cam.x, (p.y - sh/2) - cam.y - 2, id===meId);
   }
 
   // 自分
-  ctx.drawImage(spriteByDir(dir), Math.round(my.x-imgFront.width/2 - cam.x), Math.round(my.y-imgFront.height/2 - cam.y));
-  drawName(NAME, my.x - cam.x, my.y - cam.y - 16, true);
+  const meIm=spriteByDir(dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
+  ctx.drawImage(meIm, Math.round(my.x - mw/2 - cam.x), Math.round(my.y - mh/2 - cam.y), mw, mh);
+  drawName(NAME, my.x - cam.x, (my.y - mh/2) - cam.y - 2, true);
 
-  // 同期（20fps上限）
   const now=performance.now();
   if(now-lastSync>50){ lastSync=now; update(meRef, { x: my.x, y: my.y, dir, ts: Date.now() }); }
 
@@ -261,68 +222,47 @@ function drawName(name, x, y, me=false){
   ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name, x, y-2);
 }
 
-// ===== チャット（右上表示 / 下で送信 / 右クリックで編集・削除） =====
-const chatView = document.getElementById('chatView');
-const textEl = document.getElementById('text');
-const sendBtn= document.getElementById('send');
-const ctxMenu = document.getElementById('ctxMenu');
-let ctxTargetId = null; // 右クリックされたメッセージID
+// ===== Chat =====
+const chatView=document.getElementById('chatView');
+const textEl=document.getElementById('text');
+const sendBtn=document.getElementById('send');
+const ctxMenu=document.getElementById('ctxMenu');
+let ctxTargetId=null;
 
-function renderItem(id, m){
-  const div = document.createElement('div');
-  div.className = 'item' + (m.uid===meId?' me':'');
-  div.dataset.id = id;
-  div.dataset.uid = m.uid||'';
-  div.textContent = `${m.name||'?'}: ${m.text||''}`;
-  div.title = new Date(m.ts||Date.now()).toLocaleString();
-  div.oncontextmenu = (e)=>{
-    e.preventDefault();
-    if(m.uid!==meId) return; // 自分の発言のみ
-    ctxTargetId = id; openCtx(e.clientX, e.clientY);
-  };
-  return div;
+function itemEl(id,m){
+  const el=document.createElement('div');
+  el.className='item'+(m.uid===meId?' me':'');
+  el.dataset.id=id; el.dataset.uid=m.uid||'';
+  el.textContent=`${m.name||'?'}: ${m.text||''}`;
+  el.title=new Date(m.ts||Date.now()).toLocaleString();
+  el.oncontextmenu = (e)=>{ e.preventDefault(); if(m.uid!==meId) return; ctxTargetId=id; openCtx(e.clientX,e.clientY); };
+  return el;
 }
-
 function openCtx(x,y){ ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px'; }
 function closeCtx(){ ctxMenu.style.display='none'; ctxTargetId=null; }
-addEventListener('click', ()=> closeCtx());
+addEventListener('click', ()=>closeCtx());
 
-// 購読（増分で描画）
-const chatQ = query(chatRef, limitToLast(100));
-const items = new Map(); // id -> element
-onChildAdded(chatQ, (snap)=>{
-  const id=snap.key, m=snap.val()||{}; const el=renderItem(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop = chatView.scrollHeight;
-});
-onChildChanged(chatQ, (snap)=>{
-  const id=snap.key, m=snap.val()||{}; const old=items.get(id); if(old){ const el=renderItem(id,m); chatView.replaceChild(el, old); items.set(id, el); }
-});
-onChildRemoved(chatQ, (snap)=>{
-  const id=snap.key; const el = items.get(id); if(el){ el.remove(); items.delete(id); }
-});
+const chatQ=query(chatRef, limitToLast(100));
+const items=new Map();
+onChildAdded(chatQ, s=>{ const id=s.key, m=s.val()||{}; const el=itemEl(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop=chatView.scrollHeight; });
+onChildChanged(chatQ, s=>{ const id=s.key, m=s.val()||{}; const old=items.get(id); if(old){ const el=itemEl(id,m); chatView.replaceChild(el,old); items.set(id,el); }});
+onChildRemoved(chatQ, s=>{ const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id);} });
 
-sendBtn.onclick = async ()=>{
-  const t = textEl.value.trim(); if(!t) return;
-  await push(chatRef, { uid: meId, name: NAME, text: t.slice(0,200), ts: Date.now() });
-  textEl.value=''; textEl.focus();
-};
-textEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); }});
+sendBtn.onclick=async()=>{ const t=textEl.value.trim(); if(!t) return; await push(chatRef,{uid:meId,name:NAME,text:t.slice(0,200),ts:Date.now()}); textEl.value=''; textEl.focus(); };
+textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 
-// 右クリックメニューの処理
-const editBtn = document.getElementById('editMsg');
-const delBtn  = document.getElementById('delMsg');
-editBtn.onclick = async ()=>{
-  if(!ctxTargetId) return; const cur = items.get(ctxTargetId)?.textContent?.replace(/^.*?:\s*/,'')||'';
-  const t = prompt('メッセージを編集', cur); if(t==null) return; // cancel
-  await update(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`), { text: t.slice(0,200), edited: true, ts: Date.now() });
+document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return;
+  const cur=items.get(ctxTargetId)?.textContent?.replace(/^.*?:\s*/,'')||'';
+  const t=prompt('メッセージを編集',cur); if(t==null) return;
+  await update(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,200), edited:true, ts:Date.now() });
   closeCtx();
 };
-delBtn.onclick = async ()=>{
-  if(!ctxTargetId) return; await remove(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx();
+document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return;
+  await remove(ref(db, `rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx();
 };
 
-// ===== 退室 =====
-const leaveBtn = document.getElementById('leave');
-leaveBtn.onclick = ()=>{ remove(meRef).finally(()=>{ location.href = './index.html'; }); };
+// ===== Leave =====
+document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
 addEventListener('beforeunload', ()=>{ remove(meRef); });
 
 </script>
