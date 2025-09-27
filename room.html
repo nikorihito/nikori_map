@@ -110,6 +110,20 @@ import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from 'h
 const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.firebaseio.com',projectId:'nikori-town',storageBucket:'nikori-town.appspot.com',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getDatabase(app); const storage=getStorage(app);
 
+// === quick diagnostics ===
+warn('dbURL: '+ (app?.options?.databaseURL || '(none)'));
+onValue(ref(db, '.info/connected'), s => { warn('connected: '+s.val()); });
+(async function quickDiag(){
+  try{
+    await ensureAnonAuth(auth);
+    const pingRef = ref(db, `rooms/_diag/ping_${Date.now()}`);
+    await set(pingRef, {ts: Date.now()});
+    warn('diag: write OK');
+  }catch(e){
+    warn('diag: write ERROR '+((e&&e.code)||'')+' '+((e&&e.message)||e));
+  }
+})();
+
 /* ===== URL ===== */
 const u=new URL(location.href); const ROOM=(u.searchParams.get('room')||'room-001').toLowerCase(); const NAME=u.searchParams.get('name')||'guest';
 roomId.textContent=ROOM; who.textContent=NAME;
@@ -135,7 +149,7 @@ function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(
 /* ===== Players ===== */
 const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=(crypto.randomUUID?crypto.randomUUID():(`m${Math.random().toString(36).slice(2)}`)); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
 let my=Object.assign({name:NAME,dir:'front',ts:Date.now()}, safeSpawn());
-signInAnonymously(auth).catch(()=>{}); await set(meRef,my); onDisconnect(meRef).remove();
+signInAnonymously(auth).catch(()=>{}); try{ await set(meRef,my); }catch(e){ warn('DB書き込み失敗: '+((e&&e.code)||'')+' '+((e&&e.message)||e)); } onDisconnect(meRef).remove();
 let players={}; const ghosts={};
 onValue(playersRef,snap=>{players=snap.val()||{}; count.textContent=Object.keys(players).length; for(const [id,p] of Object.entries(players)){ if(!ghosts[id]&&p) ghosts[id]={x:p.x,y:p.y,dir:p.dir,name:p.name}; }});
 
@@ -206,7 +220,7 @@ function guessType(name, fallback='application/octet-stream'){
 async function handleFiles(fileList){
   const f=fileList[0]; if(!f) return; 
   try{
-    await ensureAnonAuth(auth);
+    await ensureAnonAuth(auth).catch(e=>{ warn('認証失敗: '+((e&&e.code)||'')+' '+((e&&e.message)||e)); throw e; });
     const contentType = f.type || guessType(f.name);
     const path=`rooms/${ROOM}/uploads/${(crypto.randomUUID?crypto.randomUUID():Date.now())}_${f.name}`;
     const r=sRef(storage,path);
