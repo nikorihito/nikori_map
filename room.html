@@ -490,21 +490,42 @@ async function refreshSenders(){
   }
 }
 
-  const id=`local-${kind}`;
-  let tile=document.getElementById(id);
+function showLocalTile(kind, stream){
+  const id = `local-${kind}`;
+  let tile = document.getElementById(id);
   if(!tile){
-    tile=document.createElement('div'); tile.className='tile'; tile.id=id;
-    const v=document.createElement('video'); v.autoplay=true; v.muted=true; v.playsInline=true; v.srcObject=stream;
-    const name=document.createElement('div'); name.className='name'; name.textContent=`${NAME}（${kind==='screen'?'画面': 'カメラ'}）`;
-    const btns=document.createElement('div'); btns.className='btns';
-    const enlarge=document.createElement('button'); enlarge.className='btn'; enlarge.textContent='⤢'; enlarge.onclick=()=>tile.classList.toggle('big');
+    tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.id = id;
+
+    const v = document.createElement('video');
+    v.autoplay = true;
+    v.muted = true;        // 自分の映像はミュートでOK
+    v.playsInline = true;
+    v.srcObject = stream;
+
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = `${NAME}（${kind==='screen'?'画面':'カメラ'}）`;
+
+    const btns = document.createElement('div');
+    btns.className = 'btns';
+    const enlarge = document.createElement('button');
+    enlarge.className = 'btn';
+    enlarge.textContent = '⤢';
+    enlarge.onclick = () => tile.classList.toggle('big');
     btns.appendChild(enlarge);
-    tile.appendChild(v); tile.appendChild(name); tile.appendChild(btns);
+
+    tile.appendChild(v);
+    tile.appendChild(name);
+    tile.appendChild(btns);
     avGrid.appendChild(tile);
   }else{
-    tile.querySelector('video').srcObject=stream;
+    tile.querySelector('video').srcObject = stream;
   }
 }
+
+  
 function replaceLocalTileStream(kind, newStream){
   const id=`local-${kind}`; const tile=document.getElementById(id);
   if(tile){ tile.querySelector('video').srcObject=newStream; }
