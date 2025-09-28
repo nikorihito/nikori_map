@@ -47,7 +47,6 @@
   #joyStick{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
 
   /* ===== AV UI ===== */
-  /* ← 左上（HUDの下）に固定 */
   .avbar{position:fixed;left:8px;top:56px;z-index:30;display:flex;gap:8px}
   .avbar button{font:18px/1 system-ui;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#101826;color:#e2e8f0;cursor:pointer;min-width:48px}
   .avbar button.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700}
@@ -78,7 +77,6 @@
     <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
   </div>
 
-  <!-- ← 左上に移動したAVボタン -->
   <div class="avbar">
     <button id="btnMic" title="マイク">🎙️</button>
     <button id="btnCam" title="カメラ">📷</button>
@@ -133,13 +131,68 @@ const auth=getAuth(app);
 const db=getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
 
 /* ===== Utilities ===== */
-function warn(msg){}
-async function ensureAnonAuth(auth){
-  if (auth.currentUser) return auth.currentUser;
-  await signInAnonymously(auth);
-  return await new Promise(resolve=>{
-    const stop=onAuthStateChanged(auth,u=>{ if(u){ stop(); resolve(u); } });
+function warn(msg){
+  let box=document.getElementById('warnBox');
+  if(!box){
+    box=document.createElement('div'); box.id='warnBox';
+    Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'});
+    document.body.appendChild(box);
+  }
+  const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);
+}
+
+/* === Active Speaker (name tag glow) === */
+let audioCtx = null;
+const meters = new Map();     // id -> stop()
+const speakUntil = new Map(); // id -> ms
+const SPEAK_THR  = 0.06;      // 発話RMS閾値（調整可）
+const SPEAK_HOLD = 300;       // 閾値超後の残光ms
+
+function ensureAudioCtx(){
+  if(!audioCtx && (window.AudioContext||window.webkitAudioContext)){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const resume = ()=>audioCtx && audioCtx.resume();
+    document.addEventListener('pointerdown', resume, {passive:true});
+  }
+}
+function attachSpeechMeter(id, stream){
+  ensureAudioCtx();
+  if(!audioCtx || !stream) return;
+  const hasAudio = stream.getAudioTracks && stream.getAudioTracks().length;
+  if(!hasAudio) return;
+
+  // 既存があれば破棄して付け直し
+  detachSpeechMeter(id);
+
+  const src = audioCtx.createMediaStreamSource(stream);
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  src.connect(analyser);
+  const data = new Uint8Array(analyser.frequencyBinCount);
+
+  let raf;
+  const loop = ()=>{
+    analyser.getByteTimeDomainData(data);
+    let sum=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
+    const rms = Math.sqrt(sum/data.length);
+    if(rms > SPEAK_THR){ speakUntil.set(id, performance.now()+SPEAK_HOLD); }
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+
+  meters.set(id, ()=>{
+    try{ src.disconnect(); }catch{}
+    cancelAnimationFrame(raf);
   });
+}
+function detachSpeechMeter(id){
+  const stop = meters.get(id);
+  if(stop) stop();
+  meters.delete(id);
+  speakUntil.delete(id);
+}
+function isSpeaking(id){
+  return (speakUntil.get(id)||0) > performance.now();
 }
 
 /* ===== URL ===== */
@@ -336,11 +389,11 @@ function step(now){
     g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir;
     const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE;
     ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh);
-    drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false);
+    drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2, false, id);
   }
   const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
   ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh);
-  drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
+  drawName(NAME, my.x-cam.x, (my.y-mh/2)-cam.y-2, true, meId);
 
   for(const [uid,b] of bubbles){
     const p = uid===meId ? my : (players[uid]||ghosts[uid]);
@@ -362,13 +415,23 @@ function step(now){
 }
 requestAnimationFrame(step);
 
-function drawName(name,x,y,me=false){
+function drawName(name,x,y,me=false,id=null){
   ctx.font = '20px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(0,0,0,.6)';
   ctx.fillRect(x-60, y-28, 120, 32);
-  ctx.fillStyle = me ? '#22d3ee' : '#e2e8f0';
-  ctx.fillText(name, x, y-8);
+
+  if(id && isSpeaking(id)){
+    ctx.save();
+    ctx.shadowColor = '#22d3ee';
+    ctx.shadowBlur  = 16;
+    ctx.fillStyle   = '#22d3ee';
+    ctx.fillText(name, x, y-8);
+    ctx.restore();
+  }else{
+    ctx.fillStyle = me ? '#22d3ee' : '#e2e8f0';
+    ctx.fillText(name, x, y-8);
+  }
 }
 
 /* 退室 */
@@ -376,7 +439,7 @@ document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ locat
 addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
 
 /* =========================================================
-   WebRTC（修正点：onnegotiationneededで再ネゴ）
+   WebRTC（onnegotiationneededで再ネゴ）
    ========================================================= */
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}],sdpSemantics:'unified-plan'};
 const avGrid=document.getElementById('avGrid');
@@ -415,8 +478,12 @@ async function ensureMic(on=true){
   if(on && !micStream){
     const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
     micStream=await navigator.mediaDevices.getUserMedia(c);
+    attachSpeechMeter(meId, micStream); // ★自分の発話メーター
   }
-  if(!on && micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+  if(!on && micStream){
+    detachSpeechMeter(meId);           // ★停止時に解除
+    micStream.getTracks().forEach(t=>t.stop()); micStream=null;
+  }
   btnMic.classList.toggle('on', !!micStream);
   await refreshSenders();
 }
@@ -492,7 +559,7 @@ function showLocalTile(kind, stream){
 
     const v = document.createElement('video');
     v.autoplay = true;
-    v.muted = true;        // 自分の映像はミュートでOK
+    v.muted = true;
     v.playsInline = true;
     v.srcObject = stream;
 
@@ -517,7 +584,6 @@ function showLocalTile(kind, stream){
   }
 }
 
-  
 function replaceLocalTileStream(kind, newStream){
   const id=`local-${kind}`; const tile=document.getElementById(id);
   if(tile){ tile.querySelector('video').srcObject=newStream; }
@@ -561,15 +627,19 @@ function getOrCreatePeer(pid){
   peers.set(pid, st);
 
   pc.onicecandidate=(e)=>{ if(e.candidate) sendSignal(pid,{type:'ice',candidate:e.candidate}); };
-  pc.onconnectionstatechange=()=>{ if(['failed','disconnected','closed'].includes(pc.connectionState)){ removePeerTiles(pid); } };
+  pc.onconnectionstatechange=()=>{ 
+    if(['failed','disconnected','closed'].includes(pc.connectionState)){ 
+      removePeerTiles(pid); 
+      detachSpeechMeter(pid); // ★切断時に解除
+    } 
+  };
   pc.ontrack=(e)=>{
     const stream=e.streams[0];
     const isVideo = e.track.kind==='video';
     ensureRemoteTile(pid, stream, isVideo ? (e.track.label||'映像') : '音声');
+    if(!isVideo){ attachSpeechMeter(pid, stream); } // ★リモート音声にメーター
   };
-  /* ★ 再ネゴ（片側のみ=ID小さい側）*/
   pc.onnegotiationneeded = async () => {
-    // 競合を避ける：自分のIDが小さい側のみ Offer を投げる
     if (meId >= pid) return;
     if (st.negotiating) return;
     st.negotiating = true;
@@ -581,7 +651,6 @@ function getOrCreatePeer(pid){
     finally{ st.negotiating = false; }
   };
 
-  // 既存ローカルトラック（ある場合）は追加
   (async()=>{
     if(micStream){ st.audioSender=pc.addTrack(micStream.getAudioTracks()[0], micStream); }
     if(camStream){ st.videoSender=pc.addTrack(camStream.getVideoTracks()[0], camStream); }
@@ -637,7 +706,7 @@ onValue(playersRef, snap=>{
     }
   }
   for(const pid of [...peers.keys()]){
-    if(!ps[pid]){ peers.get(pid)?.pc.close(); peers.delete(pid); removePeerTiles(pid); }
+    if(!ps[pid]){ peers.get(pid)?.pc.close(); peers.delete(pid); removePeerTiles(pid); detachSpeechMeter(pid); }
   }
 });
 
