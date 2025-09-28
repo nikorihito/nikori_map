@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム（AV & Board 改良）</title>
+<title>ニコリタウン - ルーム（AV修正版）</title>
 <style>
   :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4;--yellow:#fde68a33;--yellowBorder:#facc15;--mention:#22d3ee}
   *{box-sizing:border-box}
@@ -30,17 +30,16 @@
   #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
   #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
 
-  /* Ctx menu (chat) */
+  /* Ctx menu */
   #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   #ctxMenu button{display:block;width:200px;text-align:left;padding:10px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
   #ctxMenu button:hover{background:#1b2540}
 
-  /* Reaction FAB & palette */
+  /* Reaction */
   #reactFab{position:fixed;right:16px;bottom:96px;z-index:24;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;box-shadow:0 8px 22px rgba(0,0,0,.35)}
   #reactMenu{position:fixed;right:16px;bottom:160px;z-index:25;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px}
   #reactMenu button{font-size:22px;line-height:1.2;padding:6px 8px;background:transparent;border:0;cursor:pointer}
 
-  /* Bubbles */
   .bubble{position:absolute;transform:translate(-50%,-100%);background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px 10px;font-size:20px}
 
   /* Joystick (mobile) */
@@ -48,25 +47,27 @@
   #joyStick{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
 
   /* ===== AV UI ===== */
-  .avbar{position:fixed;right:16px;bottom:16px;z-index:30;display:flex;gap:8px}
-  .avbar button{font:18px/1 system-ui;padding:10px;border-radius:12px;border:1px solid var(--border);background:#101826;color:#e2e8f0;cursor:pointer;min-width:48px}
+  /* ← 左上（HUDの下）に固定 */
+  .avbar{position:fixed;left:8px;top:56px;z-index:30;display:flex;gap:8px}
+  .avbar button{font:18px/1 system-ui;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#101826;color:#e2e8f0;cursor:pointer;min-width:48px}
   .avbar button.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700}
+
   .avmenu{position:fixed;z-index:51;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;min-width:260px;overflow:hidden}
   .avmenu .row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #223}
   .avmenu .row:last-child{border-bottom:none}
   .avmenu button, .avmenu select{font:inherit;background:transparent;color:#e2e8f0;border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer}
   .avmenu button[disabled]{opacity:.5;cursor:not-allowed}
-  #avGrid{position:fixed;left:16px;bottom:16px;z-index:26;display:flex;flex-wrap:wrap;gap:8px;max-width:40vw;max-height:50vh;overflow:auto}
+
+  #avGrid{position:fixed;left:16px;top:100px;z-index:26;display:flex;flex-wrap:wrap;gap:8px;max-width:42vw;max-height:58vh;overflow:auto}
   .tile{position:relative;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px}
   .tile video{display:block;width:240px;height:135px;background:#000;border-radius:8px}
   .tile .name{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:6px;font-size:12px}
   .tile .btns{position:absolute;right:6px;top:6px;display:flex;gap:6px}
   .tile .btn{border:1px solid var(--border);background:#0f172a;border-radius:8px;padding:2px 6px;font-size:12px;color:#e2e8f0;cursor:pointer}
-  .tile.big{position:fixed;inset:auto 16px 16px auto;z-index:60}
+  .tile.big{position:fixed;inset:auto auto 16px 16px;z-index:60}
   .tile.big video{width:min(80vw,960px);height:auto}
 
-  /* Audio unlock */
-  #audioUnlock{position:fixed;inset:auto 16px 90px auto;z-index:40;background:#101826;border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:none}
+  #audioUnlock{position:fixed;left:16px;top:calc(100px + 60vh);z-index:40;background:#101826;border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:none}
 </style>
 </head>
 <body>
@@ -75,6 +76,13 @@
   <div class="hud">
     <button id="leave" title="退室">退室</button>
     <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
+  </div>
+
+  <!-- ← 左上に移動したAVボタン -->
+  <div class="avbar">
+    <button id="btnMic" title="マイク">🎙️</button>
+    <button id="btnCam" title="カメラ">📷</button>
+    <button id="btnScreen" title="画面共有">🖥️</button>
   </div>
 
   <div id="chatView"></div>
@@ -96,12 +104,7 @@
   <!-- Mobile joystick -->
   <div id="joyBase"><div id="joyStick"></div></div>
 
-  <!-- ===== AV toolbar & Grid ===== -->
-  <div class="avbar">
-    <button id="btnMic" title="マイク">🎙️</button>
-    <button id="btnCam" title="カメラ">📷</button>
-    <button id="btnScreen" title="画面共有">🖥️</button>
-  </div>
+  <!-- AV Grid & Menus -->
   <div id="avGrid"></div>
   <div id="avMenu" class="avmenu"></div>
   <div id="audioUnlock">🔈 クリックして音声を有効化</div>
@@ -147,17 +150,17 @@ async function ensureAnonAuth(auth){
   });
 }
 
-/* ===== URL（サニタイズ） ===== */
+/* ===== URL ===== */
 const u=new URL(location.href);
 const rawRoom=(u.searchParams.get('room')||'room-001');
 const ROOM=rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
 const NAME=u.searchParams.get('name')||'guest';
 roomId.textContent=ROOM; who.textContent=NAME;
 
-/* ===== Assets (map & sprites) ===== */
+/* ===== Assets ===== */
 function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){return new Promise((res)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>{console.error('Image load failed:', src); warn(`画像読み込み失敗: ${src}`); try{const c=document.createElement('canvas'); c.width=fallbackSize[0]; c.height=fallbackSize[1]; const g=c.getContext('2d'); g.fillStyle='#0f172a'; g.fillRect(0,0,c.width,c.height); g.fillStyle='#334155'; g.fillText(label,10,20); const img=new Image(); img.onload=()=>res(img); img.src=c.toDataURL();}catch{const img=new Image(); img.src='data:image/gif;base64,R0lGODlhAQABAAAAACw='; img.onload=()=>res(img);} }; i.src=src;});}
 const imgMap = await loadImage('./map_1.png?v=20250927-2',{fallbackSize:[2048,2048],label:'map'});
-const imgMask= await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'}); // 赤が当たり判定
+const imgMask= await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'});
 const imgFront=await loadImage('./nikorihito_dot_front.png?v=20250927-2');
 const imgBack =await loadImage('./nikorihito_dot_behind.png?v=20250927-2');
 const imgLeft =await loadImage('./nikorihito_dot_left.png?v=20250927-2');
@@ -169,11 +172,11 @@ function resize(){canvas.width=innerWidth; canvas.height=innerHeight;}
 addEventListener('resize',resize); resize();
 const world={w:imgMap.width,h:imgMap.height};
 
-/* ===== Collision (赤=ブロック) ===== */
+/* ===== Collision ===== */
 const maskCanvas=(typeof OffscreenCanvas!=='undefined')?new OffscreenCanvas(imgMask.width,imgMask.height):Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
 const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0);
 const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
-function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);} // 赤っぽい
+function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);}
 function hits(x,y){const foot=y+(RADIUS*0.6); return isBlocked(x,foot)||isBlocked(x-RADIUS*0.7,foot)||isBlocked(x+RADIUS*0.7,foot);} 
 function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32, y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2, cy=world.h/2; return {x:cx,y:cy};}
 
@@ -285,14 +288,11 @@ function camera(dt){
   return {x:camX,y:camY};
 }
 
-/* ===== 入力：PC 矢印キー / モバイル ジョイスティック ===== */
+/* ===== 入力：PC & モバイル ===== */
 const keys=new Set();
 addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); keys.add(e.key); });
 addEventListener('keyup',e=>keys.delete(e.key));
-// Joystick
-const joyBase=document.getElementById('joyBase');
-const joyStick=document.getElementById('joyStick');
-let joyVec={x:0,y:0};
+const joyBase=document.getElementById('joyBase'); const joyStick=document.getElementById('joyStick'); let joyVec={x:0,y:0};
 if ('ontouchstart' in window || navigator.maxTouchPoints>0){
   joyBase.style.display='block';
   const getVec=(clientX,clientY)=>{
@@ -337,7 +337,6 @@ function step(now){
   const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
-  // 他人
   const kInterp=Math.min(1,dt*PLAYER_INTERP);
   for(const [id,p] of Object.entries(players)){
     if(!p||id===meId) continue;
@@ -347,12 +346,10 @@ function step(now){
     ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh);
     drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false);
   }
-  // 自分
   const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
   ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh);
   drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
 
-  // リアクションのバブルは描画位置だけ更新（DOM上）
   for(const [uid,b] of bubbles){
     const p = uid===meId ? my : (players[uid]||ghosts[uid]);
     if(!p||b.style.display==='none') continue;
@@ -373,7 +370,6 @@ function step(now){
 }
 requestAnimationFrame(step);
 
-// 名札（大きめ）
 function drawName(name,x,y,me=false){
   ctx.font = '20px system-ui, sans-serif';
   ctx.textAlign = 'center';
@@ -383,12 +379,12 @@ function drawName(name,x,y,me=false){
   ctx.fillText(name, x, y-8);
 }
 
-/* 退室ボタン */
+/* 退室 */
 document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
 addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
 
 /* =========================================================
-   ===============  WebRTC メッシュ（音声＋映像＋画面）===
+   WebRTC（修正点：onnegotiationneededで再ネゴ）
    ========================================================= */
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}],sdpSemantics:'unified-plan'};
 const avGrid=document.getElementById('avGrid');
@@ -401,19 +397,19 @@ const audioUnlock=document.getElementById('audioUnlock');
 const inboxRef=ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`);
 function sendSignal(to, data){ return push(ref(db,`rooms/${ROOM}/webrtc/inbox/${to}`), Object.assign({from:meId,ts:Date.now()},data)); }
 
-const peers=new Map(); // peerId -> {pc, audioSender, videoSender, screenSender}
+const peers=new Map(); // peerId -> {pc, audioSender, videoSender, screenSender, negotiating}
 let micStream=null, camStream=null, screenStream=null;
 let selectedMic=null, selectedCam=null;
 
-// Audio unlock (autoplay)
 function showUnlock(){ audioUnlock.style.display='block'; }
 function hideUnlock(){ audioUnlock.style.display='none'; }
 function tryPlayAll(){
-  document.querySelectorAll('audio[data-remote]').forEach(a=>{ a.play().catch(()=>showUnlock()); });
+  document.querySelectorAll('audio[data-remote],video[data-remote]').forEach(el=>{
+    el.play?.().catch(()=>showUnlock());
+  });
 }
 document.addEventListener('pointerdown',()=>{ tryPlayAll(); hideUnlock(); },{once:true});
 
-/* ---- デバイス列挙 ---- */
 async function listDevices(){
   const devs=await navigator.mediaDevices.enumerateDevices();
   return {
@@ -422,7 +418,7 @@ async function listDevices(){
   };
 }
 
-/* ---- ローカルメディア ---- */
+/* ---- Local Media ---- */
 async function ensureMic(on=true){
   if(on && !micStream){
     const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
@@ -457,11 +453,9 @@ async function changeScreen(){
   if(!screenStream) return;
   const newStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
   const newTrack=newStream.getVideoTracks()[0];
-  // 置き換え
   for(const {screenSender} of peers.values()){
     if(screenSender) await screenSender.replaceTrack(newTrack);
   }
-  // UI更新
   replaceLocalTileStream('screen', newStream);
   screenStream.getTracks().forEach(t=>t.stop());
   screenStream=newStream;
@@ -478,37 +472,26 @@ async function stopScreen(){
 
 async function refreshSenders(){
   for(const [pid,st] of peers){
-    // ensure transceivers/senders
+    const pc=st.pc;
     if(micStream){
       const track=micStream.getAudioTracks()[0];
-      if(!st.audioSender){
-        st.audioSender=st.pc.addTrack(track, micStream);
-      }else{
-        await st.audioSender.replaceTrack(track);
-      }
+      if(!st.audioSender){ st.audioSender=pc.addTrack(track, micStream); } else { await st.audioSender.replaceTrack(track); }
     }else if(st.audioSender){ await st.audioSender.replaceTrack(null); }
 
     if(camStream){
       const v=camStream.getVideoTracks()[0];
-      if(!st.videoSender){
-        st.videoSender=st.pc.addTrack(v, camStream);
-      }else{
-        await st.videoSender.replaceTrack(v);
-      }
+      if(!st.videoSender){ st.videoSender=pc.addTrack(v, camStream); } else { await st.videoSender.replaceTrack(v); }
     }else if(st.videoSender){ await st.videoSender.replaceTrack(null); }
 
     if(screenStream){
       const s=screenStream.getVideoTracks()[0];
-      if(!st.screenSender){
-        st.screenSender=st.pc.addTrack(s, screenStream);
-      }else{
-        await st.screenSender.replaceTrack(s);
-      }
+      if(!st.screenSender){ st.screenSender=pc.addTrack(s, screenStream); } else { await st.screenSender.replaceTrack(s); }
     }else if(st.screenSender){ await st.screenSender.replaceTrack(null); }
   }
 }
 
-/* ---- タイル（ローカル） ---- */
+/* ---- Tiles (local/remote) ---- */
+const avGrid=document.getElementById('avGrid');
 function showLocalTile(kind, stream){
   const id=`local-${kind}`;
   let tile=document.getElementById(id);
@@ -526,17 +509,13 @@ function showLocalTile(kind, stream){
   }
 }
 function replaceLocalTileStream(kind, newStream){
-  const id=`local-${kind}`;
-  const tile=document.getElementById(id);
+  const id=`local-${kind}`; const tile=document.getElementById(id);
   if(tile){ tile.querySelector('video').srcObject=newStream; }
 }
 function removeLocalTile(kind){
-  const id=`local-${kind}`;
-  const tile=document.getElementById(id);
+  const id=`local-${kind}`; const tile=document.getElementById(id);
   if(tile) tile.remove();
 }
-
-/* ---- タイル（リモート） ---- */
 function ensureRemoteTile(peerId, stream, label){
   const id=`remote-${peerId}-${label}`;
   let tile=document.getElementById(id);
@@ -544,7 +523,7 @@ function ensureRemoteTile(peerId, stream, label){
   if(!tile){
     tile=document.createElement('div'); tile.className='tile'; tile.id=id;
     if(kind==='video'){
-      const v=document.createElement('video'); v.autoplay=true; v.playsInline=true; v.srcObject=stream;
+      const v=document.createElement('video'); v.autoplay=true; v.playsInline=true; v.setAttribute('data-remote',''); v.srcObject=stream;
       const name=document.createElement('div'); name.className='name'; name.textContent=`${players[peerId]?.name||'guest'}（${label}）`;
       const btns=document.createElement('div'); btns.className='btns';
       const enlarge=document.createElement('button'); enlarge.className='btn'; enlarge.textContent='⤢'; enlarge.onclick=()=>tile.classList.toggle('big');
@@ -561,16 +540,14 @@ function ensureRemoteTile(peerId, stream, label){
     (tile.querySelector('video')||tile.querySelector('audio')).srcObject=stream;
   }
 }
-function removePeerTiles(peerId){
-  [...document.querySelectorAll(`[id^="remote-${peerId}-"]`)].forEach(n=>n.remove());
-}
+function removePeerTiles(peerId){ [...document.querySelectorAll(`[id^="remote-${peerId}-"]`)].forEach(n=>n.remove()); }
 
 /* ---- PeerConnection ---- */
 function getOrCreatePeer(pid){
   let st=peers.get(pid);
   if(st) return st;
   const pc=new RTCPeerConnection(ICE);
-  st={pc, audioSender:null, videoSender:null, screenSender:null};
+  st={pc, audioSender:null, videoSender:null, screenSender:null, negotiating:false};
   peers.set(pid, st);
 
   pc.onicecandidate=(e)=>{ if(e.candidate) sendSignal(pid,{type:'ice',candidate:e.candidate}); };
@@ -580,8 +557,21 @@ function getOrCreatePeer(pid){
     const isVideo = e.track.kind==='video';
     ensureRemoteTile(pid, stream, isVideo ? (e.track.label||'映像') : '音声');
   };
+  /* ★ 再ネゴ（片側のみ=ID小さい側）*/
+  pc.onnegotiationneeded = async () => {
+    // 競合を避ける：自分のIDが小さい側のみ Offer を投げる
+    if (meId >= pid) return;
+    if (st.negotiating) return;
+    st.negotiating = true;
+    try{
+      const offer=await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await sendSignal(pid,{type:'offer',sdp:offer});
+    }catch(e){ warn('negotiate err: '+e.message); }
+    finally{ st.negotiating = false; }
+  };
 
-  // 既存のローカルトラックを載せる
+  // 既存ローカルトラック（ある場合）は追加
   (async()=>{
     if(micStream){ st.audioSender=pc.addTrack(micStream.getAudioTracks()[0], micStream); }
     if(camStream){ st.videoSender=pc.addTrack(camStream.getVideoTracks()[0], camStream); }
@@ -606,8 +596,7 @@ async function handleOffer(from, sdp){
   await sendSignal(from,{type:'answer',sdp:ans});
 }
 async function handleAnswer(from, sdp){
-  const st=getOrCreatePeer(from);
-  if(!st) return;
+  const st=peers.get(from); if(!st) return;
   await st.pc.setRemoteDescription(new RTCSessionDescription(sdp));
 }
 async function handleIce(from, cand){
@@ -615,8 +604,8 @@ async function handleIce(from, cand){
   try{ await st.pc.addIceCandidate(new RTCIceCandidate(cand)); }catch(e){ /* ignore dup */ }
 }
 
-/* ---- シグナリング受信 ---- */
-onChildAdded(inboxRef, async snap=>{
+/* ---- Signaling inbox ---- */
+onChildAdded(ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`), async snap=>{
   const msg=snap.val(); const {from,type}=msg||{};
   try{
     if(from===meId) return;
@@ -627,30 +616,24 @@ onChildAdded(inboxRef, async snap=>{
   remove(snap.ref).catch(()=>{});
 });
 
-/* ---- 接続開始（プレイヤー出入りでオファー） ---- */
+/* ---- Auto connect with room members ---- */
 onValue(playersRef, snap=>{
   const ps=snap.val()||{};
   for(const pid of Object.keys(ps)){
     if(pid===meId) continue;
-    // 衝突回避：自分のIDが小さい側がオファーを出す
-    if(meId < pid && !peers.has(pid)){
-      getOrCreatePeer(pid);
+    if(!peers.has(pid)) getOrCreatePeer(pid);
+    if(meId < pid && peers.get(pid)?.pc.signalingState==='stable'){
       makeOfferTo(pid).catch(e=>warn('offer err: '+e.message));
-    }else{
-      // 相手からのオファーを待つ（受信側はhandleOfferで生成）
-      if(!peers.has(pid)) getOrCreatePeer(pid);
     }
   }
-  // いなくなったpeerの掃除
   for(const pid of [...peers.keys()]){
     if(!ps[pid]){ peers.get(pid)?.pc.close(); peers.delete(pid); removePeerTiles(pid); }
   }
 });
 
-/* ---- AV ボタン（左クリック：トグル / 右クリック：詳細メニュー） ---- */
+/* ---- AV Buttons ---- */
 function openAvMenu(x,y, contentEl){
-  avMenu.innerHTML='';
-  avMenu.appendChild(contentEl);
+  avMenu.innerHTML=''; avMenu.appendChild(contentEl);
   avMenu.style.left=x+'px'; avMenu.style.top=y+'px';
   avMenu.style.display='block';
 }
@@ -669,27 +652,22 @@ btnMic.oncontextmenu=async(e)=>{ e.preventDefault(); const {mics}=await listDevi
   mics.forEach(d=>{ const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||'mic'; if(d.deviceId===selectedMic) o.selected=true; sel.appendChild(o); });
   const apply=document.createElement('button'); apply.textContent='切替';
   apply.onclick=async()=>{ selectedMic=sel.value; if(micStream){ await ensureMic(false); } await ensureMic(true); };
-  row2.appendChild(sel); row2.appendChild(apply);
-
   const row3=document.createElement('div'); row3.className='row';
   const meter=document.createElement('div'); meter.style.cssText='height:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;flex:1;overflow:hidden';
   const bar=document.createElement('div'); bar.style.cssText='height:100%;width:0%;background:linear-gradient(90deg,#22d3ee,#06b6d4)'; meter.appendChild(bar);
   const test=document.createElement('button'); test.textContent='テスト';
-  let testAudio=null, raf=null, analyser=null;
   test.onclick=async()=>{
     if(!micStream) await ensureMic(true);
     if(!micStream) return;
-    if(testAudio){ testAudio.pause(); testAudio.remove(); testAudio=null; cancelAnimationFrame(raf); return;}
-    testAudio=document.createElement('audio'); testAudio.autoplay=true; testAudio.muted=true; // エコー防止でミュート（メーターのみ）
     const ctxA=new (window.AudioContext||window.webkitAudioContext)();
     const src=ctxA.createMediaStreamSource(micStream);
-    analyser=ctxA.createAnalyser(); analyser.fftSize=256;
+    const analyser=ctxA.createAnalyser(); analyser.fftSize=256;
     src.connect(analyser);
     const data=new Uint8Array(analyser.frequencyBinCount);
-    const loop=()=>{ analyser.getByteTimeDomainData(data); let peak=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; peak=Math.max(peak, Math.abs(v)); } bar.style.width=Math.round(peak*100)+'%'; raf=requestAnimationFrame(loop); }; loop();
+    const loop=()=>{ analyser.getByteTimeDomainData(data); let peak=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; peak=Math.max(peak, Math.abs(v)); } bar.style.width=Math.round(peak*100)+'%'; requestAnimationFrame(loop); }; loop();
   };
+  row2.appendChild(sel); row2.appendChild(apply);
   row3.appendChild(meter); row3.appendChild(test);
-
   wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
   openAvMenu(e.clientX,e.clientY,wrap);
 };
@@ -720,21 +698,14 @@ btnScreen.oncontextmenu=(e)=>{ e.preventDefault();
   const zoomBtn=document.createElement('button'); zoomBtn.textContent='共有画面を拡大';
   zoomBtn.disabled = !document.getElementById('local-screen');
   zoomBtn.onclick=()=>{ const t=document.getElementById('local-screen'); if(t){ t.classList.toggle('big'); } closeAvMenu(); };
-
   row2.appendChild(startBtn); row2.appendChild(changeBtn);
   row3.appendChild(zoomBtn);
   wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
   openAvMenu(e.clientX,e.clientY,wrap);
 };
 
-/* ====== 初期状態：会話可にするため、最初にミックストラックだけ用意してもOK ====== */
-// 自動ではONにしない（ユーザー操作でON）。必要なら下を有効化：
-// await ensureMic(true);
-
-/* ====== 最後に：オーディオ自動再生がブロックされたら案内 ====== */
-setTimeout(()=>{ // 受信開始後に試す
-  tryPlayAll();
-}, 2000);
+/* 最後：受信要素の自動再生トライ */
+setTimeout(()=>{ tryPlayAll(); }, 1500);
 
 </script>
 </body>
