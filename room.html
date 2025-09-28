@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム (AV mesh, no video)</title>
+<title>ニコリタウン - ルーム（AV & Board 改良）</title>
 <style>
   :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4;--yellow:#fde68a33;--yellowBorder:#facc15;--mention:#22d3ee}
   *{box-sizing:border-box}
@@ -15,7 +15,6 @@
   .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
   .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
   .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
-  .hud .avbtn.on{outline:2px solid #22d3ee}
 
   /* Chat */
   #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
@@ -31,7 +30,7 @@
   #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
   #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
 
-  /* Message ctx menu */
+  /* Ctx menu (chat) */
   #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
   #ctxMenu button{display:block;width:200px;text-align:left;padding:10px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
   #ctxMenu button:hover{background:#1b2540}
@@ -44,29 +43,30 @@
   /* Bubbles */
   .bubble{position:absolute;transform:translate(-50%,-100%);background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px 10px;font-size:20px}
 
-  /* Board pins */
-  #boardLayer{position:fixed;inset:0;pointer-events:none;z-index:19}
-  .board-pin{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;user-select:none}
-  .board-pin .dot{width:18px;height:18px;border-radius:50%;background:#f59e0b;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-  .board-pin .label{margin-top:2px;background:#101826;color:#fff;border:1px solid #334155;border-radius:8px;padding:2px 6px;font-size:12px;white-space:nowrap;text-align:center}
-  /* Board context menu */
-  #boardCtxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  #boardCtxMenu button{display:block;width:180px;text-align:left;padding:10px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
-  #boardCtxMenu button:hover{background:#1b2540}
-
   /* Joystick (mobile) */
   #joyBase{position:fixed;left:16px;bottom:96px;z-index:23;width:108px;height:108px;border-radius:50%;border:1px solid var(--border);background:rgba(15,23,42,.6);display:none;touch-action:none}
   #joyStick{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
 
-  /* AV context menu & mic meter */
-  #avCtxMenu{position:fixed;z-index:60;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden;min-width:260px;max-height:60vh;overflow:auto}
-  #avCtxMenu .head{padding:8px 12px;color:#cbd5e1;border-bottom:1px solid var(--border)}
-  #avCtxMenu button{display:block;width:100%;text-align:left;padding:10px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
-  #avCtxMenu button:hover{background:#1b2540}
-  #avHidden{display:none}
-  #micMeter{position:fixed;left:8px;bottom:8px;z-index:61;width:220px;height:22px;background:#0b1220;border:1px solid var(--border);border-radius:10px;display:none;align-items:center;overflow:hidden}
-  #micMeter .bar{height:100%;width:0;background:linear-gradient(90deg,#06b6d4,#22d3ee)}
-  #micMeter .label{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#94a3b8}
+  /* ===== AV UI ===== */
+  .avbar{position:fixed;right:16px;bottom:16px;z-index:30;display:flex;gap:8px}
+  .avbar button{font:18px/1 system-ui;padding:10px;border-radius:12px;border:1px solid var(--border);background:#101826;color:#e2e8f0;cursor:pointer;min-width:48px}
+  .avbar button.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700}
+  .avmenu{position:fixed;z-index:51;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;min-width:260px;overflow:hidden}
+  .avmenu .row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #223}
+  .avmenu .row:last-child{border-bottom:none}
+  .avmenu button, .avmenu select{font:inherit;background:transparent;color:#e2e8f0;border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer}
+  .avmenu button[disabled]{opacity:.5;cursor:not-allowed}
+  #avGrid{position:fixed;left:16px;bottom:16px;z-index:26;display:flex;flex-wrap:wrap;gap:8px;max-width:40vw;max-height:50vh;overflow:auto}
+  .tile{position:relative;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px}
+  .tile video{display:block;width:240px;height:135px;background:#000;border-radius:8px}
+  .tile .name{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:6px;font-size:12px}
+  .tile .btns{position:absolute;right:6px;top:6px;display:flex;gap:6px}
+  .tile .btn{border:1px solid var(--border);background:#0f172a;border-radius:8px;padding:2px 6px;font-size:12px;color:#e2e8f0;cursor:pointer}
+  .tile.big{position:fixed;inset:auto 16px 16px auto;z-index:60}
+  .tile.big video{width:min(80vw,960px);height:auto}
+
+  /* Audio unlock */
+  #audioUnlock{position:fixed;inset:auto 16px 90px auto;z-index:40;background:#101826;border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:none}
 </style>
 </head>
 <body>
@@ -74,9 +74,6 @@
 
   <div class="hud">
     <button id="leave" title="退室">退室</button>
-    <button id="micBtn" class="avbtn" title="マイク">🎙️</button>
-    <button id="camBtn" class="avbtn" title="カメラ">📷</button>
-    <button id="shareBtn" class="avbtn" title="画面共有">🖥️</button>
     <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
   </div>
 
@@ -96,20 +93,18 @@
   <button id="reactFab" title="リアクション">😊</button>
   <div id="reactMenu"></div>
 
-  <!-- Board pins layer & context menu -->
-  <div id="boardLayer"></div>
-  <div id="boardCtxMenu">
-    <button id="boardOpen">開く</button>
-    <button id="boardDelete">削除</button>
-  </div>
-
-  <!-- AV helpers -->
-  <div id="avHidden" aria-hidden="true"></div>
-  <div id="avCtxMenu"></div>
-  <div id="micMeter"><div class="bar"></div><span class="label">MIC TEST</span></div>
-
   <!-- Mobile joystick -->
   <div id="joyBase"><div id="joyStick"></div></div>
+
+  <!-- ===== AV toolbar & Grid ===== -->
+  <div class="avbar">
+    <button id="btnMic" title="マイク">🎙️</button>
+    <button id="btnCam" title="カメラ">📷</button>
+    <button id="btnScreen" title="画面共有">🖥️</button>
+  </div>
+  <div id="avGrid"></div>
+  <div id="avMenu" class="avmenu"></div>
+  <div id="audioUnlock">🔈 クリックして音声を有効化</div>
 
 <script type="module">
 /* ===== Params ===== */
@@ -135,225 +130,611 @@ const auth=getAuth(app);
 const db=getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
 
 /* ===== Utilities ===== */
-function warn(msg){ let box=document.getElementById('warnBox'); if(!box){ box=document.createElement('div'); box.id='warnBox'; Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'}); document.body.appendChild(box);} const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);} 
-async function ensureAnonAuth(auth){ if(auth.currentUser) return auth.currentUser; await signInAnonymously(auth); return await new Promise(r=>{ const stop=onAuthStateChanged(auth,u=>{ if(u){ stop(); r(u); } });}); }
+function warn(msg){
+  let box=document.getElementById('warnBox');
+  if(!box){
+    box=document.createElement('div'); box.id='warnBox';
+    Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'});
+    document.body.appendChild(box);
+  }
+  const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);
+}
+async function ensureAnonAuth(auth){
+  if (auth.currentUser) return auth.currentUser;
+  await signInAnonymously(auth);
+  return await new Promise(resolve=>{
+    const stop=onAuthStateChanged(auth,u=>{ if(u){ stop(); resolve(u); } });
+  });
+}
 
-/* ===== URL ===== */
-const u=new URL(location.href); const ROOM=(u.searchParams.get('room')||'room-001').trim().toLowerCase().replace(/[.#$\/\[\]]/g,'-').slice(0,32); const NAME=u.searchParams.get('name')||'guest';
+/* ===== URL（サニタイズ） ===== */
+const u=new URL(location.href);
+const rawRoom=(u.searchParams.get('room')||'room-001');
+const ROOM=rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
+const NAME=u.searchParams.get('name')||'guest';
 roomId.textContent=ROOM; who.textContent=NAME;
 
-/* ===== Assets ===== */
+/* ===== Assets (map & sprites) ===== */
 function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){return new Promise((res)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>{console.error('Image load failed:', src); warn(`画像読み込み失敗: ${src}`); try{const c=document.createElement('canvas'); c.width=fallbackSize[0]; c.height=fallbackSize[1]; const g=c.getContext('2d'); g.fillStyle='#0f172a'; g.fillRect(0,0,c.width,c.height); g.fillStyle='#334155'; g.fillText(label,10,20); const img=new Image(); img.onload=()=>res(img); img.src=c.toDataURL();}catch{const img=new Image(); img.src='data:image/gif;base64,R0lGODlhAQABAAAAACw='; img.onload=()=>res(img);} }; i.src=src;});}
-const imgMap = await loadImage('./map_1.png?v=20250927-3',{fallbackSize:[2048,2048],label:'map'});
-const imgMask= await loadImage('./atarihantei.png?v=20250927-3',{fallbackSize:[2048,2048],label:'mask'});
-const imgFront=await loadImage('./nikorihito_dot_front.png?v=20250927-3');
-const imgBack =await loadImage('./nikorihito_dot_behind.png?v=20250927-3');
-const imgLeft =await loadImage('./nikorihito_dot_left.png?v=20250927-3');
-const imgRight=await loadImage('./nikorihito_dot_right.png?v=20250927-3');
+const imgMap = await loadImage('./map_1.png?v=20250927-2',{fallbackSize:[2048,2048],label:'map'});
+const imgMask= await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'}); // 赤が当たり判定
+const imgFront=await loadImage('./nikorihito_dot_front.png?v=20250927-2');
+const imgBack =await loadImage('./nikorihito_dot_behind.png?v=20250927-2');
+const imgLeft =await loadImage('./nikorihito_dot_left.png?v=20250927-2');
+const imgRight=await loadImage('./nikorihito_dot_right.png?v=20250927-2');
 
 /* ===== Canvas & world ===== */
-const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false; function resize(){canvas.width=innerWidth; canvas.height=innerHeight;} addEventListener('resize',resize); resize();
+const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
+function resize(){canvas.width=innerWidth; canvas.height=innerHeight;}
+addEventListener('resize',resize); resize();
 const world={w:imgMap.width,h:imgMap.height};
 
-/* ===== Collision ===== */
+/* ===== Collision (赤=ブロック) ===== */
 const maskCanvas=(typeof OffscreenCanvas!=='undefined')?new OffscreenCanvas(imgMask.width,imgMask.height):Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
-const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0); const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
-function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);} // 赤
+const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0);
+const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
+function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);} // 赤っぽい
 function hits(x,y){const foot=y+(RADIUS*0.6); return isBlocked(x,foot)||isBlocked(x-RADIUS*0.7,foot)||isBlocked(x+RADIUS*0.7,foot);} 
 function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32, y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2, cy=world.h/2; return {x:cx,y:cy};}
 
 /* ===== Players ===== */
-const playersRef=ref(db,`rooms/${ROOM}/players`); const meId=(crypto.randomUUID?crypto.randomUUID():(`m${Math.random().toString(36).slice(2)}`)); const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
+const playersRef=ref(db,`rooms/${ROOM}/players`);
+const meId=(crypto.randomUUID?crypto.randomUUID():(`m${Math.random().toString(36).slice(2)}`));
+const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
 let my=Object.assign({name:NAME,dir:'front',ts:Date.now()}, safeSpawn());
-await ensureAnonAuth(auth); await set(meRef,my); onDisconnect(meRef).remove();
+await ensureAnonAuth(auth);
+await set(meRef,my);
+onDisconnect(meRef).remove().catch(()=>{});
+
 let players={}; const ghosts={};
-onValue(playersRef,snap=>{players=snap.val()||{}; count.textContent=Object.keys(players).length; for(const [id,p] of Object.entries(players)){ if(!ghosts[id]&&p) ghosts[id]={x:p.x,y:p.y,dir:p.dir,name:p.name}; }});
+onValue(playersRef,snap=>{
+  players=snap.val()||{}; 
+  count.textContent=Object.keys(players).length;
+  for(const [id,p] of Object.entries(players)){
+    if(!ghosts[id]&&p) ghosts[id]={x:p.x,y:p.y,dir:p.dir,name:p.name};
+  }
+});
 
 /* ===== Chat ===== */
 const chatRef=ref(db,`rooms/${ROOM}/chat`);
 const chatView=document.getElementById('chatView'); const textEl=document.getElementById('text'); const sendBtn=document.getElementById('send');
 const ctxMenu=document.getElementById('ctxMenu'); let ctxTargetId=null; let replyToMsgId=null; const items=new Map(); const msgIndex=new Map();
+
 function openCtx(x,y){ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px';}
 function closeCtx(){ctxMenu.style.display='none'; ctxTargetId=null;}
 addEventListener('click',()=>closeCtx());
-function highlightMentions(container, text){ const meTag='@'+NAME; const parts=(text||'').split(/(@[^\s]+)/g); for(const part of parts){ if(part===meTag){ const span=document.createElement('span'); span.className='mentionSelf'; span.textContent=part; container.appendChild(span);} else { container.appendChild(document.createTextNode(part)); } } }
-function messageEl(id,m){ const el=document.createElement('div'); el.className='item'+(m.uid===meId?' me':''); el.dataset.id=id; el.dataset.uid=m.uid||''; if(m.replyTo){ const parent=msgIndex.get(m.replyTo); const r=document.createElement('div'); r.className='replyTo'; r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）'; r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'});} }; el.appendChild(r); if(parent && parent.uid===meId) el.classList.add('replyToMe'); } const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line); const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta); el.oncontextmenu=(e)=>{ e.preventDefault(); ctxTargetId=id; openCtx(e.clientX,e.clientY); }; let pressTimer; el.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>{ ctxTargetId=id; const t=e.touches[0]; openCtx(t.clientX,t.clientY); },600); }); el.addEventListener('touchend',()=>clearTimeout(pressTimer)); return el; }
+
+function highlightMentions(container, text){
+  const meTag='@'+NAME; const parts=(text||'').split(/(@[^\s]+)/g);
+  for(const part of parts){
+    if(part===meTag){ const span=document.createElement('span'); span.className='mentionSelf'; span.textContent=part; container.appendChild(span); }
+    else { container.appendChild(document.createTextNode(part)); }
+  }
+}
+function messageEl(id,m){
+  const el=document.createElement('div'); el.className='item'+(m.uid===meId?' me':''); el.dataset.id=id; el.dataset.uid=m.uid||'';
+  if(m.replyTo){
+    const parent=msgIndex.get(m.replyTo);
+    const r=document.createElement('div'); r.className='replyTo';
+    r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）';
+    r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'}); }};
+    el.appendChild(r);
+    if(parent && parent.uid===meId) el.classList.add('replyToMe');
+  }
+  const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line);
+  const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta);
+  el.oncontextmenu=(e)=>{ e.preventDefault(); ctxTargetId=id; openCtx(e.clientX,e.clientY); };
+  let pressTimer; el.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>{ ctxTargetId=id; const t=e.touches[0]; openCtx(t.clientX,t.clientY); },600); }); el.addEventListener('touchend',()=>clearTimeout(pressTimer));
+  return el;
+}
 const chatQ=query(chatRef,limitToLast(MAX_MSG));
 onChildAdded(chatQ,s=>{ const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const el=messageEl(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop=chatView.scrollHeight; });
 onChildChanged(chatQ,s=>{ const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const old=items.get(id); if(old){ const el=messageEl(id,m); chatView.replaceChild(el,old); items.set(id,el);} });
 onChildRemoved(chatQ,s=>{ const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id);} msgIndex.delete(id); });
 async function sendMessage(payload){ await push(chatRef, Object.assign({uid:meId,name:NAME,ts:Date.now()}, payload)); }
-// 返信：右クリック/長押し
-ctxReply.onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeCtx(); textEl.focus(); };
+document.getElementById('ctxReply').onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeCtx(); textEl.focus(); };
 document.getElementById('ctxReactOpen').onclick=()=>{ closeCtx(); openReactMenu(); };
 document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return; const old=items.get(ctxTargetId); const cur=old?.querySelector('div')?.textContent||''; const t=prompt('メッセージを編集',cur); if(t==null) return; await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,2000), edited:true, ts:Date.now() }); closeCtx(); };
 document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return; await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx(); };
-let sending=false; sendBtn.onclick=async()=>{ if(sending) return; const text=textEl.value.trim(); if(!text) return; sending=true; try{ const msg={ text:text.slice(0,2000) }; if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; } await sendMessage(msg); textEl.value=''; } finally { sending=false; } };
+let sending=false;
+sendBtn.onclick=async()=>{
+  if(sending) return;
+  const text=textEl.value.trim();
+  if(!text) return;
+  sending=true;
+  try{
+    const msg={ text:text.slice(0,2000) };
+    if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; }
+    await sendMessage(msg);
+    textEl.value='';
+  } finally { sending=false; }
+};
 textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
 
 /* ===== Reactions ===== */
 const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
 const reactFab=document.getElementById('reactFab'); const reactMenu=document.getElementById('reactMenu');
-function openReactMenu(){ reactMenu.innerHTML=''; EMOJIS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.onclick=()=>{ push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()}); reactMenu.style.display='none'; }; reactMenu.appendChild(b); }); reactMenu.style.display='block'; }
+function openReactMenu(){
+  reactMenu.innerHTML='';
+  EMOJIS.forEach(e=>{
+    const b=document.createElement('button');
+    b.textContent=e;
+    b.onclick=()=>{ push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()}); reactMenu.style.display='none'; };
+    reactMenu.appendChild(b);
+  });
+  reactMenu.style.display='block';
+}
 reactFab.onclick=()=>{ reactMenu.style.display=(reactMenu.style.display==='block')?'none':'block'; if(reactMenu.style.display==='block') openReactMenu(); };
+
 const bubbles=new Map();
-function showBubbleFor(uid,emoji){ let b=bubbles.get(uid); if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); } b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{ b.style.display='none'; },1800); }
+function showBubbleFor(uid,emoji){
+  let b=bubbles.get(uid);
+  if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); }
+  b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{ b.style.display='none'; },1800);
+}
 onChildAdded(query(bubblesRef,limitToLast(50)), s=>{ const {uid,emoji,ts}=s.val()||{}; if(!uid||!emoji) return; if(Date.now()-ts>5000) return; showBubbleFor(uid,emoji); });
-
-/* ===== Boards: pins + context menu ===== */
-const boardLayer = document.getElementById('boardLayer');
-const boardCtxMenu = document.getElementById('boardCtxMenu');
-const boardOpenBtn = document.getElementById('boardOpen');
-const boardDeleteBtn = document.getElementById('boardDelete');
-let boardCtxTargetId = null;
-const boardsRef = ref(db, `rooms/${ROOM}/boards`);
-const boards = new Map();
-const boardPins = new Map();
-function renderBoardPins(){ for(const [id,data] of boards){ let el = boardPins.get(id); if(!el){ el = document.createElement('div'); el.className = 'board-pin'; el.dataset.id = id; el.innerHTML = `<div class="dot" title="ホワイトボード"></div><div class="label">提案板</div>`; el.oncontextmenu = (e)=>{ e.preventDefault(); boardCtxTargetId=id; openBoardMenu(e.clientX,e.clientY); }; let timer; el.addEventListener('touchstart', (e)=>{ timer=setTimeout(()=>{ const t=e.touches[0]; boardCtxTargetId=id; openBoardMenu(t.clientX,t.clientY); }, 600); }, {passive:true}); el.addEventListener('touchend', ()=>clearTimeout(timer)); boardLayer.appendChild(el); boardPins.set(id, el); } el._worldX = data?.x ?? 0; el._worldY = data?.y ?? 0; } for(const [id,el] of boardPins){ if(!boards.has(id)){ el.remove(); boardPins.delete(id);} } }
-function openBoardMenu(x,y){ boardCtxMenu.style.left=x+'px'; boardCtxMenu.style.top=y+'px'; boardCtxMenu.style.display='block'; }
-function closeBoardMenu(){ boardCtxMenu.style.display='none'; boardCtxTargetId=null; }
-addEventListener('click', ()=> closeBoardMenu());
-onChildAdded(boardsRef, s=>{ boards.set(s.key, s.val()); renderBoardPins(); });
-onChildChanged(boardsRef, s=>{ boards.set(s.key, s.val()); renderBoardPins(); });
-onChildRemoved(boardsRef, s=>{ boards.delete(s.key); renderBoardPins(); });
-boardOpenBtn.onclick = ()=>{ if(!boardCtxTargetId) return; try{ (window.openBoard||window.showBoard||alert)(boardCtxTargetId); }catch{} closeBoardMenu(); };
-boardDeleteBtn.onclick = async ()=>{ if(!boardCtxTargetId) return; if(!confirm('このホワイトボードを削除しますか？')) return; await remove(ref(db, `rooms/${ROOM}/boards/${boardCtxTargetId}`)); closeBoardMenu(); };
-addEventListener('keydown', (e)=>{ if(e.key==='h' || e.key==='H'){ const newRef = push(boardsRef); set(newRef, { x: my.x, y: my.y, owner: meId, ts: Date.now() }); try{ (window.openBoard||window.showBoard||alert)(newRef.key); }catch{} } });
-
-/* ===== AV (audio-first mesh, no video UI) ===== */
-const avHidden = document.getElementById('avHidden');
-const avCtxMenu = document.getElementById('avCtxMenu');
-const micBtn = document.getElementById('micBtn');
-const camBtn = document.getElementById('camBtn');
-const shareBtn = document.getElementById('shareBtn');
-const micMeter = document.getElementById('micMeter'); const micBar = micMeter.querySelector('.bar');
-
-let localMicTrack=null, localCamTrack=null, localShareTrack=null;
-let micDeviceId = localStorage.getItem('micId')||null;
-let camDeviceId = localStorage.getItem('camId')||null;
-let audioCtx=null, analyser=null, meterRAF=0;
-
-// peer mesh
-const rtcRefBase = (pair)=> ref(db, `rooms/${ROOM}/rtc/${pair}`);
-const peers = new Map(); // id => {pc, senders: {audio, video, share}, audEl, subs}
-const ICE = [{urls:'stun:stun.l.google.com:19302'}];
-
-function pairKey(a,b){ return [a,b].sort().join('_'); }
-
-function ensurePeer(remoteId){ if(peers.has(remoteId)) return peers.get(remoteId); const pc=new RTCPeerConnection({iceServers:ICE}); const senders={}; const aud=document.createElement('audio'); aud.autoplay=true; aud.playsInline=true; aud.controls=false; avHidden.appendChild(aud);
-  pc.ontrack = (ev)=>{ if(ev.track.kind==='audio'){ aud.srcObject = ev.streams[0]; aud.play().catch(()=>{}); } };
-  pc.onicecandidate = (ev)=>{ if(!ev.candidate) return; const key=pairKey(meId, remoteId); const cRef = ref(db, `rooms/${ROOM}/rtc/${key}/candidates/${meId}`); push(cRef, ev.candidate.toJSON()); };
-  const key=pairKey(meId, remoteId); const base=rtcRefBase(key);
-  // subscribe remote offer/answer/candidates
-  const subs=[];
-  subs.push(onValue(ref(db, `rooms/${ROOM}/rtc/${key}/offers/${remoteId}`), async s=>{ const v=s.val(); if(!v) return; if(v.type==='offer'){ await pc.setRemoteDescription(v); const ans= await pc.createAnswer(); await pc.setLocalDescription(ans); await set(ref(db, `rooms/${ROOM}/rtc/${key}/answers/${meId}`), pc.localDescription.toJSON()); } }));
-  subs.push(onChildAdded(ref(db, `rooms/${ROOM}/rtc/${key}/candidates/${remoteId}`), async s=>{ const c=s.val(); try{ await pc.addIceCandidate(c); }catch(e){ /* ignore duplicate */ } }));
-  peers.set(remoteId,{pc,senders,audEl:aud,subs});
-  // attach existing tracks
-  refreshSenders(remoteId);
-  return peers.get(remoteId);
-}
-
-async function makeOffers(){ for(const id of Object.keys(players)){ if(id===meId) continue; const IAmOfferer = meId < id; const p = ensurePeer(id); if(!IAmOfferer) continue; const pc=p.pc; const key=pairKey(meId, id); const offer = await pc.createOffer(); await pc.setLocalDescription(offer); await set(ref(db, `rooms/${ROOM}/rtc/${key}/offers/${meId}`), pc.localDescription.toJSON()); } }
-
-function refreshSenders(remoteId){ const p=peers.get(remoteId); if(!p) return; const pc=p.pc; // audio
-  if(localMicTrack){ if(!p.senders.audio){ p.senders.audio = pc.addTrack(localMicTrack); } else { p.senders.audio.replaceTrack(localMicTrack); } } else { if(p.senders.audio){ try{ pc.removeTrack(p.senders.audio); }catch{} p.senders.audio=null; } }
-  // camera -> treated as video but not shown
-  if(localCamTrack){ if(!p.senders.video){ p.senders.video = pc.addTrack(localCamTrack); } else { p.senders.video.replaceTrack(localCamTrack); } } else { if(p.senders.video){ try{ pc.removeTrack(p.senders.video); }catch{} p.senders.video=null; } }
-  // screen share
-  if(localShareTrack){ if(!p.senders.share){ p.senders.share = pc.addTrack(localShareTrack); } else { p.senders.share.replaceTrack(localShareTrack); } } else { if(p.senders.share){ try{ pc.removeTrack(p.senders.share); }catch{} p.senders.share=null; } }
-}
-
-function refreshAllPeers(){ for(const id of Object.keys(players)){ if(id===meId) continue; ensurePeer(id); refreshSenders(id); } makeOffers().catch(()=>{}); }
-
-onValue(playersRef, ()=>{ // room membership changed
-  // remove closed peers
-  for(const [id,p] of peers){ if(!players[id]){ try{ p.subs.forEach(u=>u && u()); }catch{} try{ p.pc.close(); }catch{} try{ p.audEl.remove(); }catch{} peers.delete(id);} }
-  // connect to new ones
-  refreshAllPeers();
-});
-
-// ===== Devices & streams =====
-async function getMicStream(){ const c={audio: {deviceId: micDeviceId?{exact:micDeviceId}:undefined, echoCancellation:true, noiseSuppression:true, autoGainControl:true}}; const s= await navigator.mediaDevices.getUserMedia(c); return s; }
-async function getCamStream(){ const c={video: {deviceId: camDeviceId?{exact:camDeviceId}:undefined, width:{ideal:1280}, height:{ideal:720}}}; const s= await navigator.mediaDevices.getUserMedia(c); return s; }
-async function getShareStream(){ const s= await navigator.mediaDevices.getDisplayMedia({video:true, audio:true}); return s; }
-
-async function enableMic(){ const s= await getMicStream(); const t=s.getAudioTracks()[0]; if(localMicTrack) localMicTrack.stop(); localMicTrack=t; micBtn.classList.add('on'); refreshAllPeers(); unlockAudio(); }
-function disableMic(){ if(localMicTrack){ try{ localMicTrack.stop(); }catch{} localMicTrack=null; } micBtn.classList.remove('on'); refreshAllPeers(); }
-async function enableCam(){ const s= await getCamStream(); const t=s.getVideoTracks()[0]; if(localCamTrack) localCamTrack.stop(); localCamTrack=t; camBtn.classList.add('on'); refreshAllPeers(); }
-function disableCam(){ if(localCamTrack){ try{ localCamTrack.stop(); }catch{} localCamTrack=null; } camBtn.classList.remove('on'); refreshAllPeers(); }
-async function enableShare(){ const s= await getShareStream(); const t=s.getVideoTracks()[0]; if(localShareTrack) localShareTrack.stop(); localShareTrack=t; shareBtn.classList.add('on'); t.onended=()=>disableShare(); refreshAllPeers(); }
-function disableShare(){ if(localShareTrack){ try{ localShareTrack.stop(); }catch{} localShareTrack=null; } shareBtn.classList.remove('on'); refreshAllPeers(); }
-
-function unlockAudio(){ document.body.addEventListener('click', one, {once:true}); function one(){ const a=document.createElement('audio'); a.srcObject=new MediaStream(); a.play().catch(()=>{}); setTimeout(()=>a.remove(),100); } }
-
-// ===== AV context menu =====
-function openAvMenu(kind, x, y){ avCtxMenu.innerHTML=''; const head=document.createElement('div'); head.className='head'; head.textContent= kind==='mic'?'マイク設定': kind==='cam'?'カメラ設定':'画面共有'; avCtxMenu.appendChild(head);
-  const btn=(label, onclick)=>{ const b=document.createElement('button'); b.textContent=label; b.onclick=()=>{ onclick(); closeAvMenu(); }; avCtxMenu.appendChild(b); };
-  if(kind==='mic'){
-    btn(localMicTrack?'マイクをオフ':'マイクをオン', ()=> localMicTrack?disableMic():enableMic());
-    // mic test toggle
-    btn('マイクテスト', ()=> startMicTest());
-    avCtxMenu.appendChild(document.createElement('hr'));
-    // device list
-    navigator.mediaDevices.enumerateDevices().then(list=>{
-      const mics=list.filter(d=>d.kind==='audioinput');
-      mics.forEach(d=>{ const b=document.createElement('button'); b.textContent=(d.label||'マイク')+(d.deviceId===micDeviceId?' ✓':''); b.onclick=async()=>{ micDeviceId=d.deviceId; localStorage.setItem('micId',micDeviceId); if(localMicTrack){ await enableMic(); } closeAvMenu(); }; avCtxMenu.appendChild(b); });
-    });
-  } else if(kind==='cam'){
-    btn(localCamTrack?'カメラをオフ':'カメラをオン', ()=> localCamTrack?disableCam():enableCam());
-    avCtxMenu.appendChild(document.createElement('hr'));
-    navigator.mediaDevices.enumerateDevices().then(list=>{
-      const cams=list.filter(d=>d.kind==='videoinput');
-      cams.forEach(d=>{ const b=document.createElement('button'); b.textContent=(d.label||'カメラ')+(d.deviceId===camDeviceId?' ✓':''); b.onclick=async()=>{ camDeviceId=d.deviceId; localStorage.setItem('camId',camDeviceId); if(localCamTrack){ await enableCam(); } closeAvMenu(); }; avCtxMenu.appendChild(b); });
-    });
-  } else if(kind==='share'){
-    btn(localShareTrack?'共有を停止':'画面を共有', ()=> localShareTrack?disableShare():enableShare());
-  }
-  avCtxMenu.style.left=x+'px'; avCtxMenu.style.top=y+'px'; avCtxMenu.style.display='block';
-}
-function closeAvMenu(){ avCtxMenu.style.display='none'; }
-addEventListener('click', ()=> closeAvMenu());
-
-micBtn.oncontextmenu=(e)=>{ e.preventDefault(); openAvMenu('mic', e.clientX, e.clientY); };
-camBtn.oncontextmenu=(e)=>{ e.preventDefault(); openAvMenu('cam', e.clientX, e.clientY); };
-shareBtn.oncontextmenu=(e)=>{ e.preventDefault(); openAvMenu('share', e.clientX, e.clientY); };
-// left click = quick toggle
-micBtn.onclick=()=>{ localMicTrack?disableMic():enableMic(); };
-camBtn.onclick=()=>{ localCamTrack?disableCam():enableCam(); };
-shareBtn.onclick=()=>{ localShareTrack?disableShare():enableShare(); };
-
-// mic test
-async function startMicTest(){ try{ if(!audioCtx){ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); } const s= await getMicStream(); const src=audioCtx.createMediaStreamSource(s); analyser=audioCtx.createAnalyser(); analyser.fftSize=512; src.connect(analyser); micMeter.style.display='flex'; const data=new Uint8Array(analyser.frequencyBinCount); cancelAnimationFrame(meterRAF); const draw=()=>{ analyser.getByteFrequencyData(data); let sum=0; for(const v of data) sum+=v; const lvl=sum/data.length/255; micBar.style.width = Math.round(lvl*100)+'%'; meterRAF=requestAnimationFrame(draw); }; draw(); setTimeout(()=>{ // stop after 8s or on menu close
-  try{ s.getTracks().forEach(t=>t.stop()); }catch{} micMeter.style.display='none'; cancelAnimationFrame(meterRAF); }, 8000); }catch(e){ warn('マイクテスト失敗: '+e.message); } }
 
 /* ===== Camera & Render ===== */
 function spriteByDir(d){return d==='back'?imgBack:d==='left'?imgLeft:d==='right'?imgRight:imgFront;}
-let camX=0, camY=0; function camera(dt){const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2); const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k; camX=Math.max(0,Math.min(world.w-canvas.width,camX)); camY=Math.max(0,Math.min(world.h-canvas.height,camY)); return {x:camX,y:camY};}
+let camX=0, camY=0;
+function camera(dt){
+  const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2);
+  const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k;
+  camX=Math.max(0,Math.min(world.w-canvas.width,camX));
+  camY=Math.max(0,Math.min(world.h-canvas.height,camY));
+  return {x:camX,y:camY};
+}
 
-/* ===== 入力：PC矢印＋モバイルジョイスティック ===== */
-const keys=new Set(); addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); keys.add(e.key); }); addEventListener('keyup',e=>keys.delete(e.key));
-const joyBase=document.getElementById('joyBase'); const joyStick=document.getElementById('joyStick'); let joyVec={x:0,y:0}; if('ontouchstart' in window || navigator.maxTouchPoints>0){ joyBase.style.display='block'; const getVec=(clientX,clientY)=>{ const rect=joyBase.getBoundingClientRect(); const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2; let dx=clientX-cx, dy=clientY-cy; const len=Math.hypot(dx,dy); const limit=rect.width/2-10; if(len>limit){ dx=dx*limit/len; dy=dy*limit/len; } joyStick.style.transform=`translate(${dx}px,${dy}px) translate(-50%,-50%)`; const nx=dx/limit, ny=dy/limit; return {x:nx, y:ny}; }; const start=(e)=>{ const t=e.touches?e.touches[0]:e; joyVec=getVec(t.clientX,t.clientY); }; const move =(e)=>{ const t=e.touches?e.touches[0]:e; joyVec=getVec(t.clientX,t.clientY); }; const end  =()=>{ joyVec={x:0,y:0}; joyStick.style.transform='translate(-50%,-50%)'; }; joyBase.addEventListener('pointerdown',start); joyBase.addEventListener('pointermove',move); joyBase.addEventListener('pointerup',end); joyBase.addEventListener('pointercancel',end); joyBase.addEventListener('touchstart',start,{passive:false}); joyBase.addEventListener('touchmove',move,{passive:false}); joyBase.addEventListener('touchend',end); }
+/* ===== 入力：PC 矢印キー / モバイル ジョイスティック ===== */
+const keys=new Set();
+addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); keys.add(e.key); });
+addEventListener('keyup',e=>keys.delete(e.key));
+// Joystick
+const joyBase=document.getElementById('joyBase');
+const joyStick=document.getElementById('joyStick');
+let joyVec={x:0,y:0};
+if ('ontouchstart' in window || navigator.maxTouchPoints>0){
+  joyBase.style.display='block';
+  const getVec=(clientX,clientY)=>{
+    const rect=joyBase.getBoundingClientRect();
+    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    let dx=clientX-cx, dy=clientY-cy;
+    const len=Math.hypot(dx,dy);
+    const limit=rect.width/2-10;
+    if(len>limit){ dx=dx*limit/len; dy=dy*limit/len; }
+    joyStick.style.transform=`translate(${dx}px,${dy}px) translate(-50%,-50%)`;
+    return {x:dx/limit, y:dy/limit};
+  };
+  const start=e=>{ const t=e.touches?e.touches[0]:e; joyVec=getVec(t.clientX,t.clientY); };
+  const move =e=>{ if(e.pressure===0) return; const t=e.touches?e.touches[0]:e; joyVec=getVec(t.clientX,t.clientY); };
+  const end  =()=>{ joyVec={x:0,y:0}; joyStick.style.transform='translate(-50%,-50%)'; };
+  joyBase.addEventListener('pointerdown',start); joyBase.addEventListener('pointermove',move); joyBase.addEventListener('pointerup',end); joyBase.addEventListener('pointercancel',end);
+  joyBase.addEventListener('touchstart',start,{passive:false}); joyBase.addEventListener('touchmove',move,{passive:false}); joyBase.addEventListener('touchend',end);
+}
 
 /* ===== ループ ===== */
 let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir; let lastT=performance.now();
-function step(now){ if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;} const dt=Math.min(0.05,(now-lastT)/1000); lastT=now; let vx=0, vy=0; if(keys.has('ArrowUp'))    vy-=1; if(keys.has('ArrowDown'))  vy+=1; if(keys.has('ArrowLeft'))  vx-=1; if(keys.has('ArrowRight')) vx+=1; vx += joyVec.x; vy += joyVec.y; if(vx||vy){ const len=Math.hypot(vx,vy); vx/=len; vy/=len; const s=SPEED_PPS*dt; const nx=my.x+vx*s, ny=my.y+vy*s; if(!hits(nx,my.y)) my.x=nx; if(!hits(my.x,ny)) my.y=ny; my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back'); }
-  const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+function step(now){
+  if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;}
+  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+
+  let vx=0, vy=0;
+  if(keys.has('ArrowUp'))    vy-=1;
+  if(keys.has('ArrowDown'))  vy+=1;
+  if(keys.has('ArrowLeft'))  vx-=1;
+  if(keys.has('ArrowRight')) vx+=1;
+  vx += joyVec.x; vy += joyVec.y;
+
+  if(vx||vy){
+    const len=Math.hypot(vx,vy); vx/=len; vy/=len;
+    const s=SPEED_PPS*dt;
+    const nx=my.x+vx*s, ny=my.y+vy*s;
+    if(!hits(nx,my.y)) my.x=nx;
+    if(!hits(my.x,ny)) my.y=ny;
+    my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back');
+  }
+
+  const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+
+  // 他人
   const kInterp=Math.min(1,dt*PLAYER_INTERP);
-  for(const [id,p] of Object.entries(players)){ if(!p||id===meId) continue; const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name}); g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir; const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE; ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh); drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false); }
-  const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE; ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh); drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
-  for(const [uid,b] of bubbles){ const p = uid===meId ? my : (players[uid]||ghosts[uid]); if(!p||b.style.display==='none') continue; const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y; b.style.left=x+'px'; b.style.top=(y - (mh/2) - 24)+'px'; }
-  for(const [id,el] of boardPins){ const sx = (el._worldX||0) - cam.x; const sy = (el._worldY||0) - cam.y; if(sx < -20 || sy < -20 || sx > canvas.width+20 || sy > canvas.height+20){ el.style.display='none'; }else{ el.style.display='block'; el.style.left = sx+'px'; el.style.top  = sy+'px'; } }
-  if(now-lastSync>SYNC_MS){ const dx=my.x-selfLastX, dy=my.y-selfLastY; const moved=(dx*dx+dy*dy)>1; const dirChanged=my.dir!==selfLastDir; if(moved||dirChanged){ lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=my.dir; update(meRef,{x:my.x,y:my.y,dir:my.dir,ts:Date.now()}); } }
+  for(const [id,p] of Object.entries(players)){
+    if(!p||id===meId) continue;
+    const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name});
+    g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir;
+    const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE;
+    ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh);
+    drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2,false);
+  }
+  // 自分
+  const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
+  ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh);
+  drawName(NAME,my.x-cam.x,(my.y-mh/2)-cam.y-2,true);
+
+  // リアクションのバブルは描画位置だけ更新（DOM上）
+  for(const [uid,b] of bubbles){
+    const p = uid===meId ? my : (players[uid]||ghosts[uid]);
+    if(!p||b.style.display==='none') continue;
+    const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y;
+    b.style.left=x+'px'; b.style.top=(y - (mh/2) - 24)+'px';
+  }
+
+  if(now-lastSync>SYNC_MS){
+    const dx=my.x-selfLastX, dy=my.y-selfLastY;
+    const moved=(dx*dx+dy*dy)>1;
+    const dirChanged=my.dir!==selfLastDir;
+    if(moved||dirChanged){
+      lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=my.dir;
+      update(meRef,{x:my.x,y:my.y,dir:my.dir,ts:Date.now()});
+    }
+  }
   requestAnimationFrame(step);
 }
 requestAnimationFrame(step);
 
-function drawName(name,x,y,me=false){ ctx.font='20px system-ui, sans-serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(x-60,y-28,120,32); ctx.fillStyle= me? '#22d3ee' : '#e2e8f0'; ctx.fillText(name,x,y-8); }
+// 名札（大きめ）
+function drawName(name,x,y,me=false){
+  ctx.font = '20px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(0,0,0,.6)';
+  ctx.fillRect(x-60, y-28, 120, 32);
+  ctx.fillStyle = me ? '#22d3ee' : '#e2e8f0';
+  ctx.fillText(name, x, y-8);
+}
 
-/* 退室 */
+/* 退室ボタン */
 document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
 addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
+
+/* =========================================================
+   ===============  WebRTC メッシュ（音声＋映像＋画面）===
+   ========================================================= */
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}],sdpSemantics:'unified-plan'};
+const avGrid=document.getElementById('avGrid');
+const btnMic=document.getElementById('btnMic');
+const btnCam=document.getElementById('btnCam');
+const btnScreen=document.getElementById('btnScreen');
+const avMenu=document.getElementById('avMenu');
+const audioUnlock=document.getElementById('audioUnlock');
+
+const inboxRef=ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`);
+function sendSignal(to, data){ return push(ref(db,`rooms/${ROOM}/webrtc/inbox/${to}`), Object.assign({from:meId,ts:Date.now()},data)); }
+
+const peers=new Map(); // peerId -> {pc, audioSender, videoSender, screenSender}
+let micStream=null, camStream=null, screenStream=null;
+let selectedMic=null, selectedCam=null;
+
+// Audio unlock (autoplay)
+function showUnlock(){ audioUnlock.style.display='block'; }
+function hideUnlock(){ audioUnlock.style.display='none'; }
+function tryPlayAll(){
+  document.querySelectorAll('audio[data-remote]').forEach(a=>{ a.play().catch(()=>showUnlock()); });
+}
+document.addEventListener('pointerdown',()=>{ tryPlayAll(); hideUnlock(); },{once:true});
+
+/* ---- デバイス列挙 ---- */
+async function listDevices(){
+  const devs=await navigator.mediaDevices.enumerateDevices();
+  return {
+    mics: devs.filter(d=>d.kind==='audioinput'),
+    cams: devs.filter(d=>d.kind==='videoinput')
+  };
+}
+
+/* ---- ローカルメディア ---- */
+async function ensureMic(on=true){
+  if(on && !micStream){
+    const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
+    micStream=await navigator.mediaDevices.getUserMedia(c);
+  }
+  if(!on && micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+  btnMic.classList.toggle('on', !!micStream);
+  await refreshSenders();
+}
+async function ensureCam(on=true){
+  if(on && !camStream){
+    const c={video:{deviceId:selectedCam?{exact:selectedCam}:undefined, width:{ideal:640}, height:{ideal:360}}, audio:false};
+    camStream=await navigator.mediaDevices.getUserMedia(c);
+    showLocalTile('camera', camStream);
+  }
+  if(!on && camStream){
+    removeLocalTile('camera');
+    camStream.getTracks().forEach(t=>t.stop()); camStream=null;
+  }
+  btnCam.classList.toggle('on', !!camStream);
+  await refreshSenders();
+}
+async function startScreen(){
+  if(screenStream) return;
+  screenStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
+  screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
+  showLocalTile('screen', screenStream);
+  btnScreen.classList.add('on');
+  await refreshSenders();
+}
+async function changeScreen(){
+  if(!screenStream) return;
+  const newStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
+  const newTrack=newStream.getVideoTracks()[0];
+  // 置き換え
+  for(const {screenSender} of peers.values()){
+    if(screenSender) await screenSender.replaceTrack(newTrack);
+  }
+  // UI更新
+  replaceLocalTileStream('screen', newStream);
+  screenStream.getTracks().forEach(t=>t.stop());
+  screenStream=newStream;
+  screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
+}
+async function stopScreen(){
+  if(!screenStream) return;
+  screenStream.getTracks().forEach(t=>t.stop());
+  screenStream=null;
+  removeLocalTile('screen');
+  btnScreen.classList.remove('on');
+  await refreshSenders();
+}
+
+async function refreshSenders(){
+  for(const [pid,st] of peers){
+    // ensure transceivers/senders
+    if(micStream){
+      const track=micStream.getAudioTracks()[0];
+      if(!st.audioSender){
+        st.audioSender=st.pc.addTrack(track, micStream);
+      }else{
+        await st.audioSender.replaceTrack(track);
+      }
+    }else if(st.audioSender){ await st.audioSender.replaceTrack(null); }
+
+    if(camStream){
+      const v=camStream.getVideoTracks()[0];
+      if(!st.videoSender){
+        st.videoSender=st.pc.addTrack(v, camStream);
+      }else{
+        await st.videoSender.replaceTrack(v);
+      }
+    }else if(st.videoSender){ await st.videoSender.replaceTrack(null); }
+
+    if(screenStream){
+      const s=screenStream.getVideoTracks()[0];
+      if(!st.screenSender){
+        st.screenSender=st.pc.addTrack(s, screenStream);
+      }else{
+        await st.screenSender.replaceTrack(s);
+      }
+    }else if(st.screenSender){ await st.screenSender.replaceTrack(null); }
+  }
+}
+
+/* ---- タイル（ローカル） ---- */
+function showLocalTile(kind, stream){
+  const id=`local-${kind}`;
+  let tile=document.getElementById(id);
+  if(!tile){
+    tile=document.createElement('div'); tile.className='tile'; tile.id=id;
+    const v=document.createElement('video'); v.autoplay=true; v.muted=true; v.playsInline=true; v.srcObject=stream;
+    const name=document.createElement('div'); name.className='name'; name.textContent=`${NAME}（${kind==='screen'?'画面': 'カメラ'}）`;
+    const btns=document.createElement('div'); btns.className='btns';
+    const enlarge=document.createElement('button'); enlarge.className='btn'; enlarge.textContent='⤢'; enlarge.onclick=()=>tile.classList.toggle('big');
+    btns.appendChild(enlarge);
+    tile.appendChild(v); tile.appendChild(name); tile.appendChild(btns);
+    avGrid.appendChild(tile);
+  }else{
+    tile.querySelector('video').srcObject=stream;
+  }
+}
+function replaceLocalTileStream(kind, newStream){
+  const id=`local-${kind}`;
+  const tile=document.getElementById(id);
+  if(tile){ tile.querySelector('video').srcObject=newStream; }
+}
+function removeLocalTile(kind){
+  const id=`local-${kind}`;
+  const tile=document.getElementById(id);
+  if(tile) tile.remove();
+}
+
+/* ---- タイル（リモート） ---- */
+function ensureRemoteTile(peerId, stream, label){
+  const id=`remote-${peerId}-${label}`;
+  let tile=document.getElementById(id);
+  const kind = stream.getVideoTracks().length ? 'video' : 'audio';
+  if(!tile){
+    tile=document.createElement('div'); tile.className='tile'; tile.id=id;
+    if(kind==='video'){
+      const v=document.createElement('video'); v.autoplay=true; v.playsInline=true; v.srcObject=stream;
+      const name=document.createElement('div'); name.className='name'; name.textContent=`${players[peerId]?.name||'guest'}（${label}）`;
+      const btns=document.createElement('div'); btns.className='btns';
+      const enlarge=document.createElement('button'); enlarge.className='btn'; enlarge.textContent='⤢'; enlarge.onclick=()=>tile.classList.toggle('big');
+      btns.appendChild(enlarge);
+      tile.appendChild(v); tile.appendChild(name); tile.appendChild(btns);
+    }else{
+      const a=document.createElement('audio'); a.autoplay=true; a.setAttribute('data-remote',''); a.srcObject=stream;
+      const name=document.createElement('div'); name.className='name'; name.textContent=`🎙️ ${players[peerId]?.name||'guest'}`;
+      tile.appendChild(a); tile.appendChild(name);
+    }
+    avGrid.appendChild(tile);
+    tryPlayAll();
+  }else{
+    (tile.querySelector('video')||tile.querySelector('audio')).srcObject=stream;
+  }
+}
+function removePeerTiles(peerId){
+  [...document.querySelectorAll(`[id^="remote-${peerId}-"]`)].forEach(n=>n.remove());
+}
+
+/* ---- PeerConnection ---- */
+function getOrCreatePeer(pid){
+  let st=peers.get(pid);
+  if(st) return st;
+  const pc=new RTCPeerConnection(ICE);
+  st={pc, audioSender:null, videoSender:null, screenSender:null};
+  peers.set(pid, st);
+
+  pc.onicecandidate=(e)=>{ if(e.candidate) sendSignal(pid,{type:'ice',candidate:e.candidate}); };
+  pc.onconnectionstatechange=()=>{ if(['failed','disconnected','closed'].includes(pc.connectionState)){ removePeerTiles(pid); } };
+  pc.ontrack=(e)=>{
+    const stream=e.streams[0];
+    const isVideo = e.track.kind==='video';
+    ensureRemoteTile(pid, stream, isVideo ? (e.track.label||'映像') : '音声');
+  };
+
+  // 既存のローカルトラックを載せる
+  (async()=>{
+    if(micStream){ st.audioSender=pc.addTrack(micStream.getAudioTracks()[0], micStream); }
+    if(camStream){ st.videoSender=pc.addTrack(camStream.getVideoTracks()[0], camStream); }
+    if(screenStream){ st.screenSender=pc.addTrack(screenStream.getVideoTracks()[0], screenStream); }
+  })();
+
+  return st;
+}
+async function makeOfferTo(pid){
+  const st=getOrCreatePeer(pid);
+  const pc=st.pc;
+  const offer=await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await sendSignal(pid,{type:'offer',sdp:offer});
+}
+async function handleOffer(from, sdp){
+  const st=getOrCreatePeer(from);
+  const pc=st.pc;
+  await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+  const ans=await pc.createAnswer();
+  await pc.setLocalDescription(ans);
+  await sendSignal(from,{type:'answer',sdp:ans});
+}
+async function handleAnswer(from, sdp){
+  const st=getOrCreatePeer(from);
+  if(!st) return;
+  await st.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+}
+async function handleIce(from, cand){
+  const st=peers.get(from); if(!st) return;
+  try{ await st.pc.addIceCandidate(new RTCIceCandidate(cand)); }catch(e){ /* ignore dup */ }
+}
+
+/* ---- シグナリング受信 ---- */
+onChildAdded(inboxRef, async snap=>{
+  const msg=snap.val(); const {from,type}=msg||{};
+  try{
+    if(from===meId) return;
+    if(type==='offer') await handleOffer(from,msg.sdp);
+    else if(type==='answer') await handleAnswer(from,msg.sdp);
+    else if(type==='ice') await handleIce(from,msg.candidate);
+  }catch(e){ warn('signal err: '+e.message); }
+  remove(snap.ref).catch(()=>{});
+});
+
+/* ---- 接続開始（プレイヤー出入りでオファー） ---- */
+onValue(playersRef, snap=>{
+  const ps=snap.val()||{};
+  for(const pid of Object.keys(ps)){
+    if(pid===meId) continue;
+    // 衝突回避：自分のIDが小さい側がオファーを出す
+    if(meId < pid && !peers.has(pid)){
+      getOrCreatePeer(pid);
+      makeOfferTo(pid).catch(e=>warn('offer err: '+e.message));
+    }else{
+      // 相手からのオファーを待つ（受信側はhandleOfferで生成）
+      if(!peers.has(pid)) getOrCreatePeer(pid);
+    }
+  }
+  // いなくなったpeerの掃除
+  for(const pid of [...peers.keys()]){
+    if(!ps[pid]){ peers.get(pid)?.pc.close(); peers.delete(pid); removePeerTiles(pid); }
+  }
+});
+
+/* ---- AV ボタン（左クリック：トグル / 右クリック：詳細メニュー） ---- */
+function openAvMenu(x,y, contentEl){
+  avMenu.innerHTML='';
+  avMenu.appendChild(contentEl);
+  avMenu.style.left=x+'px'; avMenu.style.top=y+'px';
+  avMenu.style.display='block';
+}
+function closeAvMenu(){ avMenu.style.display='none'; }
+document.addEventListener('click', e=>{ if(!avMenu.contains(e.target)) closeAvMenu(); });
+
+btnMic.onclick=()=>{ ensureMic(!micStream); };
+btnCam.onclick=()=>{ ensureCam(!camStream); };
+btnScreen.onclick=()=>{ screenStream ? stopScreen() : startScreen(); };
+
+btnMic.oncontextmenu=async(e)=>{ e.preventDefault(); const {mics}=await listDevices();
+  const wrap=document.createElement('div');
+  const row1=document.createElement('div'); row1.className='row'; row1.innerHTML='<strong>マイク</strong>';
+  const row2=document.createElement('div'); row2.className='row';
+  const sel=document.createElement('select');
+  mics.forEach(d=>{ const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||'mic'; if(d.deviceId===selectedMic) o.selected=true; sel.appendChild(o); });
+  const apply=document.createElement('button'); apply.textContent='切替';
+  apply.onclick=async()=>{ selectedMic=sel.value; if(micStream){ await ensureMic(false); } await ensureMic(true); };
+  row2.appendChild(sel); row2.appendChild(apply);
+
+  const row3=document.createElement('div'); row3.className='row';
+  const meter=document.createElement('div'); meter.style.cssText='height:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;flex:1;overflow:hidden';
+  const bar=document.createElement('div'); bar.style.cssText='height:100%;width:0%;background:linear-gradient(90deg,#22d3ee,#06b6d4)'; meter.appendChild(bar);
+  const test=document.createElement('button'); test.textContent='テスト';
+  let testAudio=null, raf=null, analyser=null;
+  test.onclick=async()=>{
+    if(!micStream) await ensureMic(true);
+    if(!micStream) return;
+    if(testAudio){ testAudio.pause(); testAudio.remove(); testAudio=null; cancelAnimationFrame(raf); return;}
+    testAudio=document.createElement('audio'); testAudio.autoplay=true; testAudio.muted=true; // エコー防止でミュート（メーターのみ）
+    const ctxA=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ctxA.createMediaStreamSource(micStream);
+    analyser=ctxA.createAnalyser(); analyser.fftSize=256;
+    src.connect(analyser);
+    const data=new Uint8Array(analyser.frequencyBinCount);
+    const loop=()=>{ analyser.getByteTimeDomainData(data); let peak=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; peak=Math.max(peak, Math.abs(v)); } bar.style.width=Math.round(peak*100)+'%'; raf=requestAnimationFrame(loop); }; loop();
+  };
+  row3.appendChild(meter); row3.appendChild(test);
+
+  wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
+  openAvMenu(e.clientX,e.clientY,wrap);
+};
+
+btnCam.oncontextmenu=async(e)=>{ e.preventDefault(); const {cams}=await listDevices();
+  const wrap=document.createElement('div');
+  const row1=document.createElement('div'); row1.className='row'; row1.innerHTML='<strong>カメラ</strong>';
+  const row2=document.createElement('div'); row2.className='row';
+  const sel=document.createElement('select');
+  cams.forEach(d=>{ const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||'camera'; if(d.deviceId===selectedCam) o.selected=true; sel.appendChild(o); });
+  const apply=document.createElement('button'); apply.textContent='切替';
+  apply.onclick=async()=>{ selectedCam=sel.value; if(camStream){ await ensureCam(false); } await ensureCam(true); };
+  row2.appendChild(sel); row2.appendChild(apply);
+  wrap.appendChild(row1); wrap.appendChild(row2);
+  openAvMenu(e.clientX,e.clientY,wrap);
+};
+
+btnScreen.oncontextmenu=(e)=>{ e.preventDefault();
+  const wrap=document.createElement('div');
+  const row1=document.createElement('div'); row1.className='row'; row1.innerHTML='<strong>画面共有</strong>';
+  const row2=document.createElement('div'); row2.className='row';
+  const startBtn=document.createElement('button'); startBtn.textContent= screenStream ? '停止' : '開始';
+  startBtn.onclick=()=>{ screenStream ? stopScreen() : startScreen(); closeAvMenu(); };
+  const changeBtn=document.createElement('button'); changeBtn.textContent='共有している画面を変更';
+  changeBtn.disabled = !screenStream;
+  changeBtn.onclick=async()=>{ await changeScreen(); closeAvMenu(); };
+  const row3=document.createElement('div'); row3.className='row';
+  const zoomBtn=document.createElement('button'); zoomBtn.textContent='共有画面を拡大';
+  zoomBtn.disabled = !document.getElementById('local-screen');
+  zoomBtn.onclick=()=>{ const t=document.getElementById('local-screen'); if(t){ t.classList.toggle('big'); } closeAvMenu(); };
+
+  row2.appendChild(startBtn); row2.appendChild(changeBtn);
+  row3.appendChild(zoomBtn);
+  wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
+  openAvMenu(e.clientX,e.clientY,wrap);
+};
+
+/* ====== 初期状態：会話可にするため、最初にミックストラックだけ用意してもOK ====== */
+// 自動ではONにしない（ユーザー操作でON）。必要なら下を有効化：
+// await ensureMic(true);
+
+/* ====== 最後に：オーディオ自動再生がブロックされたら案内 ====== */
+setTimeout(()=>{ // 受信開始後に試す
+  tryPlayAll();
+}, 2000);
 
 </script>
 </body>
