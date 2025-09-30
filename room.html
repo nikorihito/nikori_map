@@ -131,16 +131,17 @@ const auth=getAuth(app);
 const db=getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
 
 /* ===== Utilities ===== */
-function warn(msg){
-  let box=document.getElementById('warnBox');
-  if(!box){
-    box=document.createElement('div'); box.id='warnBox';
-    Object.assign(box.style,{position:'fixed',left:'8px',bottom:'8px',zIndex:9999,background:'#101826',color:'#facc15',border:'1px solid #334155',padding:'6px 10px',borderRadius:'8px',maxWidth:'60vw',fontSize:'12px'});
-    document.body.appendChild(box);
-  }
-  const p=document.createElement('div'); p.textContent=msg; box.appendChild(p);
+function warn(msg){}
+// 追加：匿名認証（無ければログインして、完了まで待つ）
+async function ensureAnonAuth(auth){
+  if (auth.currentUser) return auth.currentUser;
+  await signInAnonymously(auth);
+  return await new Promise(resolve=>{
+    const stop = onAuthStateChanged(auth, u => { if(u){ stop(); resolve(u); } });
+  });
 }
 
+  
 /* === Active Speaker (name tag glow) === */
 let audioCtx = null;
 const meters = new Map();     // id -> stop()
