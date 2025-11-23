@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム</title>
+<title>ニコリタウン - ルーム（左右反転＋フライト）</title>
+
 <style>
   :root{
     --bg:#0b1220;
@@ -391,6 +392,7 @@
   }
 </style>
 </head>
+
 <body>
   <canvas id="game"></canvas>
 
@@ -426,7 +428,7 @@
   <!-- Mobile joystick -->
   <div id="joyBase"><div id="joyStick"></div></div>
 
-  <!-- Flight button (PC/スマホ両方で使用可) -->
+  <!-- Flight button -->
   <button id="flyBtn" title="フライトモード切替（PC: Shift+H）">✈️</button>
 
   <!-- AV Grid & Menus -->
@@ -445,7 +447,6 @@ const SYNC_MS = 50;
 const MAX_MSG = 120;
 const FRAME_MIN = 1000/50;
 const EMOJIS = ['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
-// 飛行速度（歩きの約2.2倍）
 const FLY_SPEED_PPS = SPEED_PPS * 2.2;
 
 /* ===== Firebase ===== */
@@ -472,7 +473,6 @@ const db = getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.fir
 /* ===== Utilities ===== */
 function warn(msg){ console.warn(msg); }
 
-// 匿名認証
 async function ensureAnonAuth(auth){
   if (auth.currentUser) return auth.currentUser;
   await signInAnonymously(auth);
@@ -488,10 +488,10 @@ async function ensureAnonAuth(auth){
 
 /* === Active Speaker (name tag glow) === */
 let audioCtx = null;
-const meters = new Map();     // id -> stop()
-const speakUntil = new Map(); // id -> ms
-const SPEAK_THR  = 0.06;      // 発話RMS閾値
-const SPEAK_HOLD = 300;       // 残光ms
+const meters = new Map();
+const speakUntil = new Map();
+const SPEAK_THR  = 0.06;
+const SPEAK_HOLD = 300;
 
 function ensureAudioCtx(){
   if(!audioCtx && (window.AudioContext||window.webkitAudioContext)){
@@ -553,7 +553,7 @@ const NAME = u.searchParams.get('name')||'guest';
 roomId.textContent = ROOM;
 who.textContent = NAME;
 
-/* ===== 画像読み込み（ダミー生成つき安全版） ===== */
+/* ===== Image loader (fallback付き：絶対に null を返さない) ===== */
 function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}) {
   return new Promise((res)=>{
     const i = new Image();
@@ -588,9 +588,8 @@ const imgMap   = await loadImage('./map_1.png?v=20250927-2',{fallbackSize:[2048,
 const imgMask  = await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'});
 const imgFront = await loadImage('./nikorihito_dot_front.png?v=20250927-2');
 const imgBack  = await loadImage('./nikorihito_dot_behind.png?v=20250927-2');
-const imgLeft  = await loadImage('./nikorihito_dot_left.png?v=20250927-2');
-const imgRight = await loadImage('./nikorihito_dot_right.png?v=20250927-2');
-const imgPlane = await loadImage('./nikori_airplane.png?v=202511',{fallbackSize:[32,32],label:'plane'}); // 飛行機
+const imgSide  = await loadImage('./nikorihito_dot_right.png?v=20250927-2'); // 右向きだけ使う
+const imgPlane = await loadImage('./nikori_airplane.png?v=202511');
 
 /* ===== Canvas & world ===== */
 const canvas = document.getElementById('game');
@@ -644,7 +643,7 @@ const meId = (crypto.randomUUID ? crypto.randomUUID() : (`m${Math.random().toStr
 const meRef = ref(db,`rooms/${ROOM}/players/${meId}`);
 
 let my = Object.assign({name:NAME,dir:'front',ts:Date.now(),fly:false}, safeSpawn());
-let isFlying = false; // クライアント側の状態フラグ
+let isFlying = false;
 
 await ensureAnonAuth(auth);
 await set(meRef,my);
@@ -877,12 +876,15 @@ onChildAdded(query(bubblesRef,limitToLast(50)), s=>{
 });
 
 /* ===== Camera & Render ===== */
+
+/** 右向きスプライトだけを使い、左は左右反転 */
 function spriteByDir(d){
-  return d==='back' ? imgBack
-       : d==='left' ? imgLeft
-       : d==='right'? imgRight
-       : imgFront;
+  if(d==='back')  return {img:imgBack,  flip:false};
+  if(d==='left')  return {img:imgSide,  flip:true};
+  if(d==='right') return {img:imgSide,  flip:false};
+  return {img:imgFront, flip:false}; // front
 }
+
 let camX=0, camY=0;
 function camera(dt){
   const tx=Math.round(my.x-canvas.width/2);
@@ -900,7 +902,6 @@ const flyBtn = document.getElementById('flyBtn');
 let lastLandWarn = 0;
 
 function canLandHere(){
-  // 現在位置で当たり判定がない場所ならOK
   return !hits(my.x,my.y);
 }
 function applyFlightUI(){
@@ -909,7 +910,6 @@ function applyFlightUI(){
 function setFlight(on){
   if(on === isFlying) return;
 
-  // 着陸時はチェック
   if(!on){
     if(!canLandHere()){
       const now = Date.now();
@@ -923,19 +923,16 @@ function setFlight(on){
   isFlying = on;
   my.fly = isFlying;
   applyFlightUI();
-  // ステートだけでも即同期
   update(meRef,{fly:isFlying}).catch(()=>{});
 }
 function toggleFlight(){
   setFlight(!isFlying);
 }
-
 flyBtn.onclick = ()=>{ toggleFlight(); };
 
-/* ===== 入力：PC & モバイル ===== */
+/* ===== Inputs ===== */
 const keys=new Set();
 addEventListener('keydown',e=>{
-  // Shift+H で飛行モード切替
   if((e.key==='H' || e.key==='h') && e.shiftKey){
     e.preventDefault();
     toggleFlight();
@@ -991,7 +988,7 @@ if ('ontouchstart' in window || navigator.maxTouchPoints>0){
   joyBase.addEventListener('touchend',end);
 }
 
-/* ===== ループ ===== */
+/* ===== Loop ===== */
 let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir;
 let lastT=performance.now();
 
@@ -1019,7 +1016,6 @@ function step(now){
     const ny=my.y+vy*s;
 
     if(isFlying){
-      // 飛行中は当たり判定無視
       my.x = nx;
       my.y = ny;
     }else{
@@ -1028,11 +1024,9 @@ function step(now){
     }
   }
 
-  // ワールド外に出ないように
   my.x = Math.max(0,Math.min(world.w,my.x));
   my.y = Math.max(0,Math.min(world.h,my.y));
 
-  // 向きは常に更新
   if(vx||vy){
     my.dir = Math.abs(vx)>Math.abs(vy)
       ? (vx>0?'right':'left')
@@ -1044,6 +1038,8 @@ function step(now){
   ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
   const kInterp=Math.min(1,dt*PLAYER_INTERP);
+
+  // 他人
   for(const [id,p] of Object.entries(players)){
     if(!p || id===meId) continue;
     const g=(ghosts[id] ||= {x:p.x,y:p.y,dir:p.dir,name:p.name,fly:!!p.fly});
@@ -1052,19 +1048,45 @@ function step(now){
     g.dir = p.dir || g.dir;
     g.fly = !!p.fly;
 
-    const im = g.fly ? imgPlane : spriteByDir(g.dir||'front');
-    const sw = im.width * SCALE;
-    const sh = im.height * SCALE;
-    ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh);
+    const spr = g.fly ? {img:imgPlane, flip:false} : spriteByDir(g.dir||'front');
+    const im  = spr.img;
+    const sw  = im.width * SCALE;
+    const sh  = im.height * SCALE;
+    const sx  = Math.round(g.x - sw/2 - cam.x);
+    const sy  = Math.round(g.y - sh/2 - cam.y);
+
+    if(spr.flip){
+      ctx.save();
+      ctx.translate(sx+sw, sy);
+      ctx.scale(-1,1);
+      ctx.drawImage(im, 0, 0, sw, sh);
+      ctx.restore();
+    }else{
+      ctx.drawImage(im, sx, sy, sw, sh);
+    }
     drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2, false, id);
   }
 
-  const meIm = isFlying ? imgPlane : spriteByDir(my.dir);
-  const mw   = meIm.width * SCALE;
-  const mh   = meIm.height * SCALE;
-  ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh);
-  drawName(NAME, my.x-camX, (my.y-mh/2)-camY-2, true, meId); // ← camX / camY 注意
+  // 自分
+  const selfSpr = isFlying ? {img:imgPlane, flip:false} : spriteByDir(my.dir);
+  const selfIm  = selfSpr.img;
+  const mw   = selfIm.width * SCALE;
+  const mh   = selfIm.height * SCALE;
+  const mx   = Math.round(my.x - mw/2 - cam.x);
+  const myy  = Math.round(my.y - mh/2 - cam.y);
 
+  if(selfSpr.flip){
+    ctx.save();
+    ctx.translate(mx+mw, myy);
+    ctx.scale(-1,1);
+    ctx.drawImage(selfIm, 0, 0, mw, mh);
+    ctx.restore();
+  }else{
+    ctx.drawImage(selfIm, mx, myy, mw, mh);
+  }
+  drawName(NAME, my.x-cam.x, (my.y-mh/2)-cam.y-2, true, meId);
+
+  // バブル位置
   for(const [uid,b] of bubbles){
     const p = uid===meId ? my : (players[uid]||ghosts[uid]);
     if(!p || b.style.display==='none') continue;
@@ -1128,7 +1150,7 @@ addEventListener('beforeunload', ()=>{
 });
 
 /* =========================================================
-   WebRTC（onnegotiationneededで再ネゴ）
+   WebRTC
    ========================================================= */
 const ICE={
   iceServers:[{urls:'stun:stun.l.google.com:19302'}],
@@ -1147,7 +1169,7 @@ function sendSignal(to, data){
     Object.assign({from:meId,ts:Date.now()},data));
 }
 
-const peers=new Map(); // peerId -> {pc, audioSender, videoSender, screenSender, negotiating}
+const peers=new Map();
 let micStream=null, camStream=null, screenStream=null;
 let selectedMic=null, selectedCam=null;
 
