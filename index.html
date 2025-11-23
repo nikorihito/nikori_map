@@ -2,16 +2,19 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>ニコリタウン - ホーム</title>
   <style>
     :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+        "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
       background: #0f172a;
       color: #e2e8f0;
-      min-height: 100dvh;
+      min-height: 100svh;
       display: grid;
       place-items: center;
     }
@@ -20,7 +23,8 @@
       background: #111827;
       border-radius: 18px;
       padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35),
+                  inset 0 0 0 1px rgba(255,255,255,.06);
     }
     h1 {
       margin: 0 0 6px;
@@ -30,6 +34,7 @@
     .muted { color: #94a3b8; margin: 0 0 18px; }
     .row { display: flex; gap: 12px; flex-wrap: wrap; }
     .hidden { display: none !important; }
+
     input, button, select {
       font: inherit;
       border: 1px solid #334155;
@@ -39,7 +44,10 @@
       border-radius: 12px;
       outline: none;
     }
-    input:focus, select:focus { border-color: #22d3ee; box-shadow: 0 0 0 3px rgba(34,211,238,.25); }
+    input:focus, select:focus {
+      border-color: #22d3ee;
+      box-shadow: 0 0 0 3px rgba(34,211,238,.25);
+    }
     button {
       border: 0;
       background: linear-gradient(180deg, #22d3ee, #06b6d4);
@@ -53,35 +61,132 @@
       color: #cbd5e1;
       font-weight: 600;
     }
-    button.active {
-      background: #22d3ee;
-      color: #06202a;
-      font-weight: 700;
-      border: 0;
-    }
     .grid { display: grid; gap: 14px; }
+    .two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+
     .footer {
       margin-top: 16px;
       font-size: 12px;
       color: #94a3b8;
       text-align: center;
     }
-    .two { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    @media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+
+    /* アカウント情報 */
+    .account {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      background: rgba(15,23,42,.85);
+      border: 1px solid #1f2937;
+    }
+    .account-main {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #22d3ee, #0f172a);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .account-text {
+      min-width: 0;
+    }
+    .account-name {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .account-meta {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .account-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+    }
+    .account-actions button {
+      padding-block: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    @media (max-width: 520px) {
+      .account {
+        grid-template-columns: 1fr;
+      }
+      .account-actions {
+        flex-direction: row;
+        justify-content: flex-start;
+      }
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,118,110,.25);
+      color: #a5f3fc;
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
+    <div class="pill">β版・テスト中 ／ 同時接続の負荷テスト歓迎</div>
     <h1>ニコリタウン</h1>
-    <p class="muted">歩き回って、近くの人と会話できる2Dタウンへ。</p>
+    <p class="muted">歩き回って、近くの人と会話できる 2D タウンへ。</p>
+
+    <!-- アカウント情報 -->
+    <div id="accountBox" class="account">
+      <div class="account-main">
+        <div id="avatar" class="avatar">G</div>
+        <div class="account-text">
+          <div id="accountName" class="account-name">ゲスト（未ログイン）</div>
+          <div id="accountMeta" class="account-meta">
+            Google でログインするとニックネームを保存できます。
+          </div>
+        </div>
+      </div>
+      <div class="account-actions">
+        <button id="loginGoogle">Googleでログイン</button>
+        <button id="logoutBtn" class="ghost">ログアウト</button>
+      </div>
+    </div>
 
     <div id="step0">
-      <button id="startBtn" style="width:100%; padding-block:12px; font-size:16px;">始める</button>
+      <button id="startBtn" style="width:100%; padding-block:12px; font-size:16px;">
+        はじめる
+      </button>
     </div>
 
     <div id="step1" class="hidden grid">
       <div class="grid two">
-        <button id="joinBtn" class="active">ルームに参加する</button>
+        <button id="joinBtn">ルームに参加する</button>
         <button id="createBtn" class="ghost">ルームを作成する</button>
       </div>
 
@@ -99,29 +204,66 @@
         <button id="goBtn">入る</button>
       </div>
 
-      <p class="footer">※「ルームを作成する」を押すとランダムIDが自動生成されます。</p>
+      <p class="footer">
+        ※「ルームを作成する」を押すと未作成なら自動で作成されます。<br>
+        ※ 最後に使った表示名・ルーム番号は自動で保存されます。
+      </p>
     </div>
   </div>
 
-  <script>
+  <!-- Firebase + ロジック -->
+  <script type="module">
+    /* ===== Firebase ===== */
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithPopup,
+      GoogleAuthProvider,
+      signOut
+    } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
+      authDomain: 'nikori-town.firebaseapp.com',
+      databaseURL: 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: 'nikori-town',
+      storageBucket: 'nikori-town.appspot.com',
+      messagingSenderId: '836836010871',
+      appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    /* ===== DOM ===== */
     const step0 = document.getElementById('step0');
     const step1 = document.getElementById('step1');
-
     const startBtn = document.getElementById('startBtn');
     const joinBtn = document.getElementById('joinBtn');
     const createBtn = document.getElementById('createBtn');
     const goBtn = document.getElementById('goBtn');
-
     const nameInput = document.getElementById('displayName');
     const roomInput = document.getElementById('roomId');
+    const loginGoogle = document.getElementById('loginGoogle');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const avatar = document.getElementById('avatar');
+    const accountName = document.getElementById('accountName');
+    const accountMeta = document.getElementById('accountMeta');
 
-    let mode = 'join';
+    let mode = 'join'; // 'join' | 'create'
+    const LS_KEY_NAME = 'nikoriTown.displayName';
+    const LS_KEY_ROOM = 'nikoriTown.lastRoom';
 
-    // ランダムID生成関数
-    function randomRoomId() {
-      return 'room-' + Math.random().toString(36).slice(2, 10);
-    }
+    /* ===== localStorage 初期値 ===== */
+    const savedName = localStorage.getItem(LS_KEY_NAME);
+    if (savedName) nameInput.value = savedName;
 
+    const savedRoom = localStorage.getItem(LS_KEY_ROOM);
+    if (savedRoom) roomInput.value = savedRoom;
+
+    /* ===== UI: ステップ切り替え ===== */
     startBtn.onclick = () => {
       step0.classList.add('hidden');
       step1.classList.remove('hidden');
@@ -130,55 +272,135 @@
 
     joinBtn.onclick = () => {
       mode = 'join';
-      joinBtn.classList.add('active');
-      createBtn.classList.remove('active');
-      createBtn.classList.add('ghost');
       joinBtn.classList.remove('ghost');
+      createBtn.classList.add('ghost');
     };
 
     createBtn.onclick = () => {
       mode = 'create';
-      createBtn.classList.add('active');
-      joinBtn.classList.remove('active');
-      joinBtn.classList.add('ghost');
       createBtn.classList.remove('ghost');
+      joinBtn.classList.add('ghost');
 
-      // 作成モード時は自動生成（上書きOK）
-      roomInput.value = randomRoomId();
+      // 空ならランダムなルームID提案
+      if (!roomInput.value.trim()) {
+        const r = Math.random().toString(36).slice(2, 7);
+        roomInput.value = 'room-' + r;
+      }
     };
 
-    function sanitize(v) {
-      return v.replace(/\s+/g, '').replace(/　+/g, ''); // 全角・半角スペース除去
+    /* ===== ルームへ入室 ===== */
+    function sanitizeRoomId(raw) {
+      return raw.trim()
+        .toLowerCase()
+        .replace(/[^\w-]/g, '-')
+        .slice(0, 32);
     }
 
-    function submit() {
-      const name = sanitize(nameInput.value);
-      const room = sanitize(roomInput.value);
+    goBtn.onclick = () => {
+      const name = (nameInput.value || '').trim();
+      let room = (roomInput.value || '').trim();
 
-      if (!name) { alert('表示名を入力してください'); return; }
-
-      if (mode === 'create' && !room) {
-        roomInput.value = randomRoomId();
+      if (!name) {
+        alert('表示名を入力してください');
+        nameInput.focus();
+        return;
       }
-
-      if (!roomInput.value) {
+      if (!room) {
         alert('ルーム番号を入力してください');
+        roomInput.focus();
         return;
       }
 
+      room = sanitizeRoomId(room);
+      if (!room) {
+        alert('ルーム番号に使用できる文字がありません');
+        return;
+      }
+
+      // 保存
+      localStorage.setItem(LS_KEY_NAME, name);
+      localStorage.setItem(LS_KEY_ROOM, room);
+
       const url = new URL('./room.html', location.href);
-      url.searchParams.set('room', roomInput.value);
+      url.searchParams.set('room', room);
       url.searchParams.set('name', name);
       url.searchParams.set('mode', mode);
-
       location.href = url.toString();
+    };
+
+    nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        roomInput.focus();
+      }
+    });
+    roomInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        goBtn.click();
+      }
+    });
+
+    /* ===== アカウント UI 更新 ===== */
+    function updateAccountUI(user) {
+      if (!user) {
+        // 未ログイン
+        avatar.textContent = 'G';
+        avatar.style.backgroundImage = '';
+        avatar.innerHTML = 'G';
+        accountName.textContent = 'ゲスト（未ログイン）';
+        accountMeta.textContent =
+          'Google でログインするとニックネームや設定が保存されます。';
+        logoutBtn.disabled = true;
+        logoutBtn.classList.add('ghost');
+        return;
+      }
+
+      const name = user.displayName || 'ゲストユーザー';
+      const initial = name.charAt(0);
+
+      if (user.photoURL) {
+        avatar.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = user.photoURL;
+        avatar.appendChild(img);
+      } else {
+        avatar.innerHTML = initial;
+      }
+
+      accountName.textContent = `${name} でログイン中`;
+      accountMeta.textContent = `UID: ${user.uid.slice(0, 8)}… ／ 再読み込みしてもログイン状態は維持されます。`;
+      logoutBtn.disabled = false;
+      logoutBtn.classList.remove('ghost');
+
+      // ニックネームが空ならアカウント名を反映
+      if (!nameInput.value.trim()) {
+        nameInput.value = name.slice(0, 16);
+      }
     }
 
-    goBtn.onclick = submit;
+    onAuthStateChanged(auth, user => {
+      updateAccountUI(user);
+    });
 
-    // Enterキーで送信
-    nameInput.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
-    roomInput.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+    /* ===== ログイン・ログアウト ===== */
+    loginGoogle.onclick = async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        console.error(e);
+        alert('Google ログインに失敗しました: ' + e.message);
+      }
+    };
+
+    logoutBtn.onclick = async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.error(e);
+        alert('ログアウトに失敗しました: ' + e.message);
+      }
+    };
   </script>
 </body>
 </html>
