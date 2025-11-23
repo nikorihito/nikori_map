@@ -5,68 +5,390 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>ニコリタウン - ルーム</title>
 <style>
-  :root{--bg:#0b1220;--panel2:#101826;--border:#334155;--text:#e2e8f0;--muted:#9aa6b2;--a1:#22d3ee;--a2:#06b6d4;--yellow:#fde68a33;--yellowBorder:#facc15;--mention:#22d3ee}
+  :root{
+    --bg:#0b1220;
+    --panel2:#101826;
+    --border:#334155;
+    --text:#e2e8f0;
+    --muted:#9aa6b2;
+    --a1:#22d3ee;
+    --a2:#06b6d4;
+    --yellow:#fde68a33;
+    --yellowBorder:#facc15;
+    --mention:#22d3ee;
+  }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden;touch-action:none}
-  #game{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+    overflow:hidden;
+    touch-action:none;
+  }
+  #game{
+    display:block;
+    width:100vw;
+    height:100vh;
+    image-rendering:pixelated;
+  }
 
   /* HUD */
-  .hud{position:fixed;left:8px;top:8px;display:flex;gap:8px;align-items:center;z-index:20}
-  .hud .info{background:var(--panel2);border:1px solid var(--border);padding:6px 10px;border-radius:10px}
-  .hud button{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
+  .hud{
+    position:fixed;
+    left:8px;
+    top:8px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    z-index:20;
+  }
+  .hud .info{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    padding:6px 10px;
+    border-radius:10px;
+  }
+  .hud button{
+    font:inherit;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:700;
+    cursor:pointer;
+  }
 
   /* Chat */
-  #chatView{position:fixed;right:8px;top:8px;z-index:20;width:min(36vw,520px);max-height:55vh;overflow:auto;background:rgba(16,24,38,.85);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:12px;padding:8px}
-  #chatView .item{padding:6px 8px;border-radius:8px;margin:6px 0;position:relative}
+  #chatView{
+    position:fixed;
+    right:8px;
+    top:8px;
+    z-index:20;
+    width:min(36vw,520px);
+    max-height:55vh;
+    overflow:auto;
+    background:rgba(16,24,38,.85);
+    backdrop-filter:blur(6px);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px;
+  }
+  #chatView .item{
+    padding:6px 8px;
+    border-radius:8px;
+    margin:6px 0;
+    position:relative;
+  }
   #chatView .me{background:rgba(34,211,238,.12)}
-  #chatView .replyTo{display:block;font-size:.85rem;color:var(--muted);background:rgba(148,163,184,.12);padding:4px 6px;border-left:3px solid #64748b;border-radius:6px;margin-bottom:4px;cursor:pointer}
-  .replyToMe{background:var(--yellow); border:1px solid var(--yellowBorder)}
-  .mentionSelf{color:var(--mention);font-weight:700}
-  .meta{color:var(--muted);font-size:.8rem;margin-top:2px}
+  #chatView .replyTo{
+    display:block;
+    font-size:.85rem;
+    color:var(--muted);
+    background:rgba(148,163,184,.12);
+    padding:4px 6px;
+    border-left:3px solid #64748b;
+    border-radius:6px;
+    margin-bottom:4px;
+    cursor:pointer;
+  }
+  .replyToMe{
+    background:var(--yellow);
+    border:1px solid var(--yellowBorder);
+  }
+  .mentionSelf{
+    color:var(--mention);
+    font-weight:700;
+  }
+  .meta{
+    color:var(--muted);
+    font-size:.8rem;
+    margin-top:2px;
+  }
 
   /* Composer */
-  #composer{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:20;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:6px}
-  #composer input{font:inherit;width:min(60vw,720px);padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0b1220;color:#e2e8f0}
-  #composer button{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700;cursor:pointer}
+  #composer{
+    position:fixed;
+    left:50%;
+    bottom:8px;
+    transform:translateX(-50%);
+    display:flex;
+    gap:6px;
+    z-index:20;
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:6px;
+  }
+  #composer input{
+    font:inherit;
+    width:min(60vw,720px);
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#0b1220;
+    color:#e2e8f0;
+  }
+  #composer button{
+    font:inherit;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:700;
+    cursor:pointer;
+  }
 
   /* Ctx menu */
-  #ctxMenu{position:fixed;z-index:50;display:none;background:#101826;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  #ctxMenu button{display:block;width:200px;text-align:left;padding:10px 12px;background:transparent;border:0;color:#e2e8f0;cursor:pointer}
+  #ctxMenu{
+    position:fixed;
+    z-index:50;
+    display:none;
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  #ctxMenu button{
+    display:block;
+    width:200px;
+    text-align:left;
+    padding:10px 12px;
+    background:transparent;
+    border:0;
+    color:#e2e8f0;
+    cursor:pointer;
+  }
   #ctxMenu button:hover{background:#1b2540}
 
   /* Reaction */
-  #reactFab{position:fixed;right:16px;bottom:96px;z-index:24;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;box-shadow:0 8px 22px rgba(0,0,0,.35)}
-  #reactMenu{position:fixed;right:16px;bottom:160px;z-index:25;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px}
-  #reactMenu button{font-size:22px;line-height:1.2;padding:6px 8px;background:transparent;border:0;cursor:pointer}
+  #reactFab{
+    position:fixed;
+    right:16px;
+    bottom:96px;
+    z-index:24;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    box-shadow:0 8px 22px rgba(0,0,0,.35);
+  }
+  #reactMenu{
+    position:fixed;
+    right:16px;
+    bottom:160px;
+    z-index:25;
+    display:none;
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:6px;
+  }
+  #reactMenu button{
+    font-size:22px;
+    line-height:1.2;
+    padding:6px 8px;
+    background:transparent;
+    border:0;
+    cursor:pointer;
+  }
 
-  .bubble{position:absolute;transform:translate(-50%,-100%);background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px 10px;font-size:20px}
+  .bubble{
+    position:absolute;
+    transform:translate(-50%,-100%);
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:6px 10px;
+    font-size:20px;
+  }
 
   /* Joystick (mobile) */
-  #joyBase{position:fixed;left:16px;bottom:96px;z-index:23;width:108px;height:108px;border-radius:50%;border:1px solid var(--border);background:rgba(15,23,42,.6);display:none;touch-action:none}
-  #joyStick{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
+  #joyBase{
+    position:fixed;
+    left:16px;
+    bottom:96px;
+    z-index:23;
+    width:108px;
+    height:108px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:rgba(15,23,42,.6);
+    display:none;
+    touch-action:none;
+  }
+  #joyStick{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+  }
 
   /* ===== AV UI ===== */
-  .avbar{position:fixed;left:8px;top:56px;z-index:30;display:flex;gap:8px}
-  .avbar button{font:18px/1 system-ui;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#101826;color:#e2e8f0;cursor:pointer;min-width:48px}
-  .avbar button.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:700}
+  .avbar{
+    position:fixed;
+    left:8px;
+    top:56px;
+    z-index:30;
+    display:flex;
+    gap:8px;
+  }
+  .avbar button{
+    font:18px/1 system-ui;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#101826;
+    color:#e2e8f0;
+    cursor:pointer;
+    min-width:48px;
+  }
+  .avbar button.on{
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:700;
+  }
 
-  .avmenu{position:fixed;z-index:51;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;min-width:260px;overflow:hidden}
-  .avmenu .row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #223}
+  .avmenu{
+    position:fixed;
+    z-index:51;
+    display:none;
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:12px;
+    min-width:260px;
+    overflow:hidden;
+  }
+  .avmenu .row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border-bottom:1px solid #223;
+  }
   .avmenu .row:last-child{border-bottom:none}
-  .avmenu button, .avmenu select{font:inherit;background:transparent;color:#e2e8f0;border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer}
+  .avmenu button,
+  .avmenu select{
+    font:inherit;
+    background:transparent;
+    color:#e2e8f0;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 8px;
+    cursor:pointer;
+  }
   .avmenu button[disabled]{opacity:.5;cursor:not-allowed}
 
-  #avGrid{position:fixed;left:16px;top:100px;z-index:26;display:flex;flex-wrap:wrap;gap:8px;max-width:42vw;max-height:58vh;overflow:auto}
-  .tile{position:relative;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px}
-  .tile video{display:block;width:240px;height:135px;background:#000;border-radius:8px}
-  .tile .name{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:6px;font-size:12px}
-  .tile .btns{position:absolute;right:6px;top:6px;display:flex;gap:6px}
-  .tile .btn{border:1px solid var(--border);background:#0f172a;border-radius:8px;padding:2px 6px;font-size:12px;color:#e2e8f0;cursor:pointer}
-  .tile.big{position:fixed;inset:auto auto 16px 16px;z-index:60}
-  .tile.big video{width:min(80vw,960px);height:auto}
+  #avGrid{
+    position:fixed;
+    left:16px;
+    top:100px;
+    z-index:26;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    max-width:42vw;
+    max-height:58vh;
+    overflow:auto;
+  }
+  .tile{
+    position:relative;
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:6px;
+  }
+  .tile video{
+    display:block;
+    width:240px;
+    height:135px;
+    background:#000;
+    border-radius:8px;
+  }
+  .tile .name{
+    position:absolute;
+    left:8px;
+    bottom:8px;
+    background:rgba(0,0,0,.45);
+    padding:2px 6px;
+    border-radius:6px;
+    font-size:12px;
+  }
+  .tile .btns{
+    position:absolute;
+    right:6px;
+    top:6px;
+    display:flex;
+    gap:6px;
+  }
+  .tile .btn{
+    border:1px solid var(--border);
+    background:#0f172a;
+    border-radius:8px;
+    padding:2px 6px;
+    font-size:12px;
+    color:#e2e8f0;
+    cursor:pointer;
+  }
+  .tile.big{
+    position:fixed;
+    inset:auto auto 16px 16px;
+    z-index:60;
+  }
+  .tile.big video{
+    width:min(80vw,960px);
+    height:auto;
+  }
 
-  #audioUnlock{position:fixed;left:16px;top:calc(100px + 60vh);z-index:40;background:#101826;border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:none}
+  #audioUnlock{
+    position:fixed;
+    left:16px;
+    top:calc(100px + 60vh);
+    z-index:40;
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 10px;
+    display:none;
+  }
+
+  /* ===== Flight Button ===== */
+  #flyBtn{
+    position:fixed;
+    left:50%;
+    bottom:96px;
+    transform:translateX(-50%);
+    z-index:23;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+    border:1px solid var(--border);
+    background:#101826;
+    color:#e2e8f0;
+    box-shadow:0 8px 22px rgba(0,0,0,.35);
+  }
+  #flyBtn.on{
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:700;
+  }
 </style>
 </head>
 <body>
@@ -74,7 +396,9 @@
 
   <div class="hud">
     <button id="leave" title="退室">退室</button>
-    <div class="info">ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span></div>
+    <div class="info">
+      ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span>
+    </div>
   </div>
 
   <div class="avbar">
@@ -102,6 +426,9 @@
   <!-- Mobile joystick -->
   <div id="joyBase"><div id="joyStick"></div></div>
 
+  <!-- Flight button (PC/スマホ両方で使用可) -->
+  <button id="flyBtn" title="フライトモード切替（PC: Shift+H）">✈️</button>
+
   <!-- AV Grid & Menus -->
   <div id="avGrid"></div>
   <div id="avMenu" class="avmenu"></div>
@@ -109,15 +436,27 @@
 
 <script type="module">
 /* ===== Params ===== */
-const SCALE=6, SPEED_PPS=320, RADIUS=10, PLAYER_INTERP=12, CAM_INTERP=10, SYNC_MS=50, MAX_MSG=120, FRAME_MIN=1000/50;
-const EMOJIS=['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
+const SCALE = 6;
+const SPEED_PPS = 320;
+const RADIUS = 10;
+const PLAYER_INTERP = 12;
+const CAM_INTERP = 10;
+const SYNC_MS = 50;
+const MAX_MSG = 120;
+const FRAME_MIN = 1000/50;
+const EMOJIS = ['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
+// 飛行速度（歩きの約2.2倍）
+const FLY_SPEED_PPS = SPEED_PPS * 2.2;
 
 /* ===== Firebase ===== */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+import {
+  getDatabase, ref, onDisconnect, set, update, remove, onValue,
+  push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved
+} from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
-const firebaseConfig={
+const firebaseConfig = {
   apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
   authDomain:'nikori-town.firebaseapp.com',
   databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
@@ -126,28 +465,33 @@ const firebaseConfig={
   messagingSenderId:'836836010871',
   appId:'1:836836010871:web:74ae40cb16ee6d50368f72'
 };
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
 
 /* ===== Utilities ===== */
-function warn(msg){}
-// 追加：匿名認証（無ければログインして、完了まで待つ）
+function warn(msg){ console.warn(msg); }
+
+// 匿名認証
 async function ensureAnonAuth(auth){
   if (auth.currentUser) return auth.currentUser;
   await signInAnonymously(auth);
   return await new Promise(resolve=>{
-    const stop = onAuthStateChanged(auth, u => { if(u){ stop(); resolve(u); } });
+    const stop = onAuthStateChanged(auth, u => {
+      if(u){
+        stop();
+        resolve(u);
+      }
+    });
   });
 }
 
-  
 /* === Active Speaker (name tag glow) === */
 let audioCtx = null;
 const meters = new Map();     // id -> stop()
 const speakUntil = new Map(); // id -> ms
-const SPEAK_THR  = 0.06;      // 発話RMS閾値（調整可）
-const SPEAK_HOLD = 300;       // 閾値超後の残光ms
+const SPEAK_THR  = 0.06;      // 発話RMS閾値
+const SPEAK_HOLD = 300;       // 残光ms
 
 function ensureAudioCtx(){
   if(!audioCtx && (window.AudioContext||window.webkitAudioContext)){
@@ -162,7 +506,6 @@ function attachSpeechMeter(id, stream){
   const hasAudio = stream.getAudioTracks && stream.getAudioTracks().length;
   if(!hasAudio) return;
 
-  // 既存があれば破棄して付け直し
   detachSpeechMeter(id);
 
   const src = audioCtx.createMediaStreamSource(stream);
@@ -174,9 +517,15 @@ function attachSpeechMeter(id, stream){
   let raf;
   const loop = ()=>{
     analyser.getByteTimeDomainData(data);
-    let sum=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
+    let sum=0;
+    for(let i=0;i<data.length;i++){
+      const v=(data[i]-128)/128;
+      sum+=v*v;
+    }
     const rms = Math.sqrt(sum/data.length);
-    if(rms > SPEAK_THR){ speakUntil.set(id, performance.now()+SPEAK_HOLD); }
+    if(rms > SPEAK_THR){
+      speakUntil.set(id, performance.now()+SPEAK_HOLD);
+    }
     raf = requestAnimationFrame(loop);
   };
   loop();
@@ -197,94 +546,265 @@ function isSpeaking(id){
 }
 
 /* ===== URL ===== */
-const u=new URL(location.href);
-const rawRoom=(u.searchParams.get('room')||'room-001');
-const ROOM=rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
-const NAME=u.searchParams.get('name')||'guest';
-roomId.textContent=ROOM; who.textContent=NAME;
+const u = new URL(location.href);
+const rawRoom = (u.searchParams.get('room')||'room-001');
+const ROOM = rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
+const NAME = u.searchParams.get('name')||'guest';
+roomId.textContent = ROOM;
+who.textContent = NAME;
 
 /* ===== Assets ===== */
-function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){return new Promise((res)=>{const i=new Image(); i.onload=()=>res(i); i.onerror=()=>{console.error('Image load failed:', src); warn(`画像読み込み失敗: ${src}`); try{const c=document.createElement('canvas'); c.width=fallbackSize[0]; c.height=fallbackSize[1]; const g=c.getContext('2d'); g.fillStyle='#0f172a'; g.fillRect(0,0,c.width,c.height); g.fillStyle='#334155'; g.fillText(label,10,20); const img=new Image(); img.onload=()=>res(img); img.src=c.toDataURL();}catch{const img=new Image(); img.src='data:image/gif;base64,R0lGODlhAQABAAAAACw='; img.onload=()=>res(img);} }; i.src=src;});}
-const imgMap = await loadImage('./map_1.png?v=20250927-2',{fallbackSize:[2048,2048],label:'map'});
-const imgMask= await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'});
-const imgFront=await loadImage('./nikorihito_dot_front.png?v=20250927-2');
-const imgBack =await loadImage('./nikorihito_dot_behind.png?v=20250927-2');
-const imgLeft =await loadImage('./nikorihito_dot_left.png?v=20250927-2');
-const imgRight=await loadImage('./nikorihito_dot_right.png?v=20250927-2');
+function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}) {
+  return new Promise((res)=>{
+    const i = new Image();
+    i.onload = ()=>res(i);
+    i.onerror = ()=>{
+      console.error('Image load failed:', src);
+      warn(`画像読み込み失敗: ${src}`);
+      try{
+        const c = document.createElement('canvas');
+        c.width = fallbackSize[0];
+        c.height = fallbackSize[1];
+        const g = c.getContext('2d');
+        g.fillStyle = '#0f172a';
+        g.fillRect(0,0,c.width,c.height);
+        g.fillStyle = '#334155';
+        g.fillText(label,10,20);
+        const img = new Image();
+        img.onload = ()=>res(img);
+        img.src = c.toDataURL();
+      }catch{
+        const img = new Image();
+        img.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+        img.onload = ()=>res(img);
+      }
+    };
+    i.src = src;
+  });
+}
+const imgMap   = await loadImage('./map_1.png?v=20250927-2',{fallbackSize:[2048,2048],label:'map'});
+const imgMask  = await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'});
+const imgFront = await loadImage('./nikorihito_dot_front.png?v=20250927-2');
+const imgBack  = await loadImage('./nikorihito_dot_behind.png?v=20250927-2');
+const imgLeft  = await loadImage('./nikorihito_dot_left.png?v=20250927-2');
+const imgRight = await loadImage('./nikorihito_dot_right.png?v=20250927-2');
+const imgPlane = await loadImage('./nikori_airplane.png?v=202511'); // 飛行機スプライト
 
 /* ===== Canvas & world ===== */
-const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
-function resize(){canvas.width=innerWidth; canvas.height=innerHeight;}
-addEventListener('resize',resize); resize();
-const world={w:imgMap.width,h:imgMap.height};
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+addEventListener('resize',resize);
+resize();
+const world = {w:imgMap.width,h:imgMap.height};
 
 /* ===== Collision ===== */
-const maskCanvas=(typeof OffscreenCanvas!=='undefined')?new OffscreenCanvas(imgMask.width,imgMask.height):Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
-const mctx=maskCanvas.getContext('2d'); mctx.drawImage(imgMask,0,0);
-const mdata=mctx.getImageData(0,0,imgMask.width,imgMask.height); const mpix=mdata.data; const MW=imgMask.width;
-function isBlocked(x,y){x=x|0; y=y|0; if(x<0||y<0||x>=world.w||y>=world.h) return true; const i=(y*MW+x)*4; const r=mpix[i], g=mpix[i+1], b=mpix[i+2], a=mpix[i+3]; if(a<10) return false; return (r>=180 && g<=80 && b<=80);}
-function hits(x,y){const foot=y+(RADIUS*0.6); return isBlocked(x,foot)||isBlocked(x-RADIUS*0.7,foot)||isBlocked(x+RADIUS*0.7,foot);} 
-function safeSpawn(maxTry=400){for(let i=0;i<maxTry;i++){const x=Math.random()*(world.w-64)+32, y=Math.random()*(world.h-64)+32; if(!hits(x,y)) return {x,y};} const cx=world.w/2, cy=world.h/2; return {x:cx,y:cy};}
+const maskCanvas = (typeof OffscreenCanvas!=='undefined')
+  ? new OffscreenCanvas(imgMask.width,imgMask.height)
+  : Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
+const mctx = maskCanvas.getContext('2d');
+mctx.drawImage(imgMask,0,0);
+const mdata = mctx.getImageData(0,0,imgMask.width,imgMask.height);
+const mpix  = mdata.data;
+const MW    = imgMask.width;
+
+function isBlocked(x,y){
+  x = x|0; y = y|0;
+  if(x<0||y<0||x>=world.w||y>=world.h) return true;
+  const i = (y*MW+x)*4;
+  const r = mpix[i], g = mpix[i+1], b = mpix[i+2], a = mpix[i+3];
+  if(a<10) return false;
+  // 赤系を壁扱い
+  return (r>=180 && g<=80 && b<=80);
+}
+function hits(x,y){
+  const foot = y + (RADIUS*0.6);
+  return isBlocked(x,foot)
+      || isBlocked(x-RADIUS*0.7,foot)
+      || isBlocked(x+RADIUS*0.7,foot);
+}
+function safeSpawn(maxTry=400){
+  for(let i=0;i<maxTry;i++){
+    const x = Math.random()*(world.w-64)+32;
+    const y = Math.random()*(world.h-64)+32;
+    if(!hits(x,y)) return {x,y};
+  }
+  const cx = world.w/2, cy = world.h/2;
+  return {x:cx,y:cy};
+}
 
 /* ===== Players ===== */
-const playersRef=ref(db,`rooms/${ROOM}/players`);
-const meId=(crypto.randomUUID?crypto.randomUUID():(`m${Math.random().toString(36).slice(2)}`));
-const meRef=ref(db,`rooms/${ROOM}/players/${meId}`);
-let my=Object.assign({name:NAME,dir:'front',ts:Date.now()}, safeSpawn());
+const playersRef = ref(db,`rooms/${ROOM}/players`);
+const meId = (crypto.randomUUID ? crypto.randomUUID() : (`m${Math.random().toString(36).slice(2)}`));
+const meRef = ref(db,`rooms/${ROOM}/players/${meId}`);
+
+let my = Object.assign({name:NAME,dir:'front',ts:Date.now(),fly:false}, safeSpawn());
+let isFlying = false; // クライアント側の状態フラグ
+
 await ensureAnonAuth(auth);
 await set(meRef,my);
 onDisconnect(meRef).remove().catch(()=>{});
 
-let players={}; const ghosts={};
+let players = {};
+const ghosts = {};
+
 onValue(playersRef,snap=>{
-  players=snap.val()||{}; 
-  count.textContent=Object.keys(players).length;
+  players = snap.val()||{};
+  count.textContent = Object.keys(players).length;
   for(const [id,p] of Object.entries(players)){
-    if(!ghosts[id]&&p) ghosts[id]={x:p.x,y:p.y,dir:p.dir,name:p.name};
+    if(!ghosts[id] && p){
+      ghosts[id] = {x:p.x,y:p.y,dir:p.dir,name:p.name,fly:!!p.fly};
+    }
   }
 });
 
 /* ===== Chat ===== */
-const chatRef=ref(db,`rooms/${ROOM}/chat`);
-const chatView=document.getElementById('chatView'); const textEl=document.getElementById('text'); const sendBtn=document.getElementById('send');
-const ctxMenu=document.getElementById('ctxMenu'); let ctxTargetId=null; let replyToMsgId=null; const items=new Map(); const msgIndex=new Map();
+const chatRef = ref(db,`rooms/${ROOM}/chat`);
+const chatView = document.getElementById('chatView');
+const textEl   = document.getElementById('text');
+const sendBtn  = document.getElementById('send');
+const ctxMenu  = document.getElementById('ctxMenu');
+let ctxTargetId = null;
+let replyToMsgId = null;
+const items    = new Map();
+const msgIndex = new Map();
 
-function openCtx(x,y){ctxMenu.style.display='block'; ctxMenu.style.left=x+'px'; ctxMenu.style.top=y+'px';}
-function closeCtx(){ctxMenu.style.display='none'; ctxTargetId=null;}
+function openCtx(x,y){
+  ctxMenu.style.display = 'block';
+  ctxMenu.style.left = x+'px';
+  ctxMenu.style.top  = y+'px';
+}
+function closeCtx(){
+  ctxMenu.style.display = 'none';
+  ctxTargetId = null;
+}
 addEventListener('click',()=>closeCtx());
 
 function highlightMentions(container, text){
-  const meTag='@'+NAME; const parts=(text||'').split(/(@[^\s]+)/g);
+  const meTag='@'+NAME;
+  const parts=(text||'').split(/(@[^\s]+)/g);
   for(const part of parts){
-    if(part===meTag){ const span=document.createElement('span'); span.className='mentionSelf'; span.textContent=part; container.appendChild(span); }
-    else { container.appendChild(document.createTextNode(part)); }
+    if(part===meTag){
+      const span=document.createElement('span');
+      span.className='mentionSelf';
+      span.textContent=part;
+      container.appendChild(span);
+    }else{
+      container.appendChild(document.createTextNode(part));
+    }
   }
 }
 function messageEl(id,m){
-  const el=document.createElement('div'); el.className='item'+(m.uid===meId?' me':''); el.dataset.id=id; el.dataset.uid=m.uid||'';
+  const el=document.createElement('div');
+  el.className='item'+(m.uid===meId?' me':'');
+  el.dataset.id=id;
+  el.dataset.uid=m.uid||'';
+
   if(m.replyTo){
     const parent=msgIndex.get(m.replyTo);
-    const r=document.createElement('div'); r.className='replyTo';
+    const r=document.createElement('div');
+    r.className='replyTo';
     r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）';
-    r.onclick=()=>{ const tgt=items.get(m.replyTo); if(tgt){ tgt.scrollIntoView({behavior:'smooth',block:'center'}); }};
+    r.onclick=()=>{
+      const tgt=items.get(m.replyTo);
+      if(tgt){
+        tgt.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    };
     el.appendChild(r);
     if(parent && parent.uid===meId) el.classList.add('replyToMe');
   }
-  const line=document.createElement('div'); highlightMentions(line, m.text||''); el.appendChild(line);
-  const meta=document.createElement('div'); meta.className='meta'; meta.textContent=new Date(m.ts||Date.now()).toLocaleString(); el.appendChild(meta);
-  el.oncontextmenu=(e)=>{ e.preventDefault(); ctxTargetId=id; openCtx(e.clientX,e.clientY); };
-  let pressTimer; el.addEventListener('touchstart',e=>{ pressTimer=setTimeout(()=>{ ctxTargetId=id; const t=e.touches[0]; openCtx(t.clientX,t.clientY); },600); }); el.addEventListener('touchend',()=>clearTimeout(pressTimer));
+
+  const line=document.createElement('div');
+  highlightMentions(line, m.text||'');
+  el.appendChild(line);
+
+  const meta=document.createElement('div');
+  meta.className='meta';
+  meta.textContent=new Date(m.ts||Date.now()).toLocaleString();
+  el.appendChild(meta);
+
+  el.oncontextmenu=(e)=>{
+    e.preventDefault();
+    ctxTargetId=id;
+    openCtx(e.clientX,e.clientY);
+  };
+
+  let pressTimer;
+  el.addEventListener('touchstart',e=>{
+    pressTimer=setTimeout(()=>{
+      ctxTargetId=id;
+      const t=e.touches[0];
+      openCtx(t.clientX,t.clientY);
+    },600);
+  });
+  el.addEventListener('touchend',()=>clearTimeout(pressTimer));
+
   return el;
 }
 const chatQ=query(chatRef,limitToLast(MAX_MSG));
-onChildAdded(chatQ,s=>{ const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const el=messageEl(id,m); items.set(id,el); chatView.appendChild(el); chatView.scrollTop=chatView.scrollHeight; });
-onChildChanged(chatQ,s=>{ const id=s.key,m=s.val()||{}; msgIndex.set(id,m); const old=items.get(id); if(old){ const el=messageEl(id,m); chatView.replaceChild(el,old); items.set(id,el);} });
-onChildRemoved(chatQ,s=>{ const id=s.key; const el=items.get(id); if(el){ el.remove(); items.delete(id);} msgIndex.delete(id); });
-async function sendMessage(payload){ await push(chatRef, Object.assign({uid:meId,name:NAME,ts:Date.now()}, payload)); }
-document.getElementById('ctxReply').onclick=()=>{ if(!ctxTargetId) return; replyToMsgId=ctxTargetId; closeCtx(); textEl.focus(); };
-document.getElementById('ctxReactOpen').onclick=()=>{ closeCtx(); openReactMenu(); };
-document.getElementById('editMsg').onclick=async()=>{ if(!ctxTargetId) return; const old=items.get(ctxTargetId); const cur=old?.querySelector('div')?.textContent||''; const t=prompt('メッセージを編集',cur); if(t==null) return; await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), { text:t.slice(0,2000), edited:true, ts:Date.now() }); closeCtx(); };
-document.getElementById('delMsg').onclick=async()=>{ if(!ctxTargetId) return; await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`)); closeCtx(); };
+onChildAdded(chatQ,s=>{
+  const id=s.key, m=s.val()||{};
+  msgIndex.set(id,m);
+  const el=messageEl(id,m);
+  items.set(id,el);
+  chatView.appendChild(el);
+  chatView.scrollTop=chatView.scrollHeight;
+});
+onChildChanged(chatQ,s=>{
+  const id=s.key, m=s.val()||{};
+  msgIndex.set(id,m);
+  const old=items.get(id);
+  if(old){
+    const el=messageEl(id,m);
+    chatView.replaceChild(el,old);
+    items.set(id,el);
+  }
+});
+onChildRemoved(chatQ,s=>{
+  const id=s.key;
+  const el=items.get(id);
+  if(el){
+    el.remove();
+    items.delete(id);
+  }
+  msgIndex.delete(id);
+});
+async function sendMessage(payload){
+  await push(chatRef, Object.assign({uid:meId,name:NAME,ts:Date.now()}, payload));
+}
+document.getElementById('ctxReply').onclick=()=>{
+  if(!ctxTargetId) return;
+  replyToMsgId=ctxTargetId;
+  closeCtx();
+  textEl.focus();
+};
+document.getElementById('ctxReactOpen').onclick=()=>{
+  closeCtx();
+  openReactMenu();
+};
+document.getElementById('editMsg').onclick=async()=>{
+  if(!ctxTargetId) return;
+  const old=items.get(ctxTargetId);
+  const cur=old?.querySelector('div')?.textContent||'';
+  const t=prompt('メッセージを編集',cur);
+  if(t==null) return;
+  await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), {
+    text:t.slice(0,2000),
+    edited:true,
+    ts:Date.now()
+  });
+  closeCtx();
+};
+document.getElementById('delMsg').onclick=async()=>{
+  if(!ctxTargetId) return;
+  await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`));
+  closeCtx();
+};
 let sending=false;
 sendBtn.onclick=async()=>{
   if(sending) return;
@@ -293,125 +813,288 @@ sendBtn.onclick=async()=>{
   sending=true;
   try{
     const msg={ text:text.slice(0,2000) };
-    if(replyToMsgId){ msg.replyTo=replyToMsgId; replyToMsgId=null; }
+    if(replyToMsgId){
+      msg.replyTo=replyToMsgId;
+      replyToMsgId=null;
+    }
     await sendMessage(msg);
     textEl.value='';
-  } finally { sending=false; }
+  }finally{
+    sending=false;
+  }
 };
-textEl.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendBtn.click(); } });
+textEl.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
 
 /* ===== Reactions ===== */
-const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);
-const reactFab=document.getElementById('reactFab'); const reactMenu=document.getElementById('reactMenu');
+const bubblesRef = ref(db,`rooms/${ROOM}/bubbles`);
+const reactFab = document.getElementById('reactFab');
+const reactMenu = document.getElementById('reactMenu');
+
 function openReactMenu(){
   reactMenu.innerHTML='';
   EMOJIS.forEach(e=>{
     const b=document.createElement('button');
     b.textContent=e;
-    b.onclick=()=>{ push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()}); reactMenu.style.display='none'; };
+    b.onclick=()=>{
+      push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()});
+      reactMenu.style.display='none';
+    };
     reactMenu.appendChild(b);
   });
   reactMenu.style.display='block';
 }
-reactFab.onclick=()=>{ reactMenu.style.display=(reactMenu.style.display==='block')?'none':'block'; if(reactMenu.style.display==='block') openReactMenu(); };
+reactFab.onclick=()=>{
+  const open = reactMenu.style.display==='block';
+  reactMenu.style.display = open ? 'none':'block';
+  if(!open) openReactMenu();
+};
 
 const bubbles=new Map();
 function showBubbleFor(uid,emoji){
   let b=bubbles.get(uid);
-  if(!b){ b=document.createElement('div'); b.className='bubble'; document.body.appendChild(b); bubbles.set(uid,b); }
-  b.textContent=emoji; b.style.display='block'; clearTimeout(b._t); b._t=setTimeout(()=>{ b.style.display='none'; },1800);
+  if(!b){
+    b=document.createElement('div');
+    b.className='bubble';
+    document.body.appendChild(b);
+    bubbles.set(uid,b);
+  }
+  b.textContent=emoji;
+  b.style.display='block';
+  clearTimeout(b._t);
+  b._t=setTimeout(()=>{ b.style.display='none'; },1800);
 }
-onChildAdded(query(bubblesRef,limitToLast(50)), s=>{ const {uid,emoji,ts}=s.val()||{}; if(!uid||!emoji) return; if(Date.now()-ts>5000) return; showBubbleFor(uid,emoji); });
+onChildAdded(query(bubblesRef,limitToLast(50)), s=>{
+  const {uid,emoji,ts}=s.val()||{};
+  if(!uid||!emoji) return;
+  if(Date.now()-ts>5000) return;
+  showBubbleFor(uid,emoji);
+});
 
 /* ===== Camera & Render ===== */
-function spriteByDir(d){return d==='back'?imgBack:d==='left'?imgLeft:d==='right'?imgRight:imgFront;}
+function spriteByDir(d){
+  return d==='back' ? imgBack
+       : d==='left' ? imgLeft
+       : d==='right'? imgRight
+       : imgFront;
+}
 let camX=0, camY=0;
 function camera(dt){
-  const tx=Math.round(my.x-canvas.width/2), ty=Math.round(my.y-canvas.height/2);
-  const k=Math.min(1,dt*CAM_INTERP); camX+=(tx-camX)*k; camY+=(ty-camY)*k;
+  const tx=Math.round(my.x-canvas.width/2);
+  const ty=Math.round(my.y-canvas.height/2);
+  const k=Math.min(1,dt*CAM_INTERP);
+  camX+=(tx-camX)*k;
+  camY+=(ty-camY)*k;
   camX=Math.max(0,Math.min(world.w-canvas.width,camX));
   camY=Math.max(0,Math.min(world.h-canvas.height,camY));
   return {x:camX,y:camY};
 }
 
+/* ===== Flight helpers ===== */
+const flyBtn = document.getElementById('flyBtn');
+let lastLandWarn = 0;
+
+function canLandHere(){
+  // 現在位置で当たり判定がない場所ならOK
+  return !hits(my.x,my.y);
+}
+function applyFlightUI(){
+  flyBtn.classList.toggle('on', isFlying);
+}
+function setFlight(on){
+  if(on === isFlying) return;
+
+  // 着陸時はチェック
+  if(!on){
+    if(!canLandHere()){
+      const now = Date.now();
+      if(now - lastLandWarn > 1500){
+        alert('ここには着陸できません。\n少し移動してからもう一度試してください。');
+        lastLandWarn = now;
+      }
+      return;
+    }
+  }
+  isFlying = on;
+  my.fly = isFlying;
+  applyFlightUI();
+  // ステートだけでも即同期
+  update(meRef,{fly:isFlying}).catch(()=>{});
+}
+function toggleFlight(){
+  setFlight(!isFlying);
+}
+
+flyBtn.onclick = ()=>{ toggleFlight(); };
+
 /* ===== 入力：PC & モバイル ===== */
 const keys=new Set();
-addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); keys.add(e.key); });
+addEventListener('keydown',e=>{
+  // Shift+H で飛行モード切替
+  if((e.key==='H' || e.key==='h') && e.shiftKey){
+    e.preventDefault();
+    toggleFlight();
+    return;
+  }
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+    e.preventDefault();
+  }
+  keys.add(e.key);
+});
 addEventListener('keyup',e=>keys.delete(e.key));
-const joyBase=document.getElementById('joyBase'); const joyStick=document.getElementById('joyStick'); let joyVec={x:0,y:0};
+
+const joyBase  = document.getElementById('joyBase');
+const joyStick = document.getElementById('joyStick');
+let joyVec     = {x:0,y:0};
+
 if ('ontouchstart' in window || navigator.maxTouchPoints>0){
   joyBase.style.display='block';
   const getVec=(clientX,clientY)=>{
     const rect=joyBase.getBoundingClientRect();
-    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-    let dx=clientX-cx, dy=clientY-cy;
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    let dx=clientX-cx;
+    let dy=clientY-cy;
     const len=Math.hypot(dx,dy);
     const limit=rect.width/2-10;
-    if(len>limit){ dx=dx*limit/len; dy=dy*limit/len; }
+    if(len>limit){
+      dx=dx*limit/len;
+      dy=dy*limit/len;
+    }
     joyStick.style.transform=`translate(${dx}px,${dy}px) translate(-50%,-50%)`;
     return {x:dx/limit, y:dy/limit};
   };
-  const start=e=>{ const t=e.touches?e.touches[0]:e; joyVec=getVec(t.clientX,t.clientY); };
-  const move =e=>{ if(e.pressure===0) return; const t=e.touches?e.touches[0]:e; joyVec=getVec(t.clientX,t.clientY); };
-  const end  =()=>{ joyVec={x:0,y:0}; joyStick.style.transform='translate(-50%,-50%)'; };
-  joyBase.addEventListener('pointerdown',start); joyBase.addEventListener('pointermove',move); joyBase.addEventListener('pointerup',end); joyBase.addEventListener('pointercancel',end);
-  joyBase.addEventListener('touchstart',start,{passive:false}); joyBase.addEventListener('touchmove',move,{passive:false}); joyBase.addEventListener('touchend',end);
+  const start=e=>{
+    const t=e.touches?e.touches[0]:e;
+    joyVec=getVec(t.clientX,t.clientY);
+  };
+  const move=e=>{
+    if(e.pressure===0) return;
+    const t=e.touches?e.touches[0]:e;
+    joyVec=getVec(t.clientX,t.clientY);
+  };
+  const end=()=>{
+    joyVec={x:0,y:0};
+    joyStick.style.transform='translate(-50%,-50%)';
+  };
+  joyBase.addEventListener('pointerdown',start);
+  joyBase.addEventListener('pointermove',move);
+  joyBase.addEventListener('pointerup',end);
+  joyBase.addEventListener('pointercancel',end);
+  joyBase.addEventListener('touchstart',start,{passive:false});
+  joyBase.addEventListener('touchmove',move,{passive:false});
+  joyBase.addEventListener('touchend',end);
 }
 
 /* ===== ループ ===== */
-let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir; let lastT=performance.now();
+let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir;
+let lastT=performance.now();
+
 function step(now){
-  if(now-lastT<FRAME_MIN){requestAnimationFrame(step); return;}
-  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  if(now-lastT<FRAME_MIN){
+    requestAnimationFrame(step);
+    return;
+  }
+  const dt=Math.min(0.05,(now-lastT)/1000);
+  lastT=now;
 
   let vx=0, vy=0;
   if(keys.has('ArrowUp'))    vy-=1;
   if(keys.has('ArrowDown'))  vy+=1;
   if(keys.has('ArrowLeft'))  vx-=1;
   if(keys.has('ArrowRight')) vx+=1;
-  vx += joyVec.x; vy += joyVec.y;
+  vx += joyVec.x;
+  vy += joyVec.y;
 
   if(vx||vy){
-    const len=Math.hypot(vx,vy); vx/=len; vy/=len;
-    const s=SPEED_PPS*dt;
-    const nx=my.x+vx*s, ny=my.y+vy*s;
-    if(!hits(nx,my.y)) my.x=nx;
-    if(!hits(my.x,ny)) my.y=ny;
-    my.dir=Math.abs(vx)>Math.abs(vy)?(vx>0?'right':'left'):(vy>0?'front':'back');
+    const len=Math.hypot(vx,vy);
+    vx/=len; vy/=len;
+    const s = (isFlying ? FLY_SPEED_PPS : SPEED_PPS) * dt;
+    const nx=my.x+vx*s;
+    const ny=my.y+vy*s;
+
+    if(isFlying){
+      // 飛行中は当たり判定無視
+      my.x = nx;
+      my.y = ny;
+    }else{
+      if(!hits(nx,my.y)) my.x=nx;
+      if(!hits(my.x,ny)) my.y=ny;
+    }
   }
 
-  const cam=camera(dt); ctx.clearRect(0,0,canvas.width,canvas.height);
+  // ワールド外に出ないように
+  my.x = Math.max(0,Math.min(world.w,my.x));
+  my.y = Math.max(0,Math.min(world.h,my.y));
+
+  // 向きは常に更新
+  if(vx||vy){
+    my.dir = Math.abs(vx)>Math.abs(vy)
+      ? (vx>0?'right':'left')
+      : (vy>0?'front':'back');
+  }
+
+  const cam=camera(dt);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
   const kInterp=Math.min(1,dt*PLAYER_INTERP);
   for(const [id,p] of Object.entries(players)){
-    if(!p||id===meId) continue;
-    const g=(ghosts[id]||={x:p.x,y:p.y,dir:p.dir,name:p.name});
-    g.x+=(p.x-g.x)*kInterp; g.y+=(p.y-g.y)*kInterp; g.dir=p.dir||g.dir;
-    const im=spriteByDir(g.dir||'front'); const sw=im.width*SCALE, sh=im.height*SCALE;
+    if(!p || id===meId) continue;
+    const g=(ghosts[id] ||= {x:p.x,y:p.y,dir:p.dir,name:p.name,fly:!!p.fly});
+    g.x += (p.x-g.x)*kInterp;
+    g.y += (p.y-g.y)*kInterp;
+    g.dir = p.dir || g.dir;
+    g.fly = !!p.fly;
+
+    const im = g.fly ? imgPlane : spriteByDir(g.dir||'front');
+    const sw = im.width * SCALE;
+    const sh = im.height * SCALE;
     ctx.drawImage(im, Math.round(g.x-sw/2-cam.x), Math.round(g.y-sh/2-cam.y), sw, sh);
     drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2, false, id);
   }
-  const meIm=spriteByDir(my.dir), mw=meIm.width*SCALE, mh=meIm.height*SCALE;
+
+  const meIm = isFlying ? imgPlane : spriteByDir(my.dir);
+  const mw   = meIm.width * SCALE;
+  const mh   = meIm.height * SCALE;
   ctx.drawImage(meIm, Math.round(my.x-mw/2-cam.x), Math.round(my.y-mh/2-cam.y), mw, mh);
   drawName(NAME, my.x-cam.x, (my.y-mh/2)-cam.y-2, true, meId);
 
   for(const [uid,b] of bubbles){
     const p = uid===meId ? my : (players[uid]||ghosts[uid]);
-    if(!p||b.style.display==='none') continue;
-    const x=(p.x||0)-cam.x, y=(p.y||0)-cam.y;
-    b.style.left=x+'px'; b.style.top=(y - (mh/2) - 24)+'px';
+    if(!p || b.style.display==='none') continue;
+    const x=(p.x||0)-cam.x;
+    const y=(p.y||0)-cam.y;
+    b.style.left = x+'px';
+    b.style.top  = (y - (mh/2) - 24)+'px';
   }
 
   if(now-lastSync>SYNC_MS){
-    const dx=my.x-selfLastX, dy=my.y-selfLastY;
-    const moved=(dx*dx+dy*dy)>1;
-    const dirChanged=my.dir!==selfLastDir;
-    if(moved||dirChanged){
-      lastSync=now; selfLastX=my.x; selfLastY=my.y; selfLastDir=my.dir;
-      update(meRef,{x:my.x,y:my.y,dir:my.dir,ts:Date.now()});
+    const dx=my.x-selfLastX;
+    const dy=my.y-selfLastY;
+    const moved = (dx*dx+dy*dy)>1;
+    const dirChanged = my.dir!==selfLastDir;
+    const flyChanged = my.fly !== isFlying;
+    if(moved || dirChanged || flyChanged){
+      lastSync   = now;
+      selfLastX  = my.x;
+      selfLastY  = my.y;
+      selfLastDir= my.dir;
+      my.fly     = isFlying;
+      update(meRef,{
+        x:my.x,
+        y:my.y,
+        dir:my.dir,
+        ts:Date.now(),
+        fly:isFlying
+      }).catch(()=>{});
     }
   }
+
   requestAnimationFrame(step);
 }
 requestAnimationFrame(step);
@@ -436,22 +1119,32 @@ function drawName(name,x,y,me=false,id=null){
 }
 
 /* 退室 */
-document.getElementById('leave').onclick=()=>{ remove(meRef).finally(()=>{ location.href='./'; }); };
-addEventListener('beforeunload', ()=>{ try{ remove(meRef); }catch{} });
+document.getElementById('leave').onclick=()=>{
+  remove(meRef).finally(()=>{ location.href='./'; });
+};
+addEventListener('beforeunload', ()=>{
+  try{ remove(meRef); }catch{}
+});
 
 /* =========================================================
    WebRTC（onnegotiationneededで再ネゴ）
    ========================================================= */
-const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}],sdpSemantics:'unified-plan'};
-const avGrid=document.getElementById('avGrid');
-const btnMic=document.getElementById('btnMic');
-const btnCam=document.getElementById('btnCam');
-const btnScreen=document.getElementById('btnScreen');
-const avMenu=document.getElementById('avMenu');
-const audioUnlock=document.getElementById('audioUnlock');
+const ICE={
+  iceServers:[{urls:'stun:stun.l.google.com:19302'}],
+  sdpSemantics:'unified-plan'
+};
+const avGrid      = document.getElementById('avGrid');
+const btnMic      = document.getElementById('btnMic');
+const btnCam      = document.getElementById('btnCam');
+const btnScreen   = document.getElementById('btnScreen');
+const avMenu      = document.getElementById('avMenu');
+const audioUnlock = document.getElementById('audioUnlock');
 
-const inboxRef=ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`);
-function sendSignal(to, data){ return push(ref(db,`rooms/${ROOM}/webrtc/inbox/${to}`), Object.assign({from:meId,ts:Date.now()},data)); }
+const inboxRef = ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`);
+function sendSignal(to, data){
+  return push(ref(db,`rooms/${ROOM}/webrtc/inbox/${to}`),
+    Object.assign({from:meId,ts:Date.now()},data));
+}
 
 const peers=new Map(); // peerId -> {pc, audioSender, videoSender, screenSender, negotiating}
 let micStream=null, camStream=null, screenStream=null;
@@ -464,7 +1157,10 @@ function tryPlayAll(){
     el.play?.().catch(()=>showUnlock());
   });
 }
-document.addEventListener('pointerdown',()=>{ tryPlayAll(); hideUnlock(); },{once:true});
+document.addEventListener('pointerdown',()=>{
+  tryPlayAll();
+  hideUnlock();
+},{once:true});
 
 async function listDevices(){
   const devs=await navigator.mediaDevices.enumerateDevices();
@@ -479,11 +1175,12 @@ async function ensureMic(on=true){
   if(on && !micStream){
     const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
     micStream=await navigator.mediaDevices.getUserMedia(c);
-    attachSpeechMeter(meId, micStream); // ★自分の発話メーター
+    attachSpeechMeter(meId, micStream);
   }
   if(!on && micStream){
-    detachSpeechMeter(meId);           // ★停止時に解除
-    micStream.getTracks().forEach(t=>t.stop()); micStream=null;
+    detachSpeechMeter(meId);
+    micStream.getTracks().forEach(t=>t.stop());
+    micStream=null;
   }
   btnMic.classList.toggle('on', !!micStream);
   await refreshSenders();
@@ -496,7 +1193,8 @@ async function ensureCam(on=true){
   }
   if(!on && camStream){
     removeLocalTile('camera');
-    camStream.getTracks().forEach(t=>t.stop()); camStream=null;
+    camStream.getTracks().forEach(t=>t.stop());
+    camStream=null;
   }
   btnCam.classList.toggle('on', !!camStream);
   await refreshSenders();
@@ -535,18 +1233,36 @@ async function refreshSenders(){
     const pc=st.pc;
     if(micStream){
       const track=micStream.getAudioTracks()[0];
-      if(!st.audioSender){ st.audioSender=pc.addTrack(track, micStream); } else { await st.audioSender.replaceTrack(track); }
-    }else if(st.audioSender){ await st.audioSender.replaceTrack(null); }
+      if(!st.audioSender){
+        st.audioSender=pc.addTrack(track, micStream);
+      }else{
+        await st.audioSender.replaceTrack(track);
+      }
+    }else if(st.audioSender){
+      await st.audioSender.replaceTrack(null);
+    }
 
     if(camStream){
       const v=camStream.getVideoTracks()[0];
-      if(!st.videoSender){ st.videoSender=pc.addTrack(v, camStream); } else { await st.videoSender.replaceTrack(v); }
-    }else if(st.videoSender){ await st.videoSender.replaceTrack(null); }
+      if(!st.videoSender){
+        st.videoSender=pc.addTrack(v, camStream);
+      }else{
+        await st.videoSender.replaceTrack(v);
+      }
+    }else if(st.videoSender){
+      await st.videoSender.replaceTrack(null);
+    }
 
     if(screenStream){
       const s=screenStream.getVideoTracks()[0];
-      if(!st.screenSender){ st.screenSender=pc.addTrack(s, screenStream); } else { await st.screenSender.replaceTrack(s); }
-    }else if(st.screenSender){ await st.screenSender.replaceTrack(null); }
+      if(!st.screenSender){
+        st.screenSender=pc.addTrack(s, screenStream);
+      }else{
+        await st.screenSender.replaceTrack(s);
+      }
+    }else if(st.screenSender){
+      await st.screenSender.replaceTrack(null);
+    }
   }
 }
 
@@ -584,32 +1300,56 @@ function showLocalTile(kind, stream){
     tile.querySelector('video').srcObject = stream;
   }
 }
-
 function replaceLocalTileStream(kind, newStream){
-  const id=`local-${kind}`; const tile=document.getElementById(id);
-  if(tile){ tile.querySelector('video').srcObject=newStream; }
+  const id=`local-${kind}`;
+  const tile=document.getElementById(id);
+  if(tile){
+    tile.querySelector('video').srcObject=newStream;
+  }
 }
 function removeLocalTile(kind){
-  const id=`local-${kind}`; const tile=document.getElementById(id);
+  const id=`local-${kind}`;
+  const tile=document.getElementById(id);
   if(tile) tile.remove();
 }
+
 function ensureRemoteTile(peerId, stream, label){
   const id=`remote-${peerId}-${label}`;
   let tile=document.getElementById(id);
   const kind = stream.getVideoTracks().length ? 'video' : 'audio';
   if(!tile){
-    tile=document.createElement('div'); tile.className='tile'; tile.id=id;
+    tile=document.createElement('div');
+    tile.className='tile';
+    tile.id=id;
     if(kind==='video'){
-      const v=document.createElement('video'); v.autoplay=true; v.playsInline=true; v.setAttribute('data-remote',''); v.srcObject=stream;
-      const name=document.createElement('div'); name.className='name'; name.textContent=`${players[peerId]?.name||'guest'}（${label}）`;
-      const btns=document.createElement('div'); btns.className='btns';
-      const enlarge=document.createElement('button'); enlarge.className='btn'; enlarge.textContent='⤢'; enlarge.onclick=()=>tile.classList.toggle('big');
+      const v=document.createElement('video');
+      v.autoplay=true;
+      v.playsInline=true;
+      v.setAttribute('data-remote','');
+      v.srcObject=stream;
+      const name=document.createElement('div');
+      name.className='name';
+      name.textContent=`${players[peerId]?.name||'guest'}（${label}）`;
+      const btns=document.createElement('div');
+      btns.className='btns';
+      const enlarge=document.createElement('button');
+      enlarge.className='btn';
+      enlarge.textContent='⤢';
+      enlarge.onclick=()=>tile.classList.toggle('big');
       btns.appendChild(enlarge);
-      tile.appendChild(v); tile.appendChild(name); tile.appendChild(btns);
+      tile.appendChild(v);
+      tile.appendChild(name);
+      tile.appendChild(btns);
     }else{
-      const a=document.createElement('audio'); a.autoplay=true; a.setAttribute('data-remote',''); a.srcObject=stream;
-      const name=document.createElement('div'); name.className='name'; name.textContent=`🎙️ ${players[peerId]?.name||'guest'}`;
-      tile.appendChild(a); tile.appendChild(name);
+      const a=document.createElement('audio');
+      a.autoplay=true;
+      a.setAttribute('data-remote','');
+      a.srcObject=stream;
+      const name=document.createElement('div');
+      name.className='name';
+      name.textContent=`🎙️ ${players[peerId]?.name||'guest'}`;
+      tile.appendChild(a);
+      tile.appendChild(name);
     }
     avGrid.appendChild(tile);
     tryPlayAll();
@@ -617,7 +1357,9 @@ function ensureRemoteTile(peerId, stream, label){
     (tile.querySelector('video')||tile.querySelector('audio')).srcObject=stream;
   }
 }
-function removePeerTiles(peerId){ [...document.querySelectorAll(`[id^="remote-${peerId}-"]`)].forEach(n=>n.remove()); }
+function removePeerTiles(peerId){
+  [...document.querySelectorAll(`[id^="remote-${peerId}-"]`)].forEach(n=>n.remove());
+}
 
 /* ---- PeerConnection ---- */
 function getOrCreatePeer(pid){
@@ -627,18 +1369,22 @@ function getOrCreatePeer(pid){
   st={pc, audioSender:null, videoSender:null, screenSender:null, negotiating:false};
   peers.set(pid, st);
 
-  pc.onicecandidate=(e)=>{ if(e.candidate) sendSignal(pid,{type:'ice',candidate:e.candidate}); };
-  pc.onconnectionstatechange=()=>{ 
-    if(['failed','disconnected','closed'].includes(pc.connectionState)){ 
-      removePeerTiles(pid); 
-      detachSpeechMeter(pid); // ★切断時に解除
-    } 
+  pc.onicecandidate=(e)=>{
+    if(e.candidate) sendSignal(pid,{type:'ice',candidate:e.candidate});
+  };
+  pc.onconnectionstatechange=()=>{
+    if(['failed','disconnected','closed'].includes(pc.connectionState)){
+      removePeerTiles(pid);
+      detachSpeechMeter(pid);
+    }
   };
   pc.ontrack=(e)=>{
     const stream=e.streams[0];
     const isVideo = e.track.kind==='video';
     ensureRemoteTile(pid, stream, isVideo ? (e.track.label||'映像') : '音声');
-    if(!isVideo){ attachSpeechMeter(pid, stream); } // ★リモート音声にメーター
+    if(!isVideo){
+      attachSpeechMeter(pid, stream);
+    }
   };
   pc.onnegotiationneeded = async () => {
     if (meId >= pid) return;
@@ -648,14 +1394,23 @@ function getOrCreatePeer(pid){
       const offer=await pc.createOffer();
       await pc.setLocalDescription(offer);
       await sendSignal(pid,{type:'offer',sdp:offer});
-    }catch(e){ warn('negotiate err: '+e.message); }
-    finally{ st.negotiating = false; }
+    }catch(e){
+      warn('negotiate err: '+e.message);
+    }finally{
+      st.negotiating = false;
+    }
   };
 
   (async()=>{
-    if(micStream){ st.audioSender=pc.addTrack(micStream.getAudioTracks()[0], micStream); }
-    if(camStream){ st.videoSender=pc.addTrack(camStream.getVideoTracks()[0], camStream); }
-    if(screenStream){ st.screenSender=pc.addTrack(screenStream.getVideoTracks()[0], screenStream); }
+    if(micStream){
+      st.audioSender=pc.addTrack(micStream.getAudioTracks()[0], micStream);
+    }
+    if(camStream){
+      st.videoSender=pc.addTrack(camStream.getVideoTracks()[0], camStream);
+    }
+    if(screenStream){
+      st.screenSender=pc.addTrack(screenStream.getVideoTracks()[0], screenStream);
+    }
   })();
 
   return st;
@@ -676,23 +1431,32 @@ async function handleOffer(from, sdp){
   await sendSignal(from,{type:'answer',sdp:ans});
 }
 async function handleAnswer(from, sdp){
-  const st=peers.get(from); if(!st) return;
+  const st=peers.get(from);
+  if(!st) return;
   await st.pc.setRemoteDescription(new RTCSessionDescription(sdp));
 }
 async function handleIce(from, cand){
-  const st=peers.get(from); if(!st) return;
-  try{ await st.pc.addIceCandidate(new RTCIceCandidate(cand)); }catch(e){ /* ignore dup */ }
+  const st=peers.get(from);
+  if(!st) return;
+  try{
+    await st.pc.addIceCandidate(new RTCIceCandidate(cand));
+  }catch(e){
+    // duplicate などは無視
+  }
 }
 
 /* ---- Signaling inbox ---- */
 onChildAdded(ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`), async snap=>{
-  const msg=snap.val(); const {from,type}=msg||{};
+  const msg=snap.val();
+  const {from,type}=msg||{};
   try{
     if(from===meId) return;
-    if(type==='offer') await handleOffer(from,msg.sdp);
-    else if(type==='answer') await handleAnswer(from,msg.sdp);
-    else if(type==='ice') await handleIce(from,msg.candidate);
-  }catch(e){ warn('signal err: '+e.message); }
+    if(type==='offer')      await handleOffer(from,msg.sdp);
+    else if(type==='answer')await handleAnswer(from,msg.sdp);
+    else if(type==='ice')   await handleIce(from,msg.candidate);
+  }catch(e){
+    warn('signal err: '+e.message);
+  }
   remove(snap.ref).catch(()=>{});
 });
 
@@ -707,80 +1471,180 @@ onValue(playersRef, snap=>{
     }
   }
   for(const pid of [...peers.keys()]){
-    if(!ps[pid]){ peers.get(pid)?.pc.close(); peers.delete(pid); removePeerTiles(pid); detachSpeechMeter(pid); }
+    if(!ps[pid]){
+      peers.get(pid)?.pc.close();
+      peers.delete(pid);
+      removePeerTiles(pid);
+      detachSpeechMeter(pid);
+    }
   }
 });
 
 /* ---- AV Buttons ---- */
 function openAvMenu(x,y, contentEl){
-  avMenu.innerHTML=''; avMenu.appendChild(contentEl);
-  avMenu.style.left=x+'px'; avMenu.style.top=y+'px';
+  avMenu.innerHTML='';
+  avMenu.appendChild(contentEl);
+  avMenu.style.left=x+'px';
+  avMenu.style.top =y+'px';
   avMenu.style.display='block';
 }
-function closeAvMenu(){ avMenu.style.display='none'; }
-document.addEventListener('click', e=>{ if(!avMenu.contains(e.target)) closeAvMenu(); });
+function closeAvMenu(){
+  avMenu.style.display='none';
+}
+document.addEventListener('click', e=>{
+  if(!avMenu.contains(e.target)) closeAvMenu();
+});
 
 btnMic.onclick=()=>{ ensureMic(!micStream); };
 btnCam.onclick=()=>{ ensureCam(!camStream); };
 btnScreen.onclick=()=>{ screenStream ? stopScreen() : startScreen(); };
 
-btnMic.oncontextmenu=async(e)=>{ e.preventDefault(); const {mics}=await listDevices();
+btnMic.oncontextmenu=async(e)=>{
+  e.preventDefault();
+  const {mics}=await listDevices();
   const wrap=document.createElement('div');
-  const row1=document.createElement('div'); row1.className='row'; row1.innerHTML='<strong>マイク</strong>';
-  const row2=document.createElement('div'); row2.className='row';
+
+  const row1=document.createElement('div');
+  row1.className='row';
+  row1.innerHTML='<strong>マイク</strong>';
+
+  const row2=document.createElement('div');
+  row2.className='row';
   const sel=document.createElement('select');
-  mics.forEach(d=>{ const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||'mic'; if(d.deviceId===selectedMic) o.selected=true; sel.appendChild(o); });
-  const apply=document.createElement('button'); apply.textContent='切替';
-  apply.onclick=async()=>{ selectedMic=sel.value; if(micStream){ await ensureMic(false); } await ensureMic(true); };
-  const row3=document.createElement('div'); row3.className='row';
-  const meter=document.createElement('div'); meter.style.cssText='height:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;flex:1;overflow:hidden';
-  const bar=document.createElement('div'); bar.style.cssText='height:100%;width:0%;background:linear-gradient(90deg,#22d3ee,#06b6d4)'; meter.appendChild(bar);
-  const test=document.createElement('button'); test.textContent='テスト';
+  mics.forEach(d=>{
+    const o=document.createElement('option');
+    o.value=d.deviceId;
+    o.textContent=d.label||'mic';
+    if(d.deviceId===selectedMic) o.selected=true;
+    sel.appendChild(o);
+  });
+  const apply=document.createElement('button');
+  apply.textContent='切替';
+  apply.onclick=async()=>{
+    selectedMic=sel.value;
+    if(micStream){ await ensureMic(false); }
+    await ensureMic(true);
+  };
+
+  const row3=document.createElement('div');
+  row3.className='row';
+  const meter=document.createElement('div');
+  meter.style.cssText='height:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;flex:1;overflow:hidden';
+  const bar=document.createElement('div');
+  bar.style.cssText='height:100%;width:0%;background:linear-gradient(90deg,#22d3ee,#06b6d4)';
+  meter.appendChild(bar);
+  const test=document.createElement('button');
+  test.textContent='テスト';
   test.onclick=async()=>{
     if(!micStream) await ensureMic(true);
     if(!micStream) return;
     const ctxA=new (window.AudioContext||window.webkitAudioContext)();
     const src=ctxA.createMediaStreamSource(micStream);
-    const analyser=ctxA.createAnalyser(); analyser.fftSize=256;
+    const analyser=ctxA.createAnalyser();
+    analyser.fftSize=256;
     src.connect(analyser);
     const data=new Uint8Array(analyser.frequencyBinCount);
-    const loop=()=>{ analyser.getByteTimeDomainData(data); let peak=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; peak=Math.max(peak, Math.abs(v)); } bar.style.width=Math.round(peak*100)+'%'; requestAnimationFrame(loop); }; loop();
+    const loop=()=>{
+      analyser.getByteTimeDomainData(data);
+      let peak=0;
+      for(let i=0;i<data.length;i++){
+        const v=(data[i]-128)/128;
+        peak=Math.max(peak, Math.abs(v));
+      }
+      bar.style.width=Math.round(peak*100)+'%';
+      requestAnimationFrame(loop);
+    };
+    loop();
   };
-  row2.appendChild(sel); row2.appendChild(apply);
-  row3.appendChild(meter); row3.appendChild(test);
-  wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
+
+  row2.appendChild(sel);
+  row2.appendChild(apply);
+  row3.appendChild(meter);
+  row3.appendChild(test);
+  wrap.appendChild(row1);
+  wrap.appendChild(row2);
+  wrap.appendChild(row3);
+
   openAvMenu(e.clientX,e.clientY,wrap);
 };
 
-btnCam.oncontextmenu=async(e)=>{ e.preventDefault(); const {cams}=await listDevices();
+btnCam.oncontextmenu=async(e)=>{
+  e.preventDefault();
+  const {cams}=await listDevices();
   const wrap=document.createElement('div');
-  const row1=document.createElement('div'); row1.className='row'; row1.innerHTML='<strong>カメラ</strong>';
-  const row2=document.createElement('div'); row2.className='row';
+
+  const row1=document.createElement('div');
+  row1.className='row';
+  row1.innerHTML='<strong>カメラ</strong>';
+
+  const row2=document.createElement('div');
+  row2.className='row';
   const sel=document.createElement('select');
-  cams.forEach(d=>{ const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||'camera'; if(d.deviceId===selectedCam) o.selected=true; sel.appendChild(o); });
-  const apply=document.createElement('button'); apply.textContent='切替';
-  apply.onclick=async()=>{ selectedCam=sel.value; if(camStream){ await ensureCam(false); } await ensureCam(true); };
-  row2.appendChild(sel); row2.appendChild(apply);
-  wrap.appendChild(row1); wrap.appendChild(row2);
+  cams.forEach(d=>{
+    const o=document.createElement('option');
+    o.value=d.deviceId;
+    o.textContent=d.label||'camera';
+    if(d.deviceId===selectedCam) o.selected=true;
+    sel.appendChild(o);
+  });
+  const apply=document.createElement('button');
+  apply.textContent='切替';
+  apply.onclick=async()=>{
+    selectedCam=sel.value;
+    if(camStream){ await ensureCam(false); }
+    await ensureCam(true);
+  };
+  row2.appendChild(sel);
+  row2.appendChild(apply);
+
+  wrap.appendChild(row1);
+  wrap.appendChild(row2);
   openAvMenu(e.clientX,e.clientY,wrap);
 };
 
-btnScreen.oncontextmenu=(e)=>{ e.preventDefault();
+btnScreen.oncontextmenu=(e)=>{
+  e.preventDefault();
   const wrap=document.createElement('div');
-  const row1=document.createElement('div'); row1.className='row'; row1.innerHTML='<strong>画面共有</strong>';
-  const row2=document.createElement('div'); row2.className='row';
-  const startBtn=document.createElement('button'); startBtn.textContent= screenStream ? '停止' : '開始';
-  startBtn.onclick=()=>{ screenStream ? stopScreen() : startScreen(); closeAvMenu(); };
-  const changeBtn=document.createElement('button'); changeBtn.textContent='共有している画面を変更';
+
+  const row1=document.createElement('div');
+  row1.className='row';
+  row1.innerHTML='<strong>画面共有</strong>';
+
+  const row2=document.createElement('div');
+  row2.className='row';
+  const startBtn=document.createElement('button');
+  startBtn.textContent= screenStream ? '停止' : '開始';
+  startBtn.onclick=()=>{
+    screenStream ? stopScreen() : startScreen();
+    closeAvMenu();
+  };
+  const changeBtn=document.createElement('button');
+  changeBtn.textContent='共有している画面を変更';
   changeBtn.disabled = !screenStream;
-  changeBtn.onclick=async()=>{ await changeScreen(); closeAvMenu(); };
-  const row3=document.createElement('div'); row3.className='row';
-  const zoomBtn=document.createElement('button'); zoomBtn.textContent='共有画面を拡大';
+  changeBtn.onclick=async()=>{
+    await changeScreen();
+    closeAvMenu();
+  };
+
+  const row3=document.createElement('div');
+  row3.className='row';
+  const zoomBtn=document.createElement('button');
+  zoomBtn.textContent='共有画面を拡大';
   zoomBtn.disabled = !document.getElementById('local-screen');
-  zoomBtn.onclick=()=>{ const t=document.getElementById('local-screen'); if(t){ t.classList.toggle('big'); } closeAvMenu(); };
-  row2.appendChild(startBtn); row2.appendChild(changeBtn);
+  zoomBtn.onclick=()=>{
+    const t=document.getElementById('local-screen');
+    if(t){ t.classList.toggle('big'); }
+    closeAvMenu();
+  };
+
+  row2.appendChild(startBtn);
+  row2.appendChild(changeBtn);
   row3.appendChild(zoomBtn);
-  wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
+
+  wrap.appendChild(row1);
+  wrap.appendChild(row2);
+  wrap.appendChild(row3);
+
   openAvMenu(e.clientX,e.clientY,wrap);
 };
 
