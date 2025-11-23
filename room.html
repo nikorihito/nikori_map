@@ -1024,8 +1024,20 @@ function step(now){
     }
   }
 
-  my.x = Math.max(0,Math.min(world.w,my.x));
-  my.y = Math.max(0,Math.min(world.h,my.y));
+// ========= 入力合成（これが最重要！） =========
+let vx = 0;
+let vy = 0;
+
+// PC キー入力
+if (keys.has('ArrowLeft'))  vx -= 1;
+if (keys.has('ArrowRight')) vx += 1;
+if (keys.has('ArrowUp'))    vy -= 1;
+if (keys.has('ArrowDown'))  vy += 1;
+
+// スマホ（仮想パッド）
+vx += joyVec.x;
+vy += joyVec.y;
+
 
   if(vx||vy){
     my.dir = Math.abs(vx)>Math.abs(vy)
