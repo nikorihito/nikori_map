@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム（左右反転＋フライト）</title>
+<title>ニコリタウン - ルーム（左右反転＋フライト＋本格ボイチャ）</title>
 
 <style>
   :root{
@@ -390,6 +390,65 @@
     color:#06202a;
     font-weight:700;
   }
+
+  /* ===== 本格ボイチャモーダル ===== */
+  #hqModal{
+    position:fixed;
+    inset:0;
+    z-index:70;
+    background:rgba(15,23,42,.75);
+    display:none;
+    align-items:center;
+    justify-content:center;
+  }
+  #hqModal .panel{
+    background:#020617;
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px 24px;
+    width:min(90vw,420px);
+    box-shadow:0 24px 48px rgba(0,0,0,.5);
+  }
+  #hqModal h2{
+    margin:0 0 8px;
+    font-size:1.1rem;
+  }
+  #hqModal p{
+    margin:0 0 12px;
+    color:var(--muted);
+    font-size:.9rem;
+  }
+  #hqModal input{
+    width:100%;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:#020617;
+    color:#e2e8f0;
+    margin-bottom:12px;
+    font:inherit;
+  }
+  #hqModal .buttons{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+  }
+  #hqModal button{
+    font:inherit;
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    cursor:pointer;
+  }
+  #hqCancel{
+    background:#020617;
+    color:#e2e8f0;
+  }
+  #hqOk{
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:700;
+  }
 </style>
 </head>
 
@@ -436,6 +495,19 @@
   <div id="avMenu" class="avmenu"></div>
   <div id="audioUnlock">🔈 クリックして音声を有効化</div>
 
+  <!-- 本格ボイチャ モーダル -->
+  <div id="hqModal">
+    <div class="panel">
+      <h2>ゲームセンター本格ボイスルーム</h2>
+      <p>ゲームセンターの本格ボイスチャットルームに入りますか？<br>マイクが自動的にオンになります。</p>
+      <input id="hqPass" type="password" placeholder="合言葉を入力（例: 2468）" />
+      <div class="buttons">
+        <button id="hqCancel">いいえ</button>
+        <button id="hqOk">はい</button>
+      </div>
+    </div>
+  </div>
+
 <script type="module">
 /* ===== Params ===== */
 const SCALE = 6;
@@ -448,6 +520,11 @@ const MAX_MSG = 120;
 const FRAME_MIN = 1000/50;
 const EMOJIS = ['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
 const FLY_SPEED_PPS = SPEED_PPS * 2.2;
+
+/* ★ 本格ボイチャ用パラメータ ★ */
+const HQ_CODE = '2468'; // 好きな合言葉に変えてOK
+// ゲーセン入口の座標（仮）→マップに合わせて調整してね
+const GC_GATE = { x1: 1800, y1: 900, x2: 1950, y2: 980 };
 
 /* ===== Firebase ===== */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
@@ -930,9 +1007,77 @@ function toggleFlight(){
 }
 flyBtn.onclick = ()=>{ toggleFlight(); };
 
+/* ===== 本格ボイチャ状態 & モーダル ===== */
+let inHqVoice = false;
+const hqModal   = document.getElementById('hqModal');
+const hqPassEl  = document.getElementById('hqPass');
+const hqOkBtn   = document.getElementById('hqOk');
+const hqCancelBtn = document.getElementById('hqCancel');
+
+function isAtGameCenterEntrance(){
+  return my.x>=GC_GATE.x1 && my.x<=GC_GATE.x2 &&
+         my.y>=GC_GATE.y1 && my.y<=GC_GATE.y2;
+}
+function openHqDialog(){
+  hqPassEl.value='';
+  hqModal.style.display='flex';
+  setTimeout(()=>{ hqPassEl.focus(); },10);
+}
+function closeHqDialog(){
+  hqModal.style.display='none';
+}
+
+function enterHqVoice(){
+  inHqVoice = true;
+  // 合言葉を覚えておきたいなら localStorage にフラグ保存してもOK
+  ensureMic(true);   // 本格ボイチャに入ったらマイクON
+  // 必要ならカメラも一緒にON → コメント外してOK
+  // ensureCam(true);
+  closeHqDialog();
+  alert('本格ボイスルームに入りました。\nマイクがONになっています。');
+}
+
+function leaveHqVoice(){
+  inHqVoice = false;
+  ensureMic(false);
+  // カメラも本格ボイチャ専用ならOFF
+  // ensureCam(false);
+  alert('本格ボイスルームから退出しました。');
+}
+
+hqOkBtn.onclick = ()=>{
+  const v = hqPassEl.value.trim();
+  if(v !== HQ_CODE){
+    alert('合言葉が違います。');
+    return;
+  }
+  enterHqVoice();
+};
+hqCancelBtn.onclick = ()=>{ closeHqDialog(); };
+hqModal.addEventListener('click', e=>{
+  if(e.target === hqModal) closeHqDialog();
+});
+
 /* ===== Inputs ===== */
 const keys=new Set();
 addEventListener('keydown',e=>{
+  // 本格ボイチャ: Shift + B
+  if((e.key==='b' || e.key==='B') && e.shiftKey){
+    e.preventDefault();
+    if(!inHqVoice){
+      if(!isAtGameCenterEntrance()){
+        alert('ゲームセンター入り口付近で Shift + B を押してください。');
+        return;
+      }
+      openHqDialog();
+    }else{
+      if(confirm('本格ボイスルームから退出しますか？')){
+        leaveHqVoice();
+      }
+    }
+    return;
+  }
+
   if((e.key==='H' || e.key==='h') && e.shiftKey){
     e.preventDefault();
     toggleFlight();
