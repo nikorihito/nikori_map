@@ -1646,33 +1646,34 @@ onChildAdded(inboxRef, async snap=>{
   remove(snap.ref).catch(()=>{});
 });
 
-/* ---- Auto connect with room members（voice=true同士だけ接続） ---- */
+/* ---- Auto connect with room members（同じルームなら接続） ---- */
 onValue(playersRef, snap=>{
-  const ps=snap.val()||{};
-  const myState = ps[meId] || {};
-  const myVoice = !!myState.voice;
+  const ps = snap.val() || {};
 
-  // 接続すべき人にだけピアを張る
-  for(const pid of Object.keys(ps)){
-    if(pid===meId) continue;
+  // 同じルームにいる相手には全員接続
+  for (const pid of Object.keys(ps)) {
+    if (pid === meId) continue;
     const p = ps[pid];
-    if(!p) continue;
-    const theirVoice = !!p.voice;
-    if(myVoice && theirVoice){
-      if(!peers.has(pid)) getOrCreatePeer(pid);
-      if(meId < pid && peers.get(pid)?.pc.signalingState==='stable'){
-        makeOfferTo(pid).catch(e=>warn('offer err: '+e.message));
-      }
-    }else{
-      // どちらかが voice=false なら接続を閉じる
-      if(peers.has(pid)){
-        peers.get(pid)?.pc.close();
-        peers.delete(pid);
-        removePeerTiles(pid);
-        detachSpeechMeter(pid);
-      }
+    if (!p) continue;
+
+    if (!peers.has(pid)) getOrCreatePeer(pid);
+
+    const st = peers.get(pid);
+    if (meId < pid && st?.pc.signalingState === 'stable') {
+      makeOfferTo(pid).catch(e => warn('offer err: ' + e.message));
     }
   }
+
+  // いなくなった人だけ切断
+  for (const pid of [...peers.keys()]) {
+    if (!ps[pid]) {
+      peers.get(pid)?.pc.close();
+      peers.delete(pid);
+      removePeerTiles(pid);
+      detachSpeechMeter(pid);
+    }
+  }
+});
 
   // いなくなった人の片付け
   for(const pid of [...peers.keys()]){
