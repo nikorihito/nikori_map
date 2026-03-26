@@ -1358,52 +1358,83 @@ async function listDevices(){
 
 /* ---- Local Media ---- */
 async function ensureMic(on=true){
-  if(on && !micStream){
-    const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
-    micStream=await navigator.mediaDevices.getUserMedia(c);
-    attachSpeechMeter(meId, micStream);
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){
+      throw new Error('このブラウザまたは実行環境ではマイクが利用できません。HTTPS で開いているか確認してください。');
+    }
+    if(on && !micStream){
+      const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
+      micStream=await navigator.mediaDevices.getUserMedia(c);
+      attachSpeechMeter(meId, micStream);
+    }
+    if(!on && micStream){
+      detachSpeechMeter(meId);
+      micStream.getTracks().forEach(t=>t.stop());
+      micStream=null;
+    }
+    btnMic.classList.toggle('on', !!micStream);
+    await refreshSenders();
+  }catch(e){
+    console.error('Mic error:', e);
+    alert('マイクを開始できませんでした。\n' + (e?.message || e));
   }
-  if(!on && micStream){
-    detachSpeechMeter(meId);
-    micStream.getTracks().forEach(t=>t.stop());
-    micStream=null;
-  }
-  btnMic.classList.toggle('on', !!micStream);
-  await refreshSenders();
 }
 async function ensureCam(on=true){
-  if(on && !camStream){
-    const c={video:{deviceId:selectedCam?{exact:selectedCam}:undefined, width:{ideal:640}, height:{ideal:360}}, audio:false};
-    camStream=await navigator.mediaDevices.getUserMedia(c);
-    showLocalTile('camera', camStream);
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){
+      throw new Error('このブラウザまたは実行環境ではカメラが利用できません。HTTPS で開いているか確認してください。');
+    }
+    if(on && !camStream){
+      const c={video:{deviceId:selectedCam?{exact:selectedCam}:undefined, width:{ideal:640}, height:{ideal:360}}, audio:false};
+      camStream=await navigator.mediaDevices.getUserMedia(c);
+      showLocalTile('camera', camStream);
+    }
+    if(!on && camStream){
+      removeLocalTile('camera');
+      camStream.getTracks().forEach(t=>t.stop());
+      camStream=null;
+    }
+    btnCam.classList.toggle('on', !!camStream);
+    await refreshSenders();
+  }catch(e){
+    console.error('Camera error:', e);
+    alert('カメラを開始できませんでした。\n' + (e?.message || e));
   }
-  if(!on && camStream){
-    removeLocalTile('camera');
-    camStream.getTracks().forEach(t=>t.stop());
-    camStream=null;
-  }
-  btnCam.classList.toggle('on', !!camStream);
-  await refreshSenders();
 }
 async function startScreen(){
-  if(screenStream) return;
-  screenStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
-  screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
-  showLocalTile('screen', screenStream);
-  btnScreen.classList.add('on');
-  await refreshSenders();
+  try{
+    if(screenStream) return;
+    if(!navigator.mediaDevices?.getDisplayMedia){
+      throw new Error('このブラウザでは画面共有に対応していません。');
+    }
+    screenStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
+    screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
+    showLocalTile('screen', screenStream);
+    btnScreen.classList.add('on');
+    await refreshSenders();
+  }catch(e){
+    if(e?.name === 'NotAllowedError') return;
+    console.error('Screen share error:', e);
+    alert('画面共有を開始できませんでした。\n' + (e?.message || e));
+  }
 }
 async function changeScreen(){
-  if(!screenStream) return;
-  const newStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
-  const newTrack=newStream.getVideoTracks()[0];
-  for(const {screenSender} of peers.values()){
-    if(screenSender) await screenSender.replaceTrack(newTrack);
+  try{
+    if(!screenStream) return;
+    const newStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
+    const newTrack=newStream.getVideoTracks()[0];
+    for(const {screenSender} of peers.values()){
+      if(screenSender) await screenSender.replaceTrack(newTrack);
+    }
+    replaceLocalTileStream('screen', newStream);
+    screenStream.getTracks().forEach(t=>t.stop());
+    screenStream=newStream;
+    screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
+  }catch(e){
+    if(e?.name === 'NotAllowedError') return;
+    console.error('Screen change error:', e);
+    alert('画面共有の切り替えに失敗しました。\n' + (e?.message || e));
   }
-  replaceLocalTileStream('screen', newStream);
-  screenStream.getTracks().forEach(t=>t.stop());
-  screenStream=newStream;
-  screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
 }
 async function stopScreen(){
   if(!screenStream) return;
@@ -1647,16 +1678,17 @@ onChildAdded(inboxRef, async snap=>{
 });
 
 /* ---- Auto connect with room members（同じルームなら接続） ---- */
-onValue(playersRef, snap=>{
+onValue(playersRef, snap => {
   const ps = snap.val() || {};
 
-  // 同じルームにいる相手には全員接続
   for (const pid of Object.keys(ps)) {
     if (pid === meId) continue;
     const p = ps[pid];
     if (!p) continue;
 
-    if (!peers.has(pid)) getOrCreatePeer(pid);
+    if (!peers.has(pid)) {
+      getOrCreatePeer(pid);
+    }
 
     const st = peers.get(pid);
     if (meId < pid && st?.pc.signalingState === 'stable') {
@@ -1664,20 +1696,8 @@ onValue(playersRef, snap=>{
     }
   }
 
-  // いなくなった人だけ切断
   for (const pid of [...peers.keys()]) {
     if (!ps[pid]) {
-      peers.get(pid)?.pc.close();
-      peers.delete(pid);
-      removePeerTiles(pid);
-      detachSpeechMeter(pid);
-    }
-  }
-});
-
-  // いなくなった人の片付け
-  for(const pid of [...peers.keys()]){
-    if(!ps[pid] || !ps[pid].voice || !myVoice){
       peers.get(pid)?.pc.close();
       peers.delete(pid);
       removePeerTiles(pid);
