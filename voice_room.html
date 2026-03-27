@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>voice_room</title>
+<style>
+  :root{
+    --bg:#1e1e20;
+    --panel:#f3f3f3;
+    --text:#ffffff;
+    --black:#000;
+    --accent:#19a9ea;
+    --lime:#d8ff00;
+    --muted:#bcaec9;
+    --danger:#ff2b2b;
+    --border:#2b2b2b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+  }
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding:18px 24px 36px;
+  }
+  .top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    margin-bottom:26px;
+  }
+  .topLeft{
+    display:flex;
+    gap:24px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .backBtn{
+    min-width:290px;
+    padding:26px 28px;
+    border-radius:26px;
+    border:6px solid #000;
+    background:#f4f4f4;
+    color:#666;
+    font-size:20px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .lockBtn{
+    width:118px;
+    height:116px;
+    border-radius:24px;
+    border:6px solid #000;
+    background:#f4f4f4;
+    color:#666;
+    font-size:18px;
+    font-weight:800;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .selfTitle{
+    font-size:72px;
+    font-weight:900;
+    line-height:1;
+    white-space:nowrap;
+    margin-top:16px;
+  }
+
+  .members{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,360px));
+    gap:54px;
+    justify-content:center;
+    margin-top:34px;
+    margin-bottom:76px;
+  }
+  .memberCard{
+    min-height:210px;
+    border:10px solid #000;
+    background:#f2f2f2;
+    padding:24px 18px 14px;
+    position:relative;
+  }
+  .memberCard.me{
+    background:var(--accent);
+    border-color:var(--lime);
+  }
+  .avatarRing{
+    width:126px;
+    height:126px;
+    border-radius:50%;
+    border:9px solid #000;
+    background:#fff;
+    margin:8px auto 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .avatarRing img{
+    width:88px;
+    height:88px;
+    object-fit:contain;
+    display:block;
+  }
+  .avatarFallback{
+    font-size:42px;
+    font-weight:900;
+    color:#111;
+  }
+  .memberBottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:10px;
+  }
+  .memberName{
+    color:#6f6f6f;
+    font-size:18px;
+    font-weight:800;
+    line-height:1.2;
+    word-break:break-word;
+  }
+  .memberCard.me .memberName{
+    color:#ff6969;
+  }
+  .icons{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--muted);
+    font-size:23px;
+  }
+  .iconOff{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .iconOff::after{
+    content:"";
+    position:absolute;
+    width:34px;
+    height:4px;
+    background:var(--danger);
+    border-radius:999px;
+    transform:rotate(-28deg);
+  }
+
+  .controls{
+    display:flex;
+    justify-content:center;
+    gap:96px;
+    flex-wrap:wrap;
+  }
+  .ctrl{
+    width:142px;
+    height:142px;
+    border:none;
+    background:transparent;
+    padding:0;
+    cursor:pointer;
+  }
+  .ctrlInner{
+    width:100%;
+    height:100%;
+    background:#efefef;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    border:4px solid transparent;
+  }
+  .ctrl.active .ctrlInner{
+    border-color:#7c3aed;
+  }
+  .emoji{
+    font-size:72px;
+    line-height:1;
+  }
+  .ctrl.off .slash{
+    position:absolute;
+    width:86px;
+    height:5px;
+    background:var(--danger);
+    border-radius:999px;
+    transform:rotate(-35deg);
+  }
+
+  #toast{
+    position:fixed;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    z-index:100;
+    display:none;
+    background:rgba(0,0,0,.88);
+    color:#fff;
+    border-radius:12px;
+    padding:10px 14px;
+    border:1px solid rgba(255,255,255,.12);
+  }
+  #mediaMount{
+    display:none;
+  }
+
+  @media (max-width:960px){
+    .top{
+      flex-direction:column;
+    }
+    .selfTitle{
+      font-size:44px;
+    }
+    .controls{
+      gap:24px;
+    }
+    .ctrl{
+      width:108px;
+      height:108px;
+    }
+    .emoji{
+      font-size:56px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="topLeft">
+        <button class="backBtn" id="backBtn">退出してマップに戻る</button>
+        <button class="lockBtn" id="lockBtn">
+          <div id="lockIcon" style="font-size:34px">🔒</div>
+          <div id="lockText">ロック：ON</div>
+        </button>
+      </div>
+      <div class="selfTitle" id="selfTitle">自分：---</div>
+    </div>
+
+    <div class="members" id="members"></div>
+
+    <div class="controls">
+      <button class="ctrl off" id="btnMic" title="マイク">
+        <div class="ctrlInner">
+          <span class="emoji">🎙️</span>
+          <span class="slash"></span>
+        </div>
+      </button>
+
+      <button class="ctrl" id="btnHeadphone" title="ヘッドホン">
+        <div class="ctrlInner">
+          <span class="emoji">🎧</span>
+        </div>
+      </button>
+
+      <button class="ctrl" id="btnScreen" title="画面共有">
+        <div class="ctrlInner">
+          <span class="emoji">🖥️</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="mediaMount"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import {
+  getDatabase, ref, set, update, remove, onValue, onDisconnect,
+  push, onChildAdded, get
+} from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
+  authDomain:'nikori-town.firebaseapp.com',
+  databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId:'nikori-town',
+  storageBucket:'nikori-town.appspot.com',
+  messagingSenderId:'836836010871',
+  appId:'1:836836010871:web:74ae40cb16ee6d50368f72'
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
+
+async function ensureAnonAuth(){
+  if(auth.currentUser) return auth.currentUser;
+  await signInAnonymously(auth);
+  return await new Promise(resolve=>{
+    const off = onAuthStateChanged(auth, user=>{
+      if(user){
+        off();
+        resolve(user);
+      }
+    });
+  });
+}
+
+const u = new URL(location.href);
+const ROOM = (u.searchParams.get('room') || 'room-001').trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
+const NAME = (u.searchParams.get('name') || 'guest').trim() || 'guest';
+const RETURN_TO = u.searchParams.get('return') || './room.html';
+
+const selfTitle = document.getElementById('selfTitle');
+const membersEl = document.getElementById('members');
+const backBtn = document.getElementById('backBtn');
+const lockBtn = document.getElementById('lockBtn');
+const lockIcon = document.getElementById('lockIcon');
+const lockText = document.getElementById('lockText');
+const btnMic = document.getElementById('btnMic');
+const btnHeadphone = document.getElementById('btnHeadphone');
+const btnScreen = document.getElementById('btnScreen');
+const toastEl = document.getElementById('toast');
+const mediaMount = document.getElementById('mediaMount');
+
+selfTitle.textContent = `自分：${NAME}`;
+
+function toast(msg, ms=2400){
+  toastEl.textContent = msg;
+  toastEl.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>toastEl.style.display='none', ms);
+}
+
+const ICE = {
+  iceServers:[{urls:'stun:stun.l.google.com:19302'}],
+  sdpSemantics:'unified-plan'
+};
+
+let meId = null;
+let memberRef = null;
+let micStream = null;
+let screenStream = null;
+let listenEnabled = true;
+let roomLocked = true;
+let members = {};
+const peers = new Map();
+
+const voiceMembersRef = ref(db, `rooms/${ROOM}/voiceRoom/members`);
+const roomMetaRef     = ref(db, `rooms/${ROOM}/voiceRoom/meta`);
+const signalsInboxRef = uid => ref(db, `rooms/${ROOM}/voiceRoom/signals/${uid}`);
+
+const avatarMap = {
+  'マホロア': 'https://static.wikia.nocookie.net/kirby/images/6/66/Magolor_KRtDLDX.png',
+  'マホロア(エピローグ)': 'https://static.wikia.nocookie.net/kirby/images/6/66/Magolor_KRtDLDX.png'
+};
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function renderAvatar(name){
+  const src = avatarMap[name];
+  if(src){
+    return `<img src="${escapeHtml(src)}" alt="">`;
+  }
+  return `<div class="avatarFallback">${escapeHtml((name||'?').slice(0,1))}</div>`;
+}
+function renderMembers(){
+  const ids = Object.keys(members).sort((a,b)=>{
+    if(a===meId) return -1;
+    if(b===meId) return 1;
+    return (members[a]?.name||'').localeCompare(members[b]?.name||'', 'ja');
+  });
+
+  membersEl.innerHTML = ids.map(id=>{
+    const m = members[id] || {};
+    const micClass = m.micOn ? '' : 'iconOff';
+    const hpClass  = m.listenOn ? '' : 'iconOff';
+    return `
+      <div class="memberCard ${id===meId ? 'me' : ''}">
+        <div class="avatarRing">${renderAvatar(m.name || '?')}</div>
+        <div class="memberBottom">
+          <div class="memberName">${escapeHtml(m.name || 'guest')}</div>
+          <div class="icons">
+            <span class="${micClass}">🎙️</span>
+            <span class="${hpClass}">🎧</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+async function sendSignal(to, data){
+  await push(signalsInboxRef(to), Object.assign({
+    from: meId,
+    ts: Date.now()
+  }, data));
+}
+function getAllLocalTracks(){
+  const out = [];
+  if(micStream) out.push(...micStream.getAudioTracks());
+  if(screenStream) out.push(...screenStream.getVideoTracks());
+  return out;
+}
+function updateButtons(){
+  btnMic.classList.toggle('off', !micStream);
+  btnHeadphone.classList.toggle('off', !listenEnabled);
+  btnScreen.classList.toggle('active', !!screenStream);
+  lockIcon.textContent = roomLocked ? '🔒' : '🔓';
+  lockText.textContent = roomLocked ? 'ロック：ON' : 'ロック：OFF';
+}
+async function syncSelfMeta(){
+  if(!memberRef) return;
+  await update(memberRef, {
+    micOn: !!micStream,
+    listenOn: !!listenEnabled,
+    screenOn: !!screenStream,
+    ts: Date.now()
+  }).catch(()=>{});
+}
+
+function attachRemoteMedia(id, stream){
+  let box = document.getElementById(`remote-${id}`);
+  if(!box){
+    box = document.createElement('div');
+    box.id = `remote-${id}`;
+    mediaMount.appendChild(box);
+  }
+  box.innerHTML = '';
+
+  const audioTracks = stream.getAudioTracks();
+  const videoTracks = stream.getVideoTracks();
+
+  if(audioTracks.length){
+    const a = document.createElement('audio');
+    a.autoplay = true;
+    a.playsInline = true;
+    a.dataset.remote = '1';
+    a.srcObject = new MediaStream(audioTracks);
+    a.muted = !listenEnabled;
+    box.appendChild(a);
+    a.play?.().catch(()=>{});
+  }
+  if(videoTracks.length){
+    const v = document.createElement('video');
+    v.autoplay = true;
+    v.playsInline = true;
+    v.dataset.remote = '1';
+    v.srcObject = new MediaStream(videoTracks);
+    v.muted = true;
+    box.appendChild(v);
+    v.play?.().catch(()=>{});
+  }
+}
+function removeRemoteMedia(id){
+  document.getElementById(`remote-${id}`)?.remove();
+}
+async function refreshSenders(){
+  const tracks = getAllLocalTracks();
+
+  for(const [pid, st] of peers){
+    const pc = st.pc;
+    const senders = pc.getSenders();
+
+    const localAudio = tracks.find(t=>t.kind==='audio') || null;
+    const localVideo = tracks.find(t=>t.kind==='video') || null;
+
+    let audioSender = senders.find(s=>s.track && s.track.kind==='audio');
+    let videoSender = senders.find(s=>s.track && s.track.kind==='video');
+
+    if(localAudio){
+      if(audioSender) await audioSender.replaceTrack(localAudio).catch(()=>{});
+      else pc.addTrack(localAudio, micStream);
+    }else if(audioSender){
+      await audioSender.replaceTrack(null).catch(()=>{});
+    }
+
+    if(localVideo){
+      if(videoSender) await videoSender.replaceTrack(localVideo).catch(()=>{});
+      else pc.addTrack(localVideo, screenStream);
+    }else if(videoSender){
+      await videoSender.replaceTrack(null).catch(()=>{});
+    }
+  }
+
+  await syncSelfMeta();
+}
+function getOrCreatePeer(pid){
+  if(peers.has(pid)) return peers.get(pid);
+
+  const pc = new RTCPeerConnection(ICE);
+  const remoteStream = new MediaStream();
+
+  pc.ontrack = ev=>{
+    ev.streams[0]?.getTracks().forEach(t=>{
+      if(!remoteStream.getTracks().some(x=>x.id===t.id)){
+        remoteStream.addTrack(t);
+      }
+    });
+    attachRemoteMedia(pid, remoteStream);
+  };
+  pc.onicecandidate = ev=>{
+    if(ev.candidate){
+      sendSignal(pid, {type:'ice', candidate:ev.candidate}).catch(()=>{});
+    }
+  };
+  pc.onconnectionstatechange = ()=>{
+    if(['failed','closed','disconnected'].includes(pc.connectionState)){
+      removeRemoteMedia(pid);
+    }
+  };
+
+  getAllLocalTracks().forEach(track=>{
+    pc.addTrack(track, track.kind === 'audio' ? micStream : screenStream);
+  });
+
+  const st = {pc, remoteStream};
+  peers.set(pid, st);
+  return st;
+}
+async function makeOfferTo(pid){
+  const st = getOrCreatePeer(pid);
+  const pc = st.pc;
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await sendSignal(pid,{type:'offer', sdp:offer});
+}
+async function handleOffer(from, sdp){
+  const st = getOrCreatePeer(from);
+  const pc = st.pc;
+
+  if(pc.signalingState !== 'stable'){
+    await pc.setLocalDescription({type:'rollback'}).catch(()=>{});
+  }
+
+  await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+  const ans = await pc.createAnswer();
+  await pc.setLocalDescription(ans);
+  await sendSignal(from,{type:'answer', sdp:ans});
+}
+async function handleAnswer(from, sdp){
+  const st = peers.get(from);
+  if(!st) return;
+  await st.pc.setRemoteDescription(new RTCSessionDescription(sdp));
+}
+async function handleIce(from, cand){
+  const st = peers.get(from);
+  if(!st) return;
+  try{
+    await st.pc.addIceCandidate(new RTCIceCandidate(cand));
+  }catch{}
+}
+
+async function ensureMic(on=true){
+  try{
+    if(on && !micStream){
+      micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    }
+    if(!on && micStream){
+      micStream.getTracks().forEach(t=>t.stop());
+      micStream = null;
+    }
+    updateButtons();
+    await refreshSenders();
+  }catch(e){
+    console.error(e);
+    alert('マイクを開始できませんでした。\n' + (e?.message || e));
+  }
+}
+async function startScreen(){
+  try{
+    if(screenStream) return;
+    screenStream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+    const [track] = screenStream.getVideoTracks();
+    if(track){
+      track.addEventListener('ended', ()=> stopScreen());
+    }
+    updateButtons();
+    await refreshSenders();
+  }catch(e){
+    console.error(e);
+    alert('画面共有を開始できませんでした。\n' + (e?.message || e));
+  }
+}
+async function stopScreen(){
+  if(!screenStream) return;
+  screenStream.getTracks().forEach(t=>t.stop());
+  screenStream = null;
+  updateButtons();
+  await refreshSenders();
+}
+
+btnMic.onclick = async ()=>{ await ensureMic(!micStream); };
+btnHeadphone.onclick = async ()=>{
+  listenEnabled = !listenEnabled;
+  document.querySelectorAll('audio[data-remote]').forEach(a=>{
+    a.muted = !listenEnabled;
+  });
+  updateButtons();
+  await syncSelfMeta();
+};
+btnScreen.onclick = async ()=>{
+  if(screenStream) await stopScreen();
+  else await startScreen();
+};
+lockBtn.onclick = async ()=>{
+  roomLocked = !roomLocked;
+  updateButtons();
+  await update(roomMetaRef, {
+    locked: roomLocked,
+    updatedAt: Date.now(),
+    updatedBy: meId
+  }).catch(()=>{});
+};
+backBtn.onclick = async ()=>{
+  try{
+    if(memberRef) await remove(memberRef);
+  }catch{}
+  location.href = `${RETURN_TO}?room=${encodeURIComponent(ROOM)}&name=${encodeURIComponent(NAME)}`;
+};
+
+onValue(roomMetaRef, snap=>{
+  const v = snap.val() || {};
+  roomLocked = v.locked !== false;
+  updateButtons();
+});
+onValue(voiceMembersRef, snap=>{
+  members = snap.val() || {};
+  renderMembers();
+
+  for (const pid of Object.keys(members)) {
+    if (pid === meId) continue;
+
+    if (!peers.has(pid)) {
+      getOrCreatePeer(pid);
+    }
+
+    const st = peers.get(pid);
+    if (meId < pid && st?.pc.signalingState === 'stable') {
+      makeOfferTo(pid).catch(()=>{});
+    }
+  }
+
+  for (const pid of [...peers.keys()]) {
+    if (!members[pid]) {
+      peers.get(pid)?.pc.close();
+      peers.delete(pid);
+      removeRemoteMedia(pid);
+    }
+  }
+});
+
+async function boot(){
+  await ensureAnonAuth();
+  meId = auth.currentUser.uid;
+
+  memberRef = ref(db, `rooms/${ROOM}/voiceRoom/members/${meId}`);
+  await set(memberRef, {
+    name: NAME,
+    micOn: false,
+    listenOn: true,
+    screenOn: false,
+    ts: Date.now()
+  });
+  onDisconnect(memberRef).remove().catch(()=>{});
+
+  const metaSnap = await get(roomMetaRef).catch(()=>null);
+  if(!metaSnap || !metaSnap.exists()){
+    await set(roomMetaRef, {
+      locked: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      updatedBy: meId
+    }).catch(()=>{});
+    roomLocked = true;
+  }else{
+    roomLocked = metaSnap.val()?.locked !== false;
+  }
+  updateButtons();
+
+  onChildAdded(signalsInboxRef(meId), async snap=>{
+    const msg = snap.val();
+    const {from,type} = msg || {};
+    try{
+      if(from === meId) return;
+      if(type === 'offer')       await handleOffer(from,msg.sdp);
+      else if(type === 'answer') await handleAnswer(from,msg.sdp);
+      else if(type === 'ice')    await handleIce(from,msg.candidate);
+    }catch(e){
+      console.warn('signal err:', e);
+    }
+    remove(snap.ref).catch(()=>{});
+  });
+
+  document.addEventListener('pointerdown', ()=>{
+    document.querySelectorAll('audio[data-remote],video[data-remote]').forEach(el=>{
+      el.play?.().catch(()=>{});
+    });
+  }, {once:true});
+
+  addEventListener('beforeunload', ()=>{
+    try{
+      if(memberRef) remove(memberRef);
+    }catch{}
+  });
+}
+boot().catch(e=>{
+  console.error(e);
+  alert('voice_room の初期化に失敗しました。\n' + (e?.message || e));
+});
+</script>
+</body>
+</html>
