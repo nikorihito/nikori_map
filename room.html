@@ -1048,15 +1048,24 @@ function closeVoiceModal(){
   voiceModalWrap.style.display = 'none';
 }
 
-/* 本格ボイスルーム参加フラグをDBに反映 */
+/* 本格ボイスルーム参加フラグ
+   room.html では通話自体は行わず、voice_room.html へ遷移する */
 function setVoiceRoom(on){
-  if(on === inVoiceRoom) return;
-  inVoiceRoom = on;
-  my.voice   = on;
-  update(meRef,{voice:on}).catch(()=>{});
-  if(!on && !isInVoiceGate()){
-    setVoiceHintVisible(false);
+  if(!on){
+    inVoiceRoom = false;
+    my.voice   = false;
+    update(meRef,{voice:false}).catch(()=>{});
+    if(!isInVoiceGate()){
+      setVoiceHintVisible(false);
+    }
+    return;
   }
+
+  const next = new URL('./voice_room.html', location.href);
+  next.searchParams.set('room', ROOM);
+  next.searchParams.set('name', NAME);
+  next.searchParams.set('return', './room.html');
+  location.href = next.toString();
 }
 
 /* モーダルのボタン */
@@ -1677,24 +1686,9 @@ onChildAdded(inboxRef, async snap=>{
   remove(snap.ref).catch(()=>{});
 });
 
-/* ---- Auto connect with room members（同じルームなら接続） ---- */
+/* ---- room.html では自動通話しない ---- */
 onValue(playersRef, snap => {
   const ps = snap.val() || {};
-
-  for (const pid of Object.keys(ps)) {
-    if (pid === meId) continue;
-    const p = ps[pid];
-    if (!p) continue;
-
-    if (!peers.has(pid)) {
-      getOrCreatePeer(pid);
-    }
-
-    const st = peers.get(pid);
-    if (meId < pid && st?.pc.signalingState === 'stable') {
-      makeOfferTo(pid).catch(e => warn('offer err: ' + e.message));
-    }
-  }
 
   for (const pid of [...peers.keys()]) {
     if (!ps[pid]) {
@@ -1721,9 +1715,13 @@ document.addEventListener('click', e=>{
   if(!avMenu.contains(e.target)) closeAvMenu();
 });
 
-btnMic.onclick=()=>{ ensureMic(!micStream); };
-btnCam.onclick=()=>{ ensureCam(!camStream); };
-btnScreen.onclick=()=>{ screenStream ? stopScreen() : startScreen(); };
+function goVoiceRoomNotice(){
+  alert('通話・カメラ・画面共有は「本格ボイスルーム」で利用できます。
+ゲームセンター入口まで移動して Z キーを押してください。');
+}
+btnMic.onclick=()=>{ goVoiceRoomNotice(); };
+btnCam.onclick=()=>{ goVoiceRoomNotice(); };
+btnScreen.onclick=()=>{ goVoiceRoomNotice(); };
 
 btnMic.oncontextmenu=async(e)=>{
   e.preventDefault();
