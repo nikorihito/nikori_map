@@ -68,7 +68,8 @@
     color:#06202a;
     font-weight:700;
   }
-  #leaveBtn{background:linear-gradient(180deg,#fca5a5,#ef4444);color:#2a0606}
+  #leaveBtn{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
+  #copyRoomBtn{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
 
   /* AV buttons */
   .avbar{
@@ -335,11 +336,15 @@
     display:grid;
     place-items:center;
     font-size:22px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg,#64748b,#334155);
+    color:#e2e8f0;
     box-shadow:0 8px 22px rgba(0,0,0,.35);
   }
   #flyBtn.on{
-    background:linear-gradient(180deg,#fde68a,#facc15);
-    color:#3b2500;
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:800;
   }
 
   /* Joystick (mobile) */
@@ -400,6 +405,7 @@
 <div class="hud">
   <button id="leaveBtn">退室</button>
   <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
+  <button id="copyRoomBtn" title="このルームのURLをコピー">コピー</button>
 </div>
 
 <div class="avbar" aria-label="通話操作">
@@ -443,6 +449,8 @@ const SYNC_MS = 50;
 const MAX_MSG = 120;
 const FRAME_MIN = 1000 / 50;
 const FLY_SPEED_PPS = SPEED_PPS * 2.2;
+const PLANE_MIN_SIZE = 190;
+const PLANE_SCALE = 4.6;
 const EMOJIS = ['👍','❤️','🎉','👏','😂','😮','🙌','🔥'];
 const RTC_CONFIG = { iceServers:[{urls:'stun:stun.l.google.com:19302'}] };
 
@@ -474,6 +482,7 @@ const roomIdEl = document.getElementById('roomId');
 const whoEl = document.getElementById('who');
 const countEl = document.getElementById('count');
 const leaveBtn = document.getElementById('leaveBtn');
+const copyRoomBtn = document.getElementById('copyRoomBtn');
 const btnMic = document.getElementById('btnMic');
 const btnCam = document.getElementById('btnCam');
 const btnScreen = document.getElementById('btnScreen');
@@ -646,6 +655,38 @@ leaveBtn.onclick = async()=>{
   await cleanup();
   const back = url.searchParams.get('back') || './index.html';
   location.href = back;
+};
+
+function roomShareUrl(){
+  const u = new URL(location.href);
+  u.search = '';
+  u.hash = '';
+  u.searchParams.set('room', ROOM);
+  return u.toString();
+}
+async function copyText(value){
+  if(navigator.clipboard && window.isSecureContext){
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const ta = document.createElement('textarea');
+  ta.value = value;
+  ta.setAttribute('readonly','');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  ta.remove();
+}
+copyRoomBtn.onclick = async()=>{
+  try{
+    await copyText(roomShareUrl());
+    showToast('ルームURLをコピーしました。');
+  }catch(err){
+    console.warn(err);
+    showToast('コピーに失敗しました。URLを手動でコピーしてください。');
+  }
 };
 addEventListener('beforeunload', ()=>cleanup(false));
 async function cleanup(stopTracks=true){
@@ -1157,15 +1198,21 @@ setInterval(renderAvGrid, 500);
 
 /* ===== Movement ===== */
 const keys = new Set();
+let flightComboLocked = false;
 addEventListener('keydown', e=>{
   if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
-  keys.add(e.key.toLowerCase());
-  if(e.key.toLowerCase() === 'f'){
+  const k = e.key.toLowerCase();
+  keys.add(k);
+  if(keys.has('arrowdown') && keys.has('s') && !flightComboLocked){
     e.preventDefault();
+    flightComboLocked = true;
     setFlight(!isFlying);
   }
 });
-addEventListener('keyup', e=>keys.delete(e.key.toLowerCase()));
+addEventListener('keyup', e=>{
+  keys.delete(e.key.toLowerCase());
+  if(!keys.has('arrowdown') || !keys.has('s')) flightComboLocked = false;
+});
 
 let joy = {x:0,y:0,active:false};
 function updateJoy(touch){
@@ -1245,12 +1292,14 @@ function drawPlayer(p, id, cam){
   const sy = Math.round(p.y - cam.y);
   const fly = !!p.fly;
   if(fly){
-    drawImageCentered(imgPlane, sx, sy-12, Math.max(54,imgPlane.width*2.4), Math.max(54,imgPlane.height*2.4), false, .98);
+    const planeW = Math.max(PLANE_MIN_SIZE, imgPlane.width * PLANE_SCALE);
+    const planeH = Math.max(PLANE_MIN_SIZE, imgPlane.height * PLANE_SCALE);
+    drawImageCentered(imgPlane, sx, sy + 8, planeW, planeH, false, 1);
   }
   const sp = spriteByDir(p.dir || 'front');
   const w = sp.img.width * SCALE;
   const h = sp.img.height * SCALE;
-  drawImageCentered(sp.img, sx, sy, w, h, sp.flip, fly ? .72 : 1);
+  drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
 
   const name = p.name || 'guest';
   const speaking = isSpeaking(id);
