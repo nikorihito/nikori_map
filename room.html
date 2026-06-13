@@ -110,6 +110,28 @@
   }
   .avmenu .line{font-size:.9rem;color:var(--muted);padding:4px 6px}
 
+  .avmenu .groupTitle{
+    font-weight:800;
+    color:#e2e8f0;
+    padding:4px 6px 7px;
+  }
+  .avmenu button,
+  .avmenu select{
+    width:100%;
+    margin:4px 0;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:#0b1220;
+    color:#e2e8f0;
+  }
+  .avmenu button.primary{
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:800;
+  }
+  .avmenu select{outline:none}
+
   #audioUnlock{
     position:fixed;
     left:50%;
@@ -187,6 +209,31 @@
     background:rgba(15,23,42,.82);
     border:1px solid rgba(148,163,184,.35);
   }
+
+  #avBackdrop{
+    position:fixed;
+    inset:0;
+    z-index:70;
+    display:none;
+    background:rgba(2,6,23,.62);
+    backdrop-filter:blur(3px);
+  }
+  .avCard.expandable{cursor:zoom-in}
+  .avCard.expanded{
+    position:fixed;
+    left:50%;
+    top:50%;
+    z-index:81;
+    width:min(92vw,980px);
+    min-width:0;
+    height:min(72vh,560px);
+    transform:translate(-50%,-50%);
+    cursor:zoom-out;
+    border-color:var(--a1);
+    box-shadow:0 0 0 2px rgba(34,211,238,.30),0 24px 80px rgba(0,0,0,.62);
+  }
+  .avCard.expanded video{object-fit:contain}
+  .mobileOnly{display:none}
 
   /* Chat */
   #chatView{
@@ -389,13 +436,137 @@
     box-shadow:0 14px 40px rgba(0,0,0,.45);
   }
 
-  @media (pointer:coarse){
-    #joyBase{display:block}
-    #chatView{width:min(92vw,520px);max-height:38vh}
-    #composer{width:calc(100vw - 16px)}
-    #composer input{width:100%}
-    .avbar{top:58px}
-    #avGrid{bottom:74px;max-width:calc(100vw - 86px)}
+  @media (pointer:coarse), (max-width:820px){
+    .mobileOnly{
+      display:grid;
+      place-items:center;
+      position:fixed;
+      z-index:26;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,var(--a1),var(--a2));
+      color:#06202a;
+      font-weight:800;
+      box-shadow:0 8px 22px rgba(0,0,0,.35);
+    }
+    .hud{
+      left:6px;
+      right:6px;
+      top:6px;
+      gap:5px;
+      flex-wrap:nowrap;
+    }
+    .hud .info{
+      flex:1;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      font-size:12px;
+      padding:6px 8px;
+    }
+    .hud button{
+      padding:7px 8px;
+      font-size:12px;
+      border-radius:9px;
+      white-space:nowrap;
+    }
+    .avbar{
+      left:6px;
+      top:52px;
+      gap:6px;
+    }
+    .avbar button{
+      width:42px;
+      min-width:42px;
+      height:42px;
+      padding:0;
+      border-radius:12px;
+      font-size:20px;
+    }
+    #avPanelToggle{
+      left:144px;
+      top:52px;
+      width:56px;
+      height:42px;
+      border-radius:12px;
+      font-size:12px;
+    }
+    #chatToggleBtn{
+      right:16px;
+      bottom:96px;
+      width:52px;
+      height:52px;
+      border-radius:50%;
+      font-size:22px;
+    }
+    #reactFab{
+      right:16px;
+      bottom:156px;
+      width:52px;
+      height:52px;
+    }
+    #reactMenu{right:16px;bottom:214px}
+    #flyBtn{
+      left:16px;
+      bottom:132px;
+      width:54px;
+      height:54px;
+    }
+    #joyBase{
+      display:block;
+      left:14px;
+      bottom:196px;
+      width:104px;
+      height:104px;
+    }
+    #chatView{
+      display:none;
+      left:8px;
+      right:8px;
+      top:102px;
+      width:auto;
+      max-height:42vh;
+      z-index:31;
+    }
+    body.chatOpen #chatView{display:block}
+    #composer{
+      display:none;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      width:auto;
+      transform:none;
+      z-index:32;
+    }
+    body.chatOpen #composer{display:flex}
+    #composer input{width:100%;min-width:0}
+    #avGrid{
+      display:none;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      max-width:none;
+      padding-bottom:2px;
+      z-index:29;
+    }
+    body.avOpen #avGrid{display:flex}
+    body.chatOpen #avGrid{display:none}
+    .avCard{
+      width:148px;
+      min-width:148px;
+      height:96px;
+    }
+    .avCard.expanded{
+      width:94vw;
+      height:62vh;
+    }
+    .avmenu{
+      left:8px!important;
+      right:8px;
+      top:98px!important;
+      min-width:0;
+      max-width:none;
+    }
+    #audioUnlock{bottom:72px;max-width:90vw;text-align:center}
   }
 </style>
 </head>
@@ -405,14 +576,15 @@
 <div class="hud">
   <button id="leaveBtn">退室</button>
   <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
-  <button id="copyRoomBtn" title="このルームのURLをコピー">ルームURLをコピー</button>
+  <button id="copyRoomBtn" title="このルームのURLをコピー">コピー</button>
 </div>
 
 <div class="avbar" aria-label="通話操作">
-  <button id="btnMic" title="マイク">🎙️</button>
-  <button id="btnCam" title="カメラ">📷</button>
-  <button id="btnScreen" title="画面共有">🖥️</button>
+  <button id="btnMic" title="マイク（右クリックで設定）">🎙️</button>
+  <button id="btnCam" title="カメラ（右クリックで設定）">📷</button>
+  <button id="btnScreen" title="画面共有（右クリックで設定）">🖥️</button>
 </div>
+<button id="avPanelToggle" class="mobileOnly" title="通話画面を表示・非表示">通話</button>
 
 <div id="chatView" aria-label="チャット"></div>
 <div id="composer">
@@ -428,11 +600,13 @@
 </div>
 
 <button id="reactFab" title="リアクション">😊</button>
+<button id="chatToggleBtn" class="mobileOnly" title="チャットを表示・非表示">💬</button>
 <div id="reactMenu"></div>
 
 <button id="flyBtn" title="フライト（↓ + H）">✈️</button>
 <div id="joyBase"><div id="joyStick"></div></div>
 
+<div id="avBackdrop"></div>
 <div id="avGrid"></div>
 <div id="avMenu" class="avmenu"></div>
 <div id="audioUnlock">クリックして音声を有効化</div>
@@ -482,10 +656,13 @@ const roomIdEl = document.getElementById('roomId');
 const whoEl = document.getElementById('who');
 const countEl = document.getElementById('count');
 const leaveBtn = document.getElementById('leaveBtn');
+const copyRoomBtn = document.getElementById('copyRoomBtn');
 const btnMic = document.getElementById('btnMic');
 const btnCam = document.getElementById('btnCam');
 const btnScreen = document.getElementById('btnScreen');
+const avPanelToggle = document.getElementById('avPanelToggle');
 const avGrid = document.getElementById('avGrid');
+const avBackdrop = document.getElementById('avBackdrop');
 const avMenu = document.getElementById('avMenu');
 const audioUnlock = document.getElementById('audioUnlock');
 const toastEl = document.getElementById('toast');
@@ -494,6 +671,7 @@ const textEl = document.getElementById('text');
 const sendBtn = document.getElementById('send');
 const ctxMenu = document.getElementById('ctxMenu');
 const reactFab = document.getElementById('reactFab');
+const chatToggleBtn = document.getElementById('chatToggleBtn');
 const reactMenu = document.getElementById('reactMenu');
 const flyBtn = document.getElementById('flyBtn');
 const joyBase = document.getElementById('joyBase');
@@ -549,6 +727,25 @@ const ROOM = safeKey(url.searchParams.get('room') || 'room-001');
 const NAME = safeName(url.searchParams.get('name') || 'guest');
 roomIdEl.textContent = ROOM;
 whoEl.textContent = NAME;
+
+copyRoomBtn.onclick = async()=>{
+  const shareUrl = new URL(location.href);
+  shareUrl.searchParams.set('room', ROOM);
+  shareUrl.searchParams.delete('name');
+  const text = shareUrl.href;
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('ルームURLをコピーしました');
+  }catch{
+    prompt('このURLをコピーしてください', text);
+  }
+};
+chatToggleBtn?.addEventListener('click', ()=>{
+  document.body.classList.toggle('chatOpen');
+});
+avPanelToggle?.addEventListener('click', ()=>{
+  document.body.classList.toggle('avOpen');
+});
 
 /* ===== Assets ===== */
 const imgMap = await loadImage('./map_1.png?v=20250927-2', {fallbackSize:[2048,2048], label:'map'});
@@ -917,27 +1114,32 @@ function isSpeaking(id){ return (speakUntil.get(id)||0) > performance.now(); }
 let micStream = null;
 let camStream = null;
 let screenStream = null;
+let selectedMicId = '';
+let selectedCamId = '';
+let expandedAvKey = null;
 const peerStates = new Map();
 const remoteStreams = new Map();
 
 function stopStream(stream){
   if(stream) stream.getTracks().forEach(t=>t.stop());
 }
-function getAudioTrack(){ return micStream?.getAudioTracks()[0] || null; }
-function getVideoTrack(){ return screenStream?.getVideoTracks()[0] || camStream?.getVideoTracks()[0] || null; }
-function getLocalPreviewStream(){
+function liveTrack(track){ return track && track.readyState === 'live'; }
+function getAudioTrack(){ return micStream?.getAudioTracks().find(liveTrack) || null; }
+function getCamTrack(){ return camStream?.getVideoTracks().find(liveTrack) || null; }
+function getScreenTrack(){ return screenStream?.getVideoTracks().find(liveTrack) || null; }
+function streamFromTracks(tracks){
   const s = new MediaStream();
-  const a = getAudioTrack();
-  const v = getVideoTrack();
-  if(a) s.addTrack(a);
-  if(v) s.addTrack(v);
+  tracks.filter(Boolean).forEach(t=>s.addTrack(t));
   return s;
 }
+function getLocalCameraStream(){ return streamFromTracks([getAudioTrack(), getCamTrack()]); }
+function getLocalScreenStream(){ return streamFromTracks([getScreenTrack()]); }
+
 function updateAvButtons(){
-  btnMic.classList.toggle('on', !!micStream);
-  btnCam.classList.toggle('on', !!camStream);
-  btnScreen.classList.toggle('on', !!screenStream);
-  localAvState = {mic:!!micStream, cam:!!camStream, screen:!!screenStream};
+  btnMic.classList.toggle('on', !!getAudioTrack());
+  btnCam.classList.toggle('on', !!getCamTrack());
+  btnScreen.classList.toggle('on', !!getScreenTrack());
+  localAvState = {mic:!!getAudioTrack(), cam:!!getCamTrack(), screen:!!getScreenTrack()};
   update(meRef,{av:localAvState, ts:now()}).catch(()=>{});
   renderAvGrid();
 }
@@ -947,8 +1149,18 @@ async function requestMedia(kind){
     return null;
   }
   try{
-    if(kind === 'mic') return await navigator.mediaDevices.getUserMedia({audio:true, video:false});
-    if(kind === 'cam') return await navigator.mediaDevices.getUserMedia({audio:false, video:{width:{ideal:960}, height:{ideal:540}}});
+    if(kind === 'mic'){
+      const audio = selectedMicId
+        ? {deviceId:{exact:selectedMicId}, echoCancellation:true, noiseSuppression:true, autoGainControl:true}
+        : {echoCancellation:true, noiseSuppression:true, autoGainControl:true};
+      return await navigator.mediaDevices.getUserMedia({audio, video:false});
+    }
+    if(kind === 'cam'){
+      const video = selectedCamId
+        ? {deviceId:{exact:selectedCamId}, width:{ideal:960}, height:{ideal:540}}
+        : {width:{ideal:960}, height:{ideal:540}};
+      return await navigator.mediaDevices.getUserMedia({audio:false, video});
+    }
     if(kind === 'screen') return await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
   }catch(err){
     console.warn(err);
@@ -956,22 +1168,22 @@ async function requestMedia(kind){
     return null;
   }
 }
-btnMic.onclick = async()=>{
+async function setMicEnabled(on){
   ensureAudioCtx();
   if(micStream){ stopStream(micStream); micStream = null; }
-  else micStream = await requestMedia('mic');
+  if(on) micStream = await requestMedia('mic');
   updateAvButtons();
   await syncAllSendersAndNegotiate();
-};
-btnCam.onclick = async()=>{
+}
+async function setCamEnabled(on){
   if(camStream){ stopStream(camStream); camStream = null; }
-  else camStream = await requestMedia('cam');
+  if(on) camStream = await requestMedia('cam');
   updateAvButtons();
   await syncAllSendersAndNegotiate();
-};
-btnScreen.onclick = async()=>{
+}
+async function setScreenEnabled(on){
   if(screenStream){ stopStream(screenStream); screenStream = null; }
-  else{
+  if(on){
     screenStream = await requestMedia('screen');
     const track = screenStream?.getVideoTracks()[0];
     if(track) track.onended = async()=>{
@@ -982,6 +1194,116 @@ btnScreen.onclick = async()=>{
   }
   updateAvButtons();
   await syncAllSendersAndNegotiate();
+}
+btnMic.onclick = ()=>setMicEnabled(!getAudioTrack());
+btnCam.onclick = ()=>setCamEnabled(!getCamTrack());
+btnScreen.onclick = ()=>setScreenEnabled(!getScreenTrack());
+
+async function getDevices(){
+  if(!navigator.mediaDevices?.enumerateDevices) return [];
+  try{ return await navigator.mediaDevices.enumerateDevices(); }
+  catch(err){ console.warn(err); return []; }
+}
+function menuButton(text, onClick, cls=''){
+  const b = document.createElement('button');
+  b.textContent = text;
+  if(cls) b.className = cls;
+  b.onclick = onClick;
+  return b;
+}
+function menuLine(text){
+  const d = document.createElement('div');
+  d.className = 'line';
+  d.textContent = text;
+  return d;
+}
+async function deviceSelect(kind){
+  const select = document.createElement('select');
+  const devices = await getDevices();
+  const list = devices.filter(d=>kind === 'mic' ? d.kind === 'audioinput' : d.kind === 'videoinput');
+  const current = kind === 'mic' ? selectedMicId : selectedCamId;
+  const first = document.createElement('option');
+  first.value = '';
+  first.textContent = kind === 'mic' ? '標準マイク' : '標準カメラ';
+  select.appendChild(first);
+  list.forEach((d,i)=>{
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.textContent = d.label || `${kind === 'mic' ? 'マイク' : 'カメラ'} ${i+1}`;
+    select.appendChild(opt);
+  });
+  select.value = current;
+  select.onchange = async()=>{
+    if(kind === 'mic'){
+      selectedMicId = select.value;
+      if(getAudioTrack()) await setMicEnabled(true);
+    }else{
+      selectedCamId = select.value;
+      if(getCamTrack()) await setCamEnabled(true);
+    }
+    showToast('入力デバイスを変更しました');
+  };
+  return select;
+}
+async function openAvSettings(kind, x, y){
+  avMenu.innerHTML = '';
+  const title = document.createElement('div');
+  title.className = 'groupTitle';
+  title.textContent = kind === 'mic' ? 'マイク設定' : kind === 'cam' ? 'カメラ設定' : '画面共有設定';
+  avMenu.appendChild(title);
+
+  if(kind === 'mic'){
+    avMenu.appendChild(menuButton(getAudioTrack() ? 'マイクをOFF' : 'マイクをON', ()=>{ avMenu.style.display='none'; setMicEnabled(!getAudioTrack()); }, 'primary'));
+    avMenu.appendChild(await deviceSelect('mic'));
+    avMenu.appendChild(menuLine('マイク音声はカメラ画面と同じカードに統合します。'));
+  }else if(kind === 'cam'){
+    avMenu.appendChild(menuButton(getCamTrack() ? 'カメラをOFF' : 'カメラをON', ()=>{ avMenu.style.display='none'; setCamEnabled(!getCamTrack()); }, 'primary'));
+    avMenu.appendChild(await deviceSelect('cam'));
+    avMenu.appendChild(menuLine('カメラはマイクと同じカードに表示します。'));
+  }else{
+    avMenu.appendChild(menuButton(getScreenTrack() ? '画面共有を停止' : '画面共有を開始', ()=>{ avMenu.style.display='none'; setScreenEnabled(!getScreenTrack()); }, 'primary'));
+    avMenu.appendChild(menuLine('画面共有はカメラと統合せず、必ず別カードで表示します。'));
+  }
+  avMenu.appendChild(menuLine('左クリック: ON/OFF ／ 右クリック・長押し: 設定'));
+  avMenu.style.display = 'block';
+  avMenu.style.left = `${clamp(x,8,innerWidth-260)}px`;
+  avMenu.style.top = `${clamp(y,8,innerHeight-260)}px`;
+}
+function bindAvSettingsButton(btn, kind){
+  btn.addEventListener('click', e=>{
+    if(btn.dataset.skipClick === '1'){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      btn.dataset.skipClick = '';
+    }
+  }, true);
+  btn.addEventListener('contextmenu', e=>{
+    e.preventDefault();
+    openAvSettings(kind, e.clientX, e.clientY);
+  });
+  let holdTimer = null;
+  btn.addEventListener('touchstart', e=>{
+    const t = e.touches[0];
+    holdTimer = setTimeout(()=>{
+      btn.dataset.skipClick = '1';
+      openAvSettings(kind, t.clientX, t.clientY);
+      setTimeout(()=>{ btn.dataset.skipClick = ''; }, 600);
+    }, 620);
+  }, {passive:true});
+  btn.addEventListener('touchend', ()=>clearTimeout(holdTimer));
+  btn.addEventListener('touchmove', ()=>clearTimeout(holdTimer));
+}
+bindAvSettingsButton(btnMic, 'mic');
+bindAvSettingsButton(btnCam, 'cam');
+bindAvSettingsButton(btnScreen, 'screen');
+addEventListener('click', e=>{
+  if(!avMenu.contains(e.target) && ![btnMic,btnCam,btnScreen].includes(e.target)) avMenu.style.display='none';
+});
+
+avBackdrop.onclick = ()=>{
+  expandedAvKey = null;
+  avBackdrop.style.display = 'none';
+  renderAvGrid();
 };
 audioUnlock.onclick = ()=>{
   ensureAudioCtx();
@@ -1004,18 +1326,27 @@ function ensurePeer(peerId){
 
   const pc = new RTCPeerConnection(RTC_CONFIG);
   const polite = meId > peerId;
-  st = {pc, polite, makingOffer:false, ignoreOffer:false, senders:{audio:null, video:null}, remoteStream:new MediaStream()};
+  const remote = {audio:new MediaStream(), videos:[]};
+  st = {pc, polite, makingOffer:false, ignoreOffer:false, senders:{audio:null, cam:null, screen:null}, remote};
   peerStates.set(peerId, st);
-  remoteStreams.set(peerId, st.remoteStream);
+  remoteStreams.set(peerId, remote);
 
   pc.onicecandidate = e=>{
     if(e.candidate) sendSignal(peerId, {type:'ice', candidate:e.candidate.toJSON()});
   };
   pc.ontrack = e=>{
-    const stream = st.remoteStream;
-    stream.addTrack(e.track);
-    attachSpeechMeter(peerId, stream);
-    e.track.onended = ()=>renderAvGrid();
+    if(e.track.kind === 'audio'){
+      if(!remote.audio.getTracks().some(t=>t.id === e.track.id)) remote.audio.addTrack(e.track);
+      attachSpeechMeter(peerId, remote.audio);
+    }else if(e.track.kind === 'video'){
+      if(!remote.videos.some(t=>t.id === e.track.id)) remote.videos.push(e.track);
+    }
+    e.track.onended = ()=>{
+      if(e.track.kind === 'video') remote.videos = remote.videos.filter(t=>t.id !== e.track.id);
+      renderAvGrid();
+    };
+    e.track.onmute = ()=>renderAvGrid();
+    e.track.onunmute = ()=>renderAvGrid();
     renderAvGrid();
   };
   pc.onconnectionstatechange = ()=>{
@@ -1040,25 +1371,23 @@ function closePeer(peerId){
 async function sendSignal(to, payload){
   await push(ref(db, `rooms/${ROOM}/rtc/${to}`), Object.assign({from:meId, ts:now()}, payload));
 }
+async function syncSender(pc, st, key, track, stream){
+  if(track){
+    if(st.senders[key]) await st.senders[key].replaceTrack(track);
+    else st.senders[key] = pc.addTrack(track, stream);
+  }else if(st.senders[key]){
+    await st.senders[key].replaceTrack(null);
+  }
+}
 async function syncSenders(peerId){
   const st = ensurePeer(peerId);
   if(!st) return;
   const pc = st.pc;
-  const a = getAudioTrack();
-  const v = getVideoTrack();
-
-  if(a){
-    if(st.senders.audio) await st.senders.audio.replaceTrack(a);
-    else st.senders.audio = pc.addTrack(a, getLocalPreviewStream());
-  }else if(st.senders.audio){
-    await st.senders.audio.replaceTrack(null);
-  }
-  if(v){
-    if(st.senders.video) await st.senders.video.replaceTrack(v);
-    else st.senders.video = pc.addTrack(v, getLocalPreviewStream());
-  }else if(st.senders.video){
-    await st.senders.video.replaceTrack(null);
-  }
+  const audioCamStream = getLocalCameraStream();
+  const screenOnlyStream = getLocalScreenStream();
+  await syncSender(pc, st, 'audio', getAudioTrack(), audioCamStream);
+  await syncSender(pc, st, 'cam', getCamTrack(), audioCamStream);
+  await syncSender(pc, st, 'screen', getScreenTrack(), screenOnlyStream);
 }
 async function syncAllSendersAndNegotiate(){
   connectToKnownPeers();
@@ -1107,24 +1436,44 @@ async function handleSignal(msgKey, msg){
 }
 onChildAdded(rtcInboxRef, snap=>handleSignal(snap.key, snap.val()));
 
+function activeVideos(remote){
+  return (remote?.videos || []).filter(t=>t.readyState === 'live' && !t.muted);
+}
 function renderAvGrid(){
   avGrid.innerHTML = '';
-  const localPreview = getLocalPreviewStream();
-  if(localPreview.getTracks().length){
-    avGrid.appendChild(makeAvCard(meId, NAME + '（自分）', localPreview, true, localAvState));
+
+  const localCamera = getLocalCameraStream();
+  if(localCamera.getTracks().length){
+    avGrid.appendChild(makeAvCard('self-camera', meId, NAME + '（自分）', localCamera, true, {mic:!!getAudioTrack(), cam:!!getCamTrack()}, 'camera', false));
   }
-  for(const [id,stream] of remoteStreams){
+  const localScreen = getLocalScreenStream();
+  if(localScreen.getTracks().length){
+    avGrid.appendChild(makeAvCard('self-screen', meId, NAME + '（画面共有）', localScreen, true, {screen:true}, 'screen', false));
+  }
+
+  for(const [id,remote] of remoteStreams){
     const p = players[id] || ghosts[id] || {};
-    const hasTrack = stream.getTracks().some(t=>t.readyState === 'live');
     const av = p.av || {};
-    if(hasTrack || av.mic || av.cam || av.screen){
-      avGrid.appendChild(makeAvCard(id, p.name || 'guest', stream, false, av));
+    const videos = activeVideos(remote);
+    const audioTracks = remote.audio.getAudioTracks().filter(liveTrack);
+    const camTrack = av.cam ? videos[0] : null;
+    const screenTrack = av.screen ? videos[av.cam ? 1 : 0] : null;
+
+    if(av.mic || av.cam || audioTracks.length || camTrack){
+      const s = streamFromTracks([...audioTracks, camTrack]);
+      avGrid.appendChild(makeAvCard(`${id}-camera`, id, p.name || 'guest', s, false, {mic:!!av.mic, cam:!!av.cam}, 'camera', !!camTrack));
+    }
+    if(av.screen || screenTrack){
+      const s = streamFromTracks([screenTrack]);
+      avGrid.appendChild(makeAvCard(`${id}-screen`, id, `${p.name || 'guest'}（画面共有）`, s, false, {screen:true}, 'screen', !!screenTrack));
     }
   }
+  avBackdrop.style.display = expandedAvKey ? 'block' : 'none';
 }
-function makeAvCard(id, name, stream, muted, av={}){
+function makeAvCard(cardKey, id, name, stream, muted, av={}, type='camera', expandable=false){
   const card = document.createElement('div');
-  card.className = 'avCard' + (isSpeaking(id) ? ' speaking':'');
+  card.className = 'avCard' + (isSpeaking(id) ? ' speaking':'') + (expandable ? ' expandable':'') + (expandedAvKey === cardKey ? ' expanded':'');
+  card.dataset.avKey = cardKey;
   const videoTrack = stream.getVideoTracks().find(t=>t.readyState === 'live');
   if(videoTrack){
     const video = document.createElement('video');
@@ -1137,7 +1486,7 @@ function makeAvCard(id, name, stream, muted, av={}){
   }else{
     const audioOnly = document.createElement('div');
     audioOnly.className = 'audioOnly';
-    audioOnly.textContent = '🎧';
+    audioOnly.textContent = type === 'screen' ? '🖥️' : '🎧';
     card.appendChild(audioOnly);
     if(stream.getAudioTracks().length){
       const audio = document.createElement('audio');
@@ -1147,6 +1496,12 @@ function makeAvCard(id, name, stream, muted, av={}){
       audio.play?.().catch(()=>{ if(!muted) audioUnlock.style.display='block'; });
       card.appendChild(audio);
     }
+  }
+  if(expandable){
+    card.onclick = ()=>{
+      expandedAvKey = expandedAvKey === cardKey ? null : cardKey;
+      renderAvGrid();
+    };
   }
   const badges = document.createElement('div');
   badges.className = 'badges';
