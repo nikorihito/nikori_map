@@ -69,7 +69,6 @@
     font-weight:700;
   }
   #leaveBtn{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
-  #copyRoomBtn{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
 
   /* AV buttons */
   .avbar{
@@ -109,28 +108,6 @@
     box-shadow:0 14px 40px rgba(0,0,0,.45);
   }
   .avmenu .line{font-size:.9rem;color:var(--muted);padding:4px 6px}
-
-  .avmenu .groupTitle{
-    font-weight:800;
-    color:#e2e8f0;
-    padding:4px 6px 7px;
-  }
-  .avmenu button,
-  .avmenu select{
-    width:100%;
-    margin:4px 0;
-    padding:8px 10px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:#0b1220;
-    color:#e2e8f0;
-  }
-  .avmenu button.primary{
-    background:linear-gradient(180deg,var(--a1),var(--a2));
-    color:#06202a;
-    font-weight:800;
-  }
-  .avmenu select{outline:none}
 
   #audioUnlock{
     position:fixed;
@@ -209,31 +186,6 @@
     background:rgba(15,23,42,.82);
     border:1px solid rgba(148,163,184,.35);
   }
-
-  #avBackdrop{
-    position:fixed;
-    inset:0;
-    z-index:70;
-    display:none;
-    background:rgba(2,6,23,.62);
-    backdrop-filter:blur(3px);
-  }
-  .avCard.expandable{cursor:zoom-in}
-  .avCard.expanded{
-    position:fixed;
-    left:50%;
-    top:50%;
-    z-index:81;
-    width:min(92vw,980px);
-    min-width:0;
-    height:min(72vh,560px);
-    transform:translate(-50%,-50%);
-    cursor:zoom-out;
-    border-color:var(--a1);
-    box-shadow:0 0 0 2px rgba(34,211,238,.30),0 24px 80px rgba(0,0,0,.62);
-  }
-  .avCard.expanded video{object-fit:contain}
-  .mobileOnly{display:none}
 
   /* Chat */
   #chatView{
@@ -436,137 +388,13 @@
     box-shadow:0 14px 40px rgba(0,0,0,.45);
   }
 
-  @media (pointer:coarse), (max-width:820px){
-    .mobileOnly{
-      display:grid;
-      place-items:center;
-      position:fixed;
-      z-index:26;
-      border:1px solid var(--border);
-      background:linear-gradient(180deg,var(--a1),var(--a2));
-      color:#06202a;
-      font-weight:800;
-      box-shadow:0 8px 22px rgba(0,0,0,.35);
-    }
-    .hud{
-      left:6px;
-      right:6px;
-      top:6px;
-      gap:5px;
-      flex-wrap:nowrap;
-    }
-    .hud .info{
-      flex:1;
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      font-size:12px;
-      padding:6px 8px;
-    }
-    .hud button{
-      padding:7px 8px;
-      font-size:12px;
-      border-radius:9px;
-      white-space:nowrap;
-    }
-    .avbar{
-      left:6px;
-      top:52px;
-      gap:6px;
-    }
-    .avbar button{
-      width:42px;
-      min-width:42px;
-      height:42px;
-      padding:0;
-      border-radius:12px;
-      font-size:20px;
-    }
-    #avPanelToggle{
-      left:144px;
-      top:52px;
-      width:56px;
-      height:42px;
-      border-radius:12px;
-      font-size:12px;
-    }
-    #chatToggleBtn{
-      right:16px;
-      bottom:96px;
-      width:52px;
-      height:52px;
-      border-radius:50%;
-      font-size:22px;
-    }
-    #reactFab{
-      right:16px;
-      bottom:156px;
-      width:52px;
-      height:52px;
-    }
-    #reactMenu{right:16px;bottom:214px}
-    #flyBtn{
-      left:16px;
-      bottom:132px;
-      width:54px;
-      height:54px;
-    }
-    #joyBase{
-      display:block;
-      left:14px;
-      bottom:196px;
-      width:104px;
-      height:104px;
-    }
-    #chatView{
-      display:none;
-      left:8px;
-      right:8px;
-      top:102px;
-      width:auto;
-      max-height:42vh;
-      z-index:31;
-    }
-    body.chatOpen #chatView{display:block}
-    #composer{
-      display:none;
-      left:8px;
-      right:8px;
-      bottom:8px;
-      width:auto;
-      transform:none;
-      z-index:32;
-    }
-    body.chatOpen #composer{display:flex}
-    #composer input{width:100%;min-width:0}
-    #avGrid{
-      display:none;
-      left:8px;
-      right:8px;
-      bottom:8px;
-      max-width:none;
-      padding-bottom:2px;
-      z-index:29;
-    }
-    body.avOpen #avGrid{display:flex}
-    body.chatOpen #avGrid{display:none}
-    .avCard{
-      width:148px;
-      min-width:148px;
-      height:96px;
-    }
-    .avCard.expanded{
-      width:94vw;
-      height:62vh;
-    }
-    .avmenu{
-      left:8px!important;
-      right:8px;
-      top:98px!important;
-      min-width:0;
-      max-width:none;
-    }
-    #audioUnlock{bottom:72px;max-width:90vw;text-align:center}
+  @media (pointer:coarse){
+    #joyBase{display:block}
+    #chatView{width:min(92vw,520px);max-height:38vh}
+    #composer{width:calc(100vw - 16px)}
+    #composer input{width:100%}
+    .avbar{top:58px}
+    #avGrid{bottom:74px;max-width:calc(100vw - 86px)}
   }
 </style>
 </head>
@@ -575,16 +403,16 @@
 
 <div class="hud">
   <button id="leaveBtn">退室</button>
+  <button id="menuBtn" title="Escでメニュー">メニュー</button>
   <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
-  <button id="copyRoomBtn" title="このルームのURLをコピー">コピー</button>
+  <button id="copyRoomBtn" title="このルームのURLをコピー">URLコピー</button>
 </div>
 
 <div class="avbar" aria-label="通話操作">
-  <button id="btnMic" title="マイク（右クリックで設定）">🎙️</button>
-  <button id="btnCam" title="カメラ（右クリックで設定）">📷</button>
-  <button id="btnScreen" title="画面共有（右クリックで設定）">🖥️</button>
+  <button id="btnMic" title="マイク">🎙️</button>
+  <button id="btnCam" title="カメラ">📷</button>
+  <button id="btnScreen" title="画面共有">🖥️</button>
 </div>
-<button id="avPanelToggle" class="mobileOnly" title="通話画面を表示・非表示">通話</button>
 
 <div id="chatView" aria-label="チャット"></div>
 <div id="composer">
@@ -600,17 +428,68 @@
 </div>
 
 <button id="reactFab" title="リアクション">😊</button>
-<button id="chatToggleBtn" class="mobileOnly" title="チャットを表示・非表示">💬</button>
 <div id="reactMenu"></div>
 
-<button id="flyBtn" title="フライト（↓ + H）">✈️</button>
+<button id="flyBtn" title="フライト">✈️</button>
 <div id="joyBase"><div id="joyStick"></div></div>
 
-<div id="avBackdrop"></div>
 <div id="avGrid"></div>
 <div id="avMenu" class="avmenu"></div>
 <div id="audioUnlock">クリックして音声を有効化</div>
 <div id="toast"></div>
+
+<div id="roomMenuWrap" class="modalWrap" aria-label="ルームメニュー">
+  <div class="modalPanel">
+    <div class="modalHead">
+      <h2>ルームメニュー <span class="hintKey">Esc</span></h2>
+      <button id="roomMenuClose" class="modalClose">閉じる</button>
+    </div>
+    <div class="menuGrid">
+      <section class="menuBox">
+        <h3>このルームのパスワード</h3>
+        <p>入室する人に、下の4つの顔絵文字を順番に伝えてください。</p>
+        <div id="roomPassDisplay" class="emojiPassword"></div>
+        <button id="copyRoomUrlFromMenu">ルームURLをコピー</button>
+      </section>
+      <section class="menuBox">
+        <h3>ルーム作成・移動</h3>
+        <p>ルーム名だけで作成できます。パスワードは自動で顔絵文字4つになります。</p>
+        <input id="newRoomName" placeholder="例: lobby / classroom-a" maxlength="32" />
+        <button id="createRoomBtn">この名前でルーム作成</button>
+      </section>
+      <section class="menuBox">
+        <h3>アカウント</h3>
+        <p>アカウントを作ると、作成・参加したルーム一覧を保存できます。</p>
+        <input id="accountEmail" type="email" placeholder="メールアドレス" autocomplete="email" />
+        <input id="accountPassword" type="password" placeholder="パスワード（6文字以上）" autocomplete="current-password" />
+        <button id="signupBtn">アカウント作成</button>
+        <button id="loginBtn" class="subBtn">ログイン</button>
+        <button id="logoutBtn" class="subBtn">ログアウト</button>
+        <div id="accountStatus"></div>
+      </section>
+      <section class="menuBox">
+        <h3>ルーム一覧</h3>
+        <p>アカウントでログインしている場合、今まで作った・入ったルームが表示されます。</p>
+        <div id="roomListStatus"></div>
+        <div id="roomList" class="roomList"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="passwordGate" class="modalWrap" aria-label="パスワード入力">
+  <div class="modalPanel">
+    <div class="modalHead">
+      <h2>ルームパスワード</h2>
+    </div>
+    <p>共有された4つの顔絵文字を順番に選んでください。</p>
+    <div id="passSelected" class="emojiPassword"></div>
+    <div id="passEmojiGrid" class="emojiGrid"></div>
+    <button id="passClear" class="emojiAction subBtn">消す</button>
+    <button id="passSubmit" class="emojiAction">入室</button>
+    <div id="passStatus"></div>
+  </div>
+</div>
 
 <script type="module">
 /* ===== Params ===== */
@@ -626,13 +505,14 @@ const FLY_SPEED_PPS = SPEED_PPS * 2.2;
 const PLANE_MIN_SIZE = 190;
 const PLANE_SCALE = 4.6;
 const EMOJIS = ['👍','❤️','🎉','👏','😂','😮','🙌','🔥'];
+const PASSWORD_EMOJIS = ['😀','😃','😄','😁','😆','😊','🙂','😉','😍','😘','😎','🤩','😺','😸','😻','🥳'];
 const RTC_CONFIG = { iceServers:[{urls:'stun:stun.l.google.com:19302'}] };
 
 /* ===== Firebase ===== */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import {
-  getDatabase, ref, onDisconnect, set, update, remove, onValue,
+  getDatabase, ref, onDisconnect, set, update, remove, onValue, get,
   push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
@@ -656,13 +536,10 @@ const roomIdEl = document.getElementById('roomId');
 const whoEl = document.getElementById('who');
 const countEl = document.getElementById('count');
 const leaveBtn = document.getElementById('leaveBtn');
-const copyRoomBtn = document.getElementById('copyRoomBtn');
 const btnMic = document.getElementById('btnMic');
 const btnCam = document.getElementById('btnCam');
 const btnScreen = document.getElementById('btnScreen');
-const avPanelToggle = document.getElementById('avPanelToggle');
 const avGrid = document.getElementById('avGrid');
-const avBackdrop = document.getElementById('avBackdrop');
 const avMenu = document.getElementById('avMenu');
 const audioUnlock = document.getElementById('audioUnlock');
 const toastEl = document.getElementById('toast');
@@ -671,7 +548,6 @@ const textEl = document.getElementById('text');
 const sendBtn = document.getElementById('send');
 const ctxMenu = document.getElementById('ctxMenu');
 const reactFab = document.getElementById('reactFab');
-const chatToggleBtn = document.getElementById('chatToggleBtn');
 const reactMenu = document.getElementById('reactMenu');
 const flyBtn = document.getElementById('flyBtn');
 const joyBase = document.getElementById('joyBase');
@@ -721,31 +597,49 @@ function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){
 function safeKey(s){ return String(s||'').trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32) || 'room-001'; }
 function safeName(s){ return String(s||'guest').trim().slice(0,24) || 'guest'; }
 
+function roomUrl(room=ROOM){
+  const u = new URL(location.href);
+  u.searchParams.set('room', room);
+  if(NAME) u.searchParams.set('name', NAME);
+  u.searchParams.delete('pass');
+  return u.toString();
+}
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('コピーしました');
+  }catch{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast('コピーしました');
+  }
+}
+function randomEmojiPass(){
+  let pass = '';
+  for(let i=0;i<4;i++) pass += PASSWORD_EMOJIS[Math.floor(Math.random()*PASSWORD_EMOJIS.length)];
+  return pass;
+}
+function setEmojiSlots(el, pass){
+  el.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const slot = document.createElement('div');
+    slot.className = 'emojiSlot';
+    slot.textContent = [...String(pass||'')][i] || '';
+    el.appendChild(slot);
+  }
+}
+function isAccountUser(){ return !!auth.currentUser && !auth.currentUser.isAnonymous; }
+
 /* ===== URL ===== */
 const url = new URL(location.href);
 const ROOM = safeKey(url.searchParams.get('room') || 'room-001');
 const NAME = safeName(url.searchParams.get('name') || 'guest');
 roomIdEl.textContent = ROOM;
 whoEl.textContent = NAME;
-
-copyRoomBtn.onclick = async()=>{
-  const shareUrl = new URL(location.href);
-  shareUrl.searchParams.set('room', ROOM);
-  shareUrl.searchParams.delete('name');
-  const text = shareUrl.href;
-  try{
-    await navigator.clipboard.writeText(text);
-    showToast('ルームURLをコピーしました');
-  }catch{
-    prompt('このURLをコピーしてください', text);
-  }
-};
-chatToggleBtn?.addEventListener('click', ()=>{
-  document.body.classList.toggle('chatOpen');
-});
-avPanelToggle?.addEventListener('click', ()=>{
-  document.body.classList.toggle('avOpen');
-});
 
 /* ===== Assets ===== */
 const imgMap = await loadImage('./map_1.png?v=20250927-2', {fallbackSize:[2048,2048], label:'map'});
@@ -795,8 +689,150 @@ function safeSpawn(maxTry=500){
   return {x:world.w/2, y:world.h/2};
 }
 
-/* ===== User / players ===== */
+/* ===== Room auth / emoji password / account ===== */
 await ensureAnonAuth(auth);
+const roomMetaRef = ref(db, `roomMeta/${ROOM}`);
+let currentRoomPass = '';
+let roomListUnsub = null;
+
+async function markRoomForAccount(room=ROOM){
+  if(!isAccountUser()) return;
+  await set(ref(db, `users/${auth.currentUser.uid}/rooms/${room}`), {room, last:now()}).catch(()=>{});
+}
+async function initRoomMetaAndGate(){
+  const snap = await get(roomMetaRef);
+  if(!snap.exists()){
+    currentRoomPass = randomEmojiPass();
+    await set(roomMetaRef, {room:ROOM, pass:currentRoomPass, createdAt:now(), ownerUid:auth.currentUser?.uid || '', ownerType:auth.currentUser?.isAnonymous ? 'anonymous':'account'});
+    sessionStorage.setItem(`roomPassOK:${ROOM}`, currentRoomPass);
+  }else{
+    const meta = snap.val() || {};
+    currentRoomPass = meta.pass || '';
+  }
+  setEmojiSlots(roomPassDisplay, currentRoomPass);
+  if(currentRoomPass && sessionStorage.getItem(`roomPassOK:${ROOM}`) !== currentRoomPass){
+    await requireEmojiPassword();
+  }
+  await markRoomForAccount();
+}
+function renderPasswordPicker(){
+  let selected = '';
+  setEmojiSlots(passSelected, selected);
+  passEmojiGrid.innerHTML = '';
+  PASSWORD_EMOJIS.forEach(emoji=>{
+    const b = document.createElement('button');
+    b.textContent = emoji;
+    b.onclick = ()=>{
+      if([...selected].length >= 4) return;
+      selected += emoji;
+      setEmojiSlots(passSelected, selected);
+    };
+    passEmojiGrid.appendChild(b);
+  });
+  passClear.onclick = ()=>{ selected=''; setEmojiSlots(passSelected, selected); passStatus.textContent=''; };
+  passSubmit.onclick = ()=>{
+    if(selected === currentRoomPass){
+      sessionStorage.setItem(`roomPassOK:${ROOM}`, currentRoomPass);
+      passwordGate.style.display = 'none';
+      passStatus.textContent = '';
+      markRoomForAccount();
+      return;
+    }
+    passStatus.textContent = 'パスワードが違います。もう一度選んでください。';
+    selected='';
+    setEmojiSlots(passSelected, selected);
+  };
+}
+function requireEmojiPassword(){
+  renderPasswordPicker();
+  passwordGate.style.display = 'flex';
+  return new Promise(resolve=>{
+    const timer = setInterval(()=>{
+      if(passwordGate.style.display === 'none'){
+        clearInterval(timer);
+        resolve();
+      }
+    },120);
+  });
+}
+function openRoomMenu(){
+  setEmojiSlots(roomPassDisplay, currentRoomPass);
+  roomMenuWrap.style.display = 'flex';
+  refreshRoomList();
+}
+function closeRoomMenu(){ roomMenuWrap.style.display = 'none'; }
+async function refreshRoomList(){
+  if(roomListUnsub){ roomListUnsub(); roomListUnsub = null; }
+  roomList.innerHTML = '';
+  if(!isAccountUser()){
+    roomListStatus.textContent = 'ルーム一覧を使うにはログインしてください。';
+    return;
+  }
+  roomListStatus.textContent = '読み込み中...';
+  roomListUnsub = onValue(ref(db, `users/${auth.currentUser.uid}/rooms`), snap=>{
+    const data = snap.val() || {};
+    const rooms = Object.values(data).sort((a,b)=>(b.last||0)-(a.last||0));
+    roomList.innerHTML = '';
+    roomListStatus.textContent = rooms.length ? '' : 'まだ保存されたルームがありません。';
+    rooms.forEach(item=>{
+      const row = document.createElement('div');
+      row.className = 'roomItem';
+      const name = document.createElement('span');
+      name.textContent = item.room;
+      const go = document.createElement('button');
+      go.textContent = '入る';
+      go.onclick = ()=>{ location.href = roomUrl(item.room); };
+      row.append(name, go);
+      roomList.appendChild(row);
+    });
+  });
+}
+menuBtn.onclick = openRoomMenu;
+roomMenuClose.onclick = closeRoomMenu;
+roomMenuWrap.addEventListener('click', e=>{ if(e.target === roomMenuWrap) closeRoomMenu(); });
+copyRoomBtn.onclick = ()=>copyText(roomUrl());
+copyRoomUrlFromMenu.onclick = ()=>copyText(roomUrl());
+createRoomBtn.onclick = async()=>{
+  const r = safeKey(newRoomName.value);
+  if(!r){ showToast('ルーム名を入力してください'); return; }
+  location.href = roomUrl(r);
+};
+signupBtn.onclick = async()=>{
+  try{
+    const email = accountEmail.value.trim();
+    const pass = accountPassword.value;
+    if(!email || pass.length < 6){ accountStatus.textContent = 'メールアドレスと6文字以上のパスワードを入力してください。'; return; }
+    await createUserWithEmailAndPassword(auth, email, pass);
+    accountStatus.textContent = 'アカウントを作成しました。';
+    await markRoomForAccount();
+    refreshRoomList();
+  }catch(err){ accountStatus.textContent = `作成できませんでした: ${err.code || err.message}`; }
+};
+loginBtn.onclick = async()=>{
+  try{
+    const email = accountEmail.value.trim();
+    const pass = accountPassword.value;
+    await signInWithEmailAndPassword(auth, email, pass);
+    accountStatus.textContent = 'ログインしました。';
+    await markRoomForAccount();
+    refreshRoomList();
+  }catch(err){ accountStatus.textContent = `ログインできませんでした: ${err.code || err.message}`; }
+};
+logoutBtn.onclick = async()=>{
+  try{
+    await signOut(auth);
+    await ensureAnonAuth(auth);
+    accountStatus.textContent = 'ログアウトしました。';
+    refreshRoomList();
+  }catch(err){ accountStatus.textContent = `ログアウトできませんでした: ${err.code || err.message}`; }
+};
+onAuthStateChanged(auth, u=>{
+  if(accountStatus) accountStatus.textContent = u?.isAnonymous ? '未ログインです。' : `ログイン中: ${u?.email || ''}`;
+  if(roomMenuWrap?.style.display === 'flex') refreshRoomList();
+});
+await initRoomMetaAndGate();
+
+/* ===== User / players ===== */
 const meId = (crypto.randomUUID ? crypto.randomUUID() : `m${Math.random().toString(36).slice(2)}`);
 const playersRef = ref(db, `rooms/${ROOM}/players`);
 const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
@@ -1114,32 +1150,27 @@ function isSpeaking(id){ return (speakUntil.get(id)||0) > performance.now(); }
 let micStream = null;
 let camStream = null;
 let screenStream = null;
-let selectedMicId = '';
-let selectedCamId = '';
-let expandedAvKey = null;
 const peerStates = new Map();
 const remoteStreams = new Map();
 
 function stopStream(stream){
   if(stream) stream.getTracks().forEach(t=>t.stop());
 }
-function liveTrack(track){ return track && track.readyState === 'live'; }
-function getAudioTrack(){ return micStream?.getAudioTracks().find(liveTrack) || null; }
-function getCamTrack(){ return camStream?.getVideoTracks().find(liveTrack) || null; }
-function getScreenTrack(){ return screenStream?.getVideoTracks().find(liveTrack) || null; }
-function streamFromTracks(tracks){
+function getAudioTrack(){ return micStream?.getAudioTracks()[0] || null; }
+function getVideoTrack(){ return screenStream?.getVideoTracks()[0] || camStream?.getVideoTracks()[0] || null; }
+function getLocalPreviewStream(){
   const s = new MediaStream();
-  tracks.filter(Boolean).forEach(t=>s.addTrack(t));
+  const a = getAudioTrack();
+  const v = getVideoTrack();
+  if(a) s.addTrack(a);
+  if(v) s.addTrack(v);
   return s;
 }
-function getLocalCameraStream(){ return streamFromTracks([getAudioTrack(), getCamTrack()]); }
-function getLocalScreenStream(){ return streamFromTracks([getScreenTrack()]); }
-
 function updateAvButtons(){
-  btnMic.classList.toggle('on', !!getAudioTrack());
-  btnCam.classList.toggle('on', !!getCamTrack());
-  btnScreen.classList.toggle('on', !!getScreenTrack());
-  localAvState = {mic:!!getAudioTrack(), cam:!!getCamTrack(), screen:!!getScreenTrack()};
+  btnMic.classList.toggle('on', !!micStream);
+  btnCam.classList.toggle('on', !!camStream);
+  btnScreen.classList.toggle('on', !!screenStream);
+  localAvState = {mic:!!micStream, cam:!!camStream, screen:!!screenStream};
   update(meRef,{av:localAvState, ts:now()}).catch(()=>{});
   renderAvGrid();
 }
@@ -1149,18 +1180,8 @@ async function requestMedia(kind){
     return null;
   }
   try{
-    if(kind === 'mic'){
-      const audio = selectedMicId
-        ? {deviceId:{exact:selectedMicId}, echoCancellation:true, noiseSuppression:true, autoGainControl:true}
-        : {echoCancellation:true, noiseSuppression:true, autoGainControl:true};
-      return await navigator.mediaDevices.getUserMedia({audio, video:false});
-    }
-    if(kind === 'cam'){
-      const video = selectedCamId
-        ? {deviceId:{exact:selectedCamId}, width:{ideal:960}, height:{ideal:540}}
-        : {width:{ideal:960}, height:{ideal:540}};
-      return await navigator.mediaDevices.getUserMedia({audio:false, video});
-    }
+    if(kind === 'mic') return await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    if(kind === 'cam') return await navigator.mediaDevices.getUserMedia({audio:false, video:{width:{ideal:960}, height:{ideal:540}}});
     if(kind === 'screen') return await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
   }catch(err){
     console.warn(err);
@@ -1168,22 +1189,22 @@ async function requestMedia(kind){
     return null;
   }
 }
-async function setMicEnabled(on){
+btnMic.onclick = async()=>{
   ensureAudioCtx();
   if(micStream){ stopStream(micStream); micStream = null; }
-  if(on) micStream = await requestMedia('mic');
+  else micStream = await requestMedia('mic');
   updateAvButtons();
   await syncAllSendersAndNegotiate();
-}
-async function setCamEnabled(on){
+};
+btnCam.onclick = async()=>{
   if(camStream){ stopStream(camStream); camStream = null; }
-  if(on) camStream = await requestMedia('cam');
+  else camStream = await requestMedia('cam');
   updateAvButtons();
   await syncAllSendersAndNegotiate();
-}
-async function setScreenEnabled(on){
+};
+btnScreen.onclick = async()=>{
   if(screenStream){ stopStream(screenStream); screenStream = null; }
-  if(on){
+  else{
     screenStream = await requestMedia('screen');
     const track = screenStream?.getVideoTracks()[0];
     if(track) track.onended = async()=>{
@@ -1194,116 +1215,6 @@ async function setScreenEnabled(on){
   }
   updateAvButtons();
   await syncAllSendersAndNegotiate();
-}
-btnMic.onclick = ()=>setMicEnabled(!getAudioTrack());
-btnCam.onclick = ()=>setCamEnabled(!getCamTrack());
-btnScreen.onclick = ()=>setScreenEnabled(!getScreenTrack());
-
-async function getDevices(){
-  if(!navigator.mediaDevices?.enumerateDevices) return [];
-  try{ return await navigator.mediaDevices.enumerateDevices(); }
-  catch(err){ console.warn(err); return []; }
-}
-function menuButton(text, onClick, cls=''){
-  const b = document.createElement('button');
-  b.textContent = text;
-  if(cls) b.className = cls;
-  b.onclick = onClick;
-  return b;
-}
-function menuLine(text){
-  const d = document.createElement('div');
-  d.className = 'line';
-  d.textContent = text;
-  return d;
-}
-async function deviceSelect(kind){
-  const select = document.createElement('select');
-  const devices = await getDevices();
-  const list = devices.filter(d=>kind === 'mic' ? d.kind === 'audioinput' : d.kind === 'videoinput');
-  const current = kind === 'mic' ? selectedMicId : selectedCamId;
-  const first = document.createElement('option');
-  first.value = '';
-  first.textContent = kind === 'mic' ? '標準マイク' : '標準カメラ';
-  select.appendChild(first);
-  list.forEach((d,i)=>{
-    const opt = document.createElement('option');
-    opt.value = d.deviceId;
-    opt.textContent = d.label || `${kind === 'mic' ? 'マイク' : 'カメラ'} ${i+1}`;
-    select.appendChild(opt);
-  });
-  select.value = current;
-  select.onchange = async()=>{
-    if(kind === 'mic'){
-      selectedMicId = select.value;
-      if(getAudioTrack()) await setMicEnabled(true);
-    }else{
-      selectedCamId = select.value;
-      if(getCamTrack()) await setCamEnabled(true);
-    }
-    showToast('入力デバイスを変更しました');
-  };
-  return select;
-}
-async function openAvSettings(kind, x, y){
-  avMenu.innerHTML = '';
-  const title = document.createElement('div');
-  title.className = 'groupTitle';
-  title.textContent = kind === 'mic' ? 'マイク設定' : kind === 'cam' ? 'カメラ設定' : '画面共有設定';
-  avMenu.appendChild(title);
-
-  if(kind === 'mic'){
-    avMenu.appendChild(menuButton(getAudioTrack() ? 'マイクをOFF' : 'マイクをON', ()=>{ avMenu.style.display='none'; setMicEnabled(!getAudioTrack()); }, 'primary'));
-    avMenu.appendChild(await deviceSelect('mic'));
-    avMenu.appendChild(menuLine('マイク音声はカメラ画面と同じカードに統合します。'));
-  }else if(kind === 'cam'){
-    avMenu.appendChild(menuButton(getCamTrack() ? 'カメラをOFF' : 'カメラをON', ()=>{ avMenu.style.display='none'; setCamEnabled(!getCamTrack()); }, 'primary'));
-    avMenu.appendChild(await deviceSelect('cam'));
-    avMenu.appendChild(menuLine('カメラはマイクと同じカードに表示します。'));
-  }else{
-    avMenu.appendChild(menuButton(getScreenTrack() ? '画面共有を停止' : '画面共有を開始', ()=>{ avMenu.style.display='none'; setScreenEnabled(!getScreenTrack()); }, 'primary'));
-    avMenu.appendChild(menuLine('画面共有はカメラと統合せず、必ず別カードで表示します。'));
-  }
-  avMenu.appendChild(menuLine('左クリック: ON/OFF ／ 右クリック・長押し: 設定'));
-  avMenu.style.display = 'block';
-  avMenu.style.left = `${clamp(x,8,innerWidth-260)}px`;
-  avMenu.style.top = `${clamp(y,8,innerHeight-260)}px`;
-}
-function bindAvSettingsButton(btn, kind){
-  btn.addEventListener('click', e=>{
-    if(btn.dataset.skipClick === '1'){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      btn.dataset.skipClick = '';
-    }
-  }, true);
-  btn.addEventListener('contextmenu', e=>{
-    e.preventDefault();
-    openAvSettings(kind, e.clientX, e.clientY);
-  });
-  let holdTimer = null;
-  btn.addEventListener('touchstart', e=>{
-    const t = e.touches[0];
-    holdTimer = setTimeout(()=>{
-      btn.dataset.skipClick = '1';
-      openAvSettings(kind, t.clientX, t.clientY);
-      setTimeout(()=>{ btn.dataset.skipClick = ''; }, 600);
-    }, 620);
-  }, {passive:true});
-  btn.addEventListener('touchend', ()=>clearTimeout(holdTimer));
-  btn.addEventListener('touchmove', ()=>clearTimeout(holdTimer));
-}
-bindAvSettingsButton(btnMic, 'mic');
-bindAvSettingsButton(btnCam, 'cam');
-bindAvSettingsButton(btnScreen, 'screen');
-addEventListener('click', e=>{
-  if(!avMenu.contains(e.target) && ![btnMic,btnCam,btnScreen].includes(e.target)) avMenu.style.display='none';
-});
-
-avBackdrop.onclick = ()=>{
-  expandedAvKey = null;
-  avBackdrop.style.display = 'none';
-  renderAvGrid();
 };
 audioUnlock.onclick = ()=>{
   ensureAudioCtx();
@@ -1326,27 +1237,18 @@ function ensurePeer(peerId){
 
   const pc = new RTCPeerConnection(RTC_CONFIG);
   const polite = meId > peerId;
-  const remote = {audio:new MediaStream(), videos:[]};
-  st = {pc, polite, makingOffer:false, ignoreOffer:false, senders:{audio:null, cam:null, screen:null}, remote};
+  st = {pc, polite, makingOffer:false, ignoreOffer:false, senders:{audio:null, video:null}, remoteStream:new MediaStream()};
   peerStates.set(peerId, st);
-  remoteStreams.set(peerId, remote);
+  remoteStreams.set(peerId, st.remoteStream);
 
   pc.onicecandidate = e=>{
     if(e.candidate) sendSignal(peerId, {type:'ice', candidate:e.candidate.toJSON()});
   };
   pc.ontrack = e=>{
-    if(e.track.kind === 'audio'){
-      if(!remote.audio.getTracks().some(t=>t.id === e.track.id)) remote.audio.addTrack(e.track);
-      attachSpeechMeter(peerId, remote.audio);
-    }else if(e.track.kind === 'video'){
-      if(!remote.videos.some(t=>t.id === e.track.id)) remote.videos.push(e.track);
-    }
-    e.track.onended = ()=>{
-      if(e.track.kind === 'video') remote.videos = remote.videos.filter(t=>t.id !== e.track.id);
-      renderAvGrid();
-    };
-    e.track.onmute = ()=>renderAvGrid();
-    e.track.onunmute = ()=>renderAvGrid();
+    const stream = st.remoteStream;
+    stream.addTrack(e.track);
+    attachSpeechMeter(peerId, stream);
+    e.track.onended = ()=>renderAvGrid();
     renderAvGrid();
   };
   pc.onconnectionstatechange = ()=>{
@@ -1371,23 +1273,25 @@ function closePeer(peerId){
 async function sendSignal(to, payload){
   await push(ref(db, `rooms/${ROOM}/rtc/${to}`), Object.assign({from:meId, ts:now()}, payload));
 }
-async function syncSender(pc, st, key, track, stream){
-  if(track){
-    if(st.senders[key]) await st.senders[key].replaceTrack(track);
-    else st.senders[key] = pc.addTrack(track, stream);
-  }else if(st.senders[key]){
-    await st.senders[key].replaceTrack(null);
-  }
-}
 async function syncSenders(peerId){
   const st = ensurePeer(peerId);
   if(!st) return;
   const pc = st.pc;
-  const audioCamStream = getLocalCameraStream();
-  const screenOnlyStream = getLocalScreenStream();
-  await syncSender(pc, st, 'audio', getAudioTrack(), audioCamStream);
-  await syncSender(pc, st, 'cam', getCamTrack(), audioCamStream);
-  await syncSender(pc, st, 'screen', getScreenTrack(), screenOnlyStream);
+  const a = getAudioTrack();
+  const v = getVideoTrack();
+
+  if(a){
+    if(st.senders.audio) await st.senders.audio.replaceTrack(a);
+    else st.senders.audio = pc.addTrack(a, getLocalPreviewStream());
+  }else if(st.senders.audio){
+    await st.senders.audio.replaceTrack(null);
+  }
+  if(v){
+    if(st.senders.video) await st.senders.video.replaceTrack(v);
+    else st.senders.video = pc.addTrack(v, getLocalPreviewStream());
+  }else if(st.senders.video){
+    await st.senders.video.replaceTrack(null);
+  }
 }
 async function syncAllSendersAndNegotiate(){
   connectToKnownPeers();
@@ -1436,44 +1340,24 @@ async function handleSignal(msgKey, msg){
 }
 onChildAdded(rtcInboxRef, snap=>handleSignal(snap.key, snap.val()));
 
-function activeVideos(remote){
-  return (remote?.videos || []).filter(t=>t.readyState === 'live' && !t.muted);
-}
 function renderAvGrid(){
   avGrid.innerHTML = '';
-
-  const localCamera = getLocalCameraStream();
-  if(localCamera.getTracks().length){
-    avGrid.appendChild(makeAvCard('self-camera', meId, NAME + '（自分）', localCamera, true, {mic:!!getAudioTrack(), cam:!!getCamTrack()}, 'camera', false));
+  const localPreview = getLocalPreviewStream();
+  if(localPreview.getTracks().length){
+    avGrid.appendChild(makeAvCard(meId, NAME + '（自分）', localPreview, true, localAvState));
   }
-  const localScreen = getLocalScreenStream();
-  if(localScreen.getTracks().length){
-    avGrid.appendChild(makeAvCard('self-screen', meId, NAME + '（画面共有）', localScreen, true, {screen:true}, 'screen', false));
-  }
-
-  for(const [id,remote] of remoteStreams){
+  for(const [id,stream] of remoteStreams){
     const p = players[id] || ghosts[id] || {};
+    const hasTrack = stream.getTracks().some(t=>t.readyState === 'live');
     const av = p.av || {};
-    const videos = activeVideos(remote);
-    const audioTracks = remote.audio.getAudioTracks().filter(liveTrack);
-    const camTrack = av.cam ? videos[0] : null;
-    const screenTrack = av.screen ? videos[av.cam ? 1 : 0] : null;
-
-    if(av.mic || av.cam || audioTracks.length || camTrack){
-      const s = streamFromTracks([...audioTracks, camTrack]);
-      avGrid.appendChild(makeAvCard(`${id}-camera`, id, p.name || 'guest', s, false, {mic:!!av.mic, cam:!!av.cam}, 'camera', !!camTrack));
-    }
-    if(av.screen || screenTrack){
-      const s = streamFromTracks([screenTrack]);
-      avGrid.appendChild(makeAvCard(`${id}-screen`, id, `${p.name || 'guest'}（画面共有）`, s, false, {screen:true}, 'screen', !!screenTrack));
+    if(hasTrack || av.mic || av.cam || av.screen){
+      avGrid.appendChild(makeAvCard(id, p.name || 'guest', stream, false, av));
     }
   }
-  avBackdrop.style.display = expandedAvKey ? 'block' : 'none';
 }
-function makeAvCard(cardKey, id, name, stream, muted, av={}, type='camera', expandable=false){
+function makeAvCard(id, name, stream, muted, av={}){
   const card = document.createElement('div');
-  card.className = 'avCard' + (isSpeaking(id) ? ' speaking':'') + (expandable ? ' expandable':'') + (expandedAvKey === cardKey ? ' expanded':'');
-  card.dataset.avKey = cardKey;
+  card.className = 'avCard' + (isSpeaking(id) ? ' speaking':'');
   const videoTrack = stream.getVideoTracks().find(t=>t.readyState === 'live');
   if(videoTrack){
     const video = document.createElement('video');
@@ -1486,7 +1370,7 @@ function makeAvCard(cardKey, id, name, stream, muted, av={}, type='camera', expa
   }else{
     const audioOnly = document.createElement('div');
     audioOnly.className = 'audioOnly';
-    audioOnly.textContent = type === 'screen' ? '🖥️' : '🎧';
+    audioOnly.textContent = '🎧';
     card.appendChild(audioOnly);
     if(stream.getAudioTracks().length){
       const audio = document.createElement('audio');
@@ -1496,12 +1380,6 @@ function makeAvCard(cardKey, id, name, stream, muted, av={}, type='camera', expa
       audio.play?.().catch(()=>{ if(!muted) audioUnlock.style.display='block'; });
       card.appendChild(audio);
     }
-  }
-  if(expandable){
-    card.onclick = ()=>{
-      expandedAvKey = expandedAvKey === cardKey ? null : cardKey;
-      renderAvGrid();
-    };
   }
   const badges = document.createElement('div');
   badges.className = 'badges';
@@ -1522,6 +1400,12 @@ setInterval(renderAvGrid, 500);
 const keys = new Set();
 let flightComboLocked = false;
 addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){
+    e.preventDefault();
+    if(roomMenuWrap.style.display === 'flex') closeRoomMenu();
+    else openRoomMenu();
+    return;
+  }
   if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
   const k = e.key.toLowerCase();
   keys.add(k);
@@ -1613,20 +1497,15 @@ function drawPlayer(p, id, cam){
   const sx = Math.round(p.x - cam.x);
   const sy = Math.round(p.y - cam.y);
   const fly = !!p.fly;
-  let labelY;
-
   if(fly){
     const planeW = Math.max(PLANE_MIN_SIZE, imgPlane.width * PLANE_SCALE);
     const planeH = Math.max(PLANE_MIN_SIZE, imgPlane.height * PLANE_SCALE);
     drawImageCentered(imgPlane, sx, sy + 8, planeW, planeH, false, 1);
-    labelY = sy + 8 - planeH / 2 - 16;
-  }else{
-    const sp = spriteByDir(p.dir || 'front');
-    const w = sp.img.width * SCALE;
-    const h = sp.img.height * SCALE;
-    drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
-    labelY = sy - h / 2 - 16;
   }
+  const sp = spriteByDir(p.dir || 'front');
+  const w = sp.img.width * SCALE;
+  const h = sp.img.height * SCALE;
+  drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
 
   const name = p.name || 'guest';
   const speaking = isSpeaking(id);
@@ -1638,11 +1517,11 @@ function drawPlayer(p, id, cam){
   ctx.fillStyle = speaking ? 'rgba(34,211,238,.30)' : 'rgba(15,23,42,.72)';
   ctx.strokeStyle = speaking ? '#22d3ee' : 'rgba(148,163,184,.45)';
   ctx.lineWidth = speaking ? 2 : 1;
-  roundRect(ctx, sx-textW/2-8, labelY-10, textW+16, 20, 8);
+  roundRect(ctx, sx-textW/2-8, sy-h/2-26, textW+16, 20, 8);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#e2e8f0';
-  ctx.fillText(name, sx, labelY);
+  ctx.fillText(name, sx, sy-h/2-16);
   ctx.restore();
 }
 function drawImageCentered(img,x,y,w,h,flip=false,alpha=1){
@@ -1719,7 +1598,7 @@ setInterval(()=>{
 }, 5000);
 
 updateAvButtons();
-showToast('マイクボタンを押すと、このルーム内の相手とそのまま会話できます。', 3500);
+showToast('Escでメニューを開くと、ルームの絵文字パスワードを確認できます。', 3500);
 </script>
 </body>
 </html>
