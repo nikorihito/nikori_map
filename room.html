@@ -405,7 +405,6 @@
   <button id="leaveBtn">退室</button>
   <button id="menuBtn" title="Escでメニュー">メニュー</button>
   <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
-  <button id="copyRoomBtn" title="このルームのURLをコピー">URLコピー</button>
 </div>
 
 <div class="avbar" aria-label="通話操作">
@@ -430,7 +429,7 @@
 <button id="reactFab" title="リアクション">😊</button>
 <div id="reactMenu"></div>
 
-<button id="flyBtn" title="フライト">✈️</button>
+<button id="flyBtn" title="フライト（↓ + H）">✈️</button>
 <div id="joyBase"><div id="joyStick"></div></div>
 
 <div id="avGrid"></div>
@@ -438,56 +437,18 @@
 <div id="audioUnlock">クリックして音声を有効化</div>
 <div id="toast"></div>
 
-<div id="roomMenuWrap" class="modalWrap" aria-label="ルームメニュー">
-  <div class="modalPanel">
-    <div class="modalHead">
-      <h2>ルームメニュー <span class="hintKey">Esc</span></h2>
-      <button id="roomMenuClose" class="modalClose">閉じる</button>
+<div id="roomMenuWrap" aria-label="ルームメニュー">
+  <div id="roomMenu">
+    <h2>ルームメニュー</h2>
+    <div class="line">ルーム名: <strong id="menuRoomName">-</strong></div>
+    <div class="line">現在共有するパスワード</div>
+    <div id="roomPassDisplay"></div>
+    <div class="line">この4つの顔絵文字を相手に共有してください。誰かが入室すると、次回用のパスワードへ更新されます。</div>
+    <div class="menuActions">
+      <button id="copyRoomUrlBtn">URLをコピー</button>
+      <button id="copyRoomPassBtn">パスワードをコピー</button>
+      <button id="closeRoomMenuBtn">閉じる</button>
     </div>
-    <div class="menuGrid">
-      <section class="menuBox">
-        <h3>このルームのパスワード</h3>
-        <p>入室する人に、下の4つの顔絵文字を順番に伝えてください。</p>
-        <div id="roomPassDisplay" class="emojiPassword"></div>
-        <button id="copyRoomUrlFromMenu">ルームURLをコピー</button>
-      </section>
-      <section class="menuBox">
-        <h3>ルーム作成・移動</h3>
-        <p>ルーム名だけで作成できます。パスワードは自動で顔絵文字4つになります。</p>
-        <input id="newRoomName" placeholder="例: lobby / classroom-a" maxlength="32" />
-        <button id="createRoomBtn">この名前でルーム作成</button>
-      </section>
-      <section class="menuBox">
-        <h3>アカウント</h3>
-        <p>アカウントを作ると、作成・参加したルーム一覧を保存できます。</p>
-        <input id="accountEmail" type="email" placeholder="メールアドレス" autocomplete="email" />
-        <input id="accountPassword" type="password" placeholder="パスワード（6文字以上）" autocomplete="current-password" />
-        <button id="signupBtn">アカウント作成</button>
-        <button id="loginBtn" class="subBtn">ログイン</button>
-        <button id="logoutBtn" class="subBtn">ログアウト</button>
-        <div id="accountStatus"></div>
-      </section>
-      <section class="menuBox">
-        <h3>ルーム一覧</h3>
-        <p>アカウントでログインしている場合、今まで作った・入ったルームが表示されます。</p>
-        <div id="roomListStatus"></div>
-        <div id="roomList" class="roomList"></div>
-      </section>
-    </div>
-  </div>
-</div>
-
-<div id="passwordGate" class="modalWrap" aria-label="パスワード入力">
-  <div class="modalPanel">
-    <div class="modalHead">
-      <h2>ルームパスワード</h2>
-    </div>
-    <p>共有された4つの顔絵文字を順番に選んでください。</p>
-    <div id="passSelected" class="emojiPassword"></div>
-    <div id="passEmojiGrid" class="emojiGrid"></div>
-    <button id="passClear" class="emojiAction subBtn">消す</button>
-    <button id="passSubmit" class="emojiAction">入室</button>
-    <div id="passStatus"></div>
   </div>
 </div>
 
@@ -505,15 +466,14 @@ const FLY_SPEED_PPS = SPEED_PPS * 2.2;
 const PLANE_MIN_SIZE = 190;
 const PLANE_SCALE = 4.6;
 const EMOJIS = ['👍','❤️','🎉','👏','😂','😮','🙌','🔥'];
-const PASSWORD_EMOJIS = ['😀','😃','😄','😁','😆','😊','🙂','😉','😍','😘','😎','🤩','😺','😸','😻','🥳'];
 const RTC_CONFIG = { iceServers:[{urls:'stun:stun.l.google.com:19302'}] };
 
 /* ===== Firebase ===== */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import {
-  getDatabase, ref, onDisconnect, set, update, remove, onValue, get,
-  push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved
+  getDatabase, ref, onDisconnect, set, update, remove, onValue,
+  push, limitToLast, query, get, onChildAdded, onChildChanged, onChildRemoved
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
 const firebaseConfig = {
@@ -597,49 +557,75 @@ function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){
 function safeKey(s){ return String(s||'').trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32) || 'room-001'; }
 function safeName(s){ return String(s||'guest').trim().slice(0,24) || 'guest'; }
 
-function roomUrl(room=ROOM){
-  const u = new URL(location.href);
-  u.searchParams.set('room', room);
-  if(NAME) u.searchParams.set('name', NAME);
-  u.searchParams.delete('pass');
-  return u.toString();
-}
-async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    showToast('コピーしました');
-  }catch{
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-    showToast('コピーしました');
-  }
-}
-function randomEmojiPass(){
-  let pass = '';
-  for(let i=0;i<4;i++) pass += PASSWORD_EMOJIS[Math.floor(Math.random()*PASSWORD_EMOJIS.length)];
-  return pass;
-}
-function setEmojiSlots(el, pass){
-  el.innerHTML = '';
-  for(let i=0;i<4;i++){
-    const slot = document.createElement('div');
-    slot.className = 'emojiSlot';
-    slot.textContent = [...String(pass||'')][i] || '';
-    el.appendChild(slot);
-  }
-}
-function isAccountUser(){ return !!auth.currentUser && !auth.currentUser.isAnonymous; }
-
 /* ===== URL ===== */
 const url = new URL(location.href);
 const ROOM = safeKey(url.searchParams.get('room') || 'room-001');
 const NAME = safeName(url.searchParams.get('name') || 'guest');
 roomIdEl.textContent = ROOM;
 whoEl.textContent = NAME;
+
+/* ===== Room metadata / password access ===== */
+const PASSWORD_EMOJIS = ['😀','😄','😊','😎','🤔','😮','😂','😍','🥳','😺','🐶','🐼','🤖','👻','🌟','🔥'];
+const roomMetaRef = ref(db, `roomMeta/${ROOM}`);
+let currentRoomPass = '';
+function makeRoomPassword(){
+  let pass = '';
+  for(let i=0;i<4;i++) pass += PASSWORD_EMOJIS[Math.floor(Math.random()*PASSWORD_EMOJIS.length)];
+  return pass;
+}
+function renderRoomPass(){
+  roomPassDisplay.innerHTML = '';
+  [...String(currentRoomPass || '')].forEach(e=>{
+    const span = document.createElement('span');
+    span.textContent = e;
+    roomPassDisplay.appendChild(span);
+  });
+  if(!currentRoomPass) roomPassDisplay.textContent = '未設定';
+}
+async function verifyRoomAccess(){
+  const snap = await get(roomMetaRef);
+  if(!snap.exists()){
+    currentRoomPass = makeRoomPassword();
+    await set(roomMetaRef, {room:ROOM, name:ROOM, pass:currentRoomPass, createdAt:now(), updatedAt:now()});
+    sessionStorage.setItem(`roomPassOK:${ROOM}`, currentRoomPass);
+    return;
+  }
+  const meta = snap.val() || {};
+  currentRoomPass = meta.pass || '';
+  if(currentRoomPass && sessionStorage.getItem(`roomPassOK:${ROOM}`) !== currentRoomPass){
+    const back = new URL('./index.html', location.href);
+    back.searchParams.set('room', ROOM);
+    back.searchParams.set('name', NAME);
+    location.replace(back.toString());
+    await new Promise(()=>{});
+  }
+}
+function openRoomMenu(){
+  menuRoomName.textContent = ROOM;
+  renderRoomPass();
+  roomMenuWrap.style.display = 'flex';
+}
+function closeRoomMenu(){ roomMenuWrap.style.display = 'none'; }
+menuBtn.onclick = openRoomMenu;
+closeRoomMenuBtn.onclick = closeRoomMenu;
+roomMenuWrap.addEventListener('click', e=>{ if(e.target === roomMenuWrap) closeRoomMenu(); });
+copyRoomUrlBtn.onclick = async()=>{
+  const u = new URL('./index.html', location.href);
+  u.searchParams.set('room', ROOM);
+  try{ await navigator.clipboard.writeText(u.toString()); showToast('ルームURLをコピーしました'); }
+  catch{ showToast('コピーできませんでした'); }
+};
+copyRoomPassBtn.onclick = async()=>{
+  try{ await navigator.clipboard.writeText([...String(currentRoomPass||'')].join(' ')); showToast('パスワードをコピーしました'); }
+  catch{ showToast('コピーできませんでした'); }
+};
+addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){
+    e.preventDefault();
+    roomMenuWrap.style.display === 'flex' ? closeRoomMenu() : openRoomMenu();
+  }
+});
+await verifyRoomAccess();
 
 /* ===== Assets ===== */
 const imgMap = await loadImage('./map_1.png?v=20250927-2', {fallbackSize:[2048,2048], label:'map'});
@@ -689,150 +675,8 @@ function safeSpawn(maxTry=500){
   return {x:world.w/2, y:world.h/2};
 }
 
-/* ===== Room auth / emoji password / account ===== */
-await ensureAnonAuth(auth);
-const roomMetaRef = ref(db, `roomMeta/${ROOM}`);
-let currentRoomPass = '';
-let roomListUnsub = null;
-
-async function markRoomForAccount(room=ROOM){
-  if(!isAccountUser()) return;
-  await set(ref(db, `users/${auth.currentUser.uid}/rooms/${room}`), {room, last:now()}).catch(()=>{});
-}
-async function initRoomMetaAndGate(){
-  const snap = await get(roomMetaRef);
-  if(!snap.exists()){
-    currentRoomPass = randomEmojiPass();
-    await set(roomMetaRef, {room:ROOM, pass:currentRoomPass, createdAt:now(), ownerUid:auth.currentUser?.uid || '', ownerType:auth.currentUser?.isAnonymous ? 'anonymous':'account'});
-    sessionStorage.setItem(`roomPassOK:${ROOM}`, currentRoomPass);
-  }else{
-    const meta = snap.val() || {};
-    currentRoomPass = meta.pass || '';
-  }
-  setEmojiSlots(roomPassDisplay, currentRoomPass);
-  if(currentRoomPass && sessionStorage.getItem(`roomPassOK:${ROOM}`) !== currentRoomPass){
-    await requireEmojiPassword();
-  }
-  await markRoomForAccount();
-}
-function renderPasswordPicker(){
-  let selected = '';
-  setEmojiSlots(passSelected, selected);
-  passEmojiGrid.innerHTML = '';
-  PASSWORD_EMOJIS.forEach(emoji=>{
-    const b = document.createElement('button');
-    b.textContent = emoji;
-    b.onclick = ()=>{
-      if([...selected].length >= 4) return;
-      selected += emoji;
-      setEmojiSlots(passSelected, selected);
-    };
-    passEmojiGrid.appendChild(b);
-  });
-  passClear.onclick = ()=>{ selected=''; setEmojiSlots(passSelected, selected); passStatus.textContent=''; };
-  passSubmit.onclick = ()=>{
-    if(selected === currentRoomPass){
-      sessionStorage.setItem(`roomPassOK:${ROOM}`, currentRoomPass);
-      passwordGate.style.display = 'none';
-      passStatus.textContent = '';
-      markRoomForAccount();
-      return;
-    }
-    passStatus.textContent = 'パスワードが違います。もう一度選んでください。';
-    selected='';
-    setEmojiSlots(passSelected, selected);
-  };
-}
-function requireEmojiPassword(){
-  renderPasswordPicker();
-  passwordGate.style.display = 'flex';
-  return new Promise(resolve=>{
-    const timer = setInterval(()=>{
-      if(passwordGate.style.display === 'none'){
-        clearInterval(timer);
-        resolve();
-      }
-    },120);
-  });
-}
-function openRoomMenu(){
-  setEmojiSlots(roomPassDisplay, currentRoomPass);
-  roomMenuWrap.style.display = 'flex';
-  refreshRoomList();
-}
-function closeRoomMenu(){ roomMenuWrap.style.display = 'none'; }
-async function refreshRoomList(){
-  if(roomListUnsub){ roomListUnsub(); roomListUnsub = null; }
-  roomList.innerHTML = '';
-  if(!isAccountUser()){
-    roomListStatus.textContent = 'ルーム一覧を使うにはログインしてください。';
-    return;
-  }
-  roomListStatus.textContent = '読み込み中...';
-  roomListUnsub = onValue(ref(db, `users/${auth.currentUser.uid}/rooms`), snap=>{
-    const data = snap.val() || {};
-    const rooms = Object.values(data).sort((a,b)=>(b.last||0)-(a.last||0));
-    roomList.innerHTML = '';
-    roomListStatus.textContent = rooms.length ? '' : 'まだ保存されたルームがありません。';
-    rooms.forEach(item=>{
-      const row = document.createElement('div');
-      row.className = 'roomItem';
-      const name = document.createElement('span');
-      name.textContent = item.room;
-      const go = document.createElement('button');
-      go.textContent = '入る';
-      go.onclick = ()=>{ location.href = roomUrl(item.room); };
-      row.append(name, go);
-      roomList.appendChild(row);
-    });
-  });
-}
-menuBtn.onclick = openRoomMenu;
-roomMenuClose.onclick = closeRoomMenu;
-roomMenuWrap.addEventListener('click', e=>{ if(e.target === roomMenuWrap) closeRoomMenu(); });
-copyRoomBtn.onclick = ()=>copyText(roomUrl());
-copyRoomUrlFromMenu.onclick = ()=>copyText(roomUrl());
-createRoomBtn.onclick = async()=>{
-  const r = safeKey(newRoomName.value);
-  if(!r){ showToast('ルーム名を入力してください'); return; }
-  location.href = roomUrl(r);
-};
-signupBtn.onclick = async()=>{
-  try{
-    const email = accountEmail.value.trim();
-    const pass = accountPassword.value;
-    if(!email || pass.length < 6){ accountStatus.textContent = 'メールアドレスと6文字以上のパスワードを入力してください。'; return; }
-    await createUserWithEmailAndPassword(auth, email, pass);
-    accountStatus.textContent = 'アカウントを作成しました。';
-    await markRoomForAccount();
-    refreshRoomList();
-  }catch(err){ accountStatus.textContent = `作成できませんでした: ${err.code || err.message}`; }
-};
-loginBtn.onclick = async()=>{
-  try{
-    const email = accountEmail.value.trim();
-    const pass = accountPassword.value;
-    await signInWithEmailAndPassword(auth, email, pass);
-    accountStatus.textContent = 'ログインしました。';
-    await markRoomForAccount();
-    refreshRoomList();
-  }catch(err){ accountStatus.textContent = `ログインできませんでした: ${err.code || err.message}`; }
-};
-logoutBtn.onclick = async()=>{
-  try{
-    await signOut(auth);
-    await ensureAnonAuth(auth);
-    accountStatus.textContent = 'ログアウトしました。';
-    refreshRoomList();
-  }catch(err){ accountStatus.textContent = `ログアウトできませんでした: ${err.code || err.message}`; }
-};
-onAuthStateChanged(auth, u=>{
-  if(accountStatus) accountStatus.textContent = u?.isAnonymous ? '未ログインです。' : `ログイン中: ${u?.email || ''}`;
-  if(roomMenuWrap?.style.display === 'flex') refreshRoomList();
-});
-await initRoomMetaAndGate();
-
 /* ===== User / players ===== */
+await ensureAnonAuth(auth);
 const meId = (crypto.randomUUID ? crypto.randomUUID() : `m${Math.random().toString(36).slice(2)}`);
 const playersRef = ref(db, `rooms/${ROOM}/players`);
 const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
@@ -1400,12 +1244,6 @@ setInterval(renderAvGrid, 500);
 const keys = new Set();
 let flightComboLocked = false;
 addEventListener('keydown', e=>{
-  if(e.key === 'Escape' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){
-    e.preventDefault();
-    if(roomMenuWrap.style.display === 'flex') closeRoomMenu();
-    else openRoomMenu();
-    return;
-  }
   if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
   const k = e.key.toLowerCase();
   keys.add(k);
@@ -1598,7 +1436,7 @@ setInterval(()=>{
 }, 5000);
 
 updateAvButtons();
-showToast('Escでメニューを開くと、ルームの絵文字パスワードを確認できます。', 3500);
+showToast('マイクボタンを押すと、このルーム内の相手とそのまま会話できます。', 3500);
 </script>
 </body>
 </html>
