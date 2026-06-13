@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ニコリタウン - ルーム（左右反転＋フライト＋本格ボイチャ）</title>
-
+<title>ニコリタウン - ルーム</title>
 <style>
   :root{
     --bg:#0b1220;
+    --panel:#0f172a;
     --panel2:#101826;
     --border:#334155;
     --text:#e2e8f0;
     --muted:#9aa6b2;
     --a1:#22d3ee;
     --a2:#06b6d4;
+    --danger:#ef4444;
     --yellow:#fde68a33;
     --yellowBorder:#facc15;
     --mention:#22d3ee;
@@ -28,11 +29,14 @@
     overflow:hidden;
     touch-action:none;
   }
+  button,input{font:inherit}
+  button{cursor:pointer}
   #game{
     display:block;
     width:100vw;
     height:100vh;
     image-rendering:pixelated;
+    background:#0b1220;
   }
 
   /* HUD */
@@ -40,26 +44,147 @@
     position:fixed;
     left:8px;
     top:8px;
+    z-index:20;
     display:flex;
     gap:8px;
     align-items:center;
-    z-index:20;
+    flex-wrap:wrap;
   }
   .hud .info{
-    background:var(--panel2);
+    background:rgba(16,24,38,.88);
     border:1px solid var(--border);
     padding:6px 10px;
     border-radius:10px;
+    backdrop-filter:blur(6px);
+    white-space:nowrap;
   }
-  .hud button{
-    font:inherit;
+  .hud button,
+  #composer button,
+  #flyBtn{
     padding:8px 10px;
     border-radius:10px;
     border:1px solid var(--border);
     background:linear-gradient(180deg,var(--a1),var(--a2));
     color:#06202a;
     font-weight:700;
-    cursor:pointer;
+  }
+  #leaveBtn{background:linear-gradient(180deg,#fca5a5,#ef4444);color:#2a0606}
+
+  /* AV buttons */
+  .avbar{
+    position:fixed;
+    left:8px;
+    top:56px;
+    z-index:30;
+    display:flex;
+    gap:8px;
+  }
+  .avbar button{
+    min-width:48px;
+    padding:9px 10px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#101826;
+    color:#e2e8f0;
+    box-shadow:0 8px 22px rgba(0,0,0,.22);
+  }
+  .avbar button.on{
+    background:linear-gradient(180deg,var(--a1),var(--a2));
+    color:#06202a;
+    font-weight:800;
+  }
+  .avbar button.danger{background:#2a1111;color:#fecaca;border-color:#7f1d1d}
+  .avbar button:disabled{opacity:.55;cursor:not-allowed}
+
+  .avmenu{
+    position:fixed;
+    z-index:51;
+    display:none;
+    background:#101826;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px;
+    min-width:220px;
+    box-shadow:0 14px 40px rgba(0,0,0,.45);
+  }
+  .avmenu .line{font-size:.9rem;color:var(--muted);padding:4px 6px}
+
+  #audioUnlock{
+    position:fixed;
+    left:50%;
+    bottom:78px;
+    transform:translateX(-50%);
+    z-index:35;
+    display:none;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(16,24,38,.95);
+    color:#e2e8f0;
+    box-shadow:0 12px 34px rgba(0,0,0,.35);
+  }
+
+  #avGrid{
+    position:fixed;
+    left:8px;
+    bottom:8px;
+    z-index:22;
+    display:flex;
+    gap:8px;
+    max-width:calc(100vw - 16px);
+    overflow-x:auto;
+    pointer-events:auto;
+  }
+  .avCard{
+    width:168px;
+    min-width:168px;
+    height:112px;
+    background:rgba(16,24,38,.92);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 10px 26px rgba(0,0,0,.32);
+  }
+  .avCard.speaking{border-color:var(--a1);box-shadow:0 0 0 2px rgba(34,211,238,.24),0 10px 26px rgba(0,0,0,.32)}
+  .avCard video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    background:#020617;
+  }
+  .avCard .audioOnly{
+    height:100%;
+    display:grid;
+    place-items:center;
+    font-size:32px;
+    background:radial-gradient(circle at center,#1e293b,#020617);
+  }
+  .avCard .label{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    padding:4px 7px;
+    font-size:.78rem;
+    background:linear-gradient(transparent,rgba(0,0,0,.72));
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .avCard .badges{
+    position:absolute;
+    top:5px;
+    right:5px;
+    display:flex;
+    gap:4px;
+  }
+  .badge{
+    font-size:.72rem;
+    padding:2px 5px;
+    border-radius:999px;
+    background:rgba(15,23,42,.82);
+    border:1px solid rgba(148,163,184,.35);
   }
 
   /* Chat */
@@ -78,10 +203,11 @@
     padding:8px;
   }
   #chatView .item{
-    padding:6px 8px;
-    border-radius:8px;
+    padding:7px 8px;
+    border-radius:9px;
     margin:6px 0;
     position:relative;
+    word-break:break-word;
   }
   #chatView .me{background:rgba(34,211,238,.12)}
   #chatView .replyTo{
@@ -95,55 +221,39 @@
     margin-bottom:4px;
     cursor:pointer;
   }
-  .replyToMe{
+  #chatView .replyToMe{
     background:var(--yellow);
     border:1px solid var(--yellowBorder);
   }
-  .mentionSelf{
-    color:var(--mention);
-    font-weight:700;
-  }
-  .meta{
-    color:var(--muted);
-    font-size:.8rem;
-    margin-top:2px;
-  }
+  .mentionSelf{color:var(--mention);font-weight:800}
+  .nameLine{font-weight:800;margin-bottom:2px;color:#bfdbfe}
+  .meta{color:var(--muted);font-size:.78rem;margin-top:3px}
 
-  /* Composer */
   #composer{
     position:fixed;
     left:50%;
     bottom:8px;
     transform:translateX(-50%);
+    z-index:24;
     display:flex;
     gap:6px;
-    z-index:20;
     background:var(--panel2);
     border:1px solid var(--border);
     border-radius:12px;
     padding:6px;
+    box-shadow:0 10px 28px rgba(0,0,0,.35);
   }
   #composer input{
-    font:inherit;
     width:min(60vw,720px);
     padding:10px 12px;
     border:1px solid var(--border);
     border-radius:10px;
     background:#0b1220;
     color:#e2e8f0;
+    outline:none;
   }
-  #composer button{
-    font:inherit;
-    padding:10px 12px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:linear-gradient(180deg,var(--a1),var(--a2));
-    color:#06202a;
-    font-weight:700;
-    cursor:pointer;
-  }
+  #composer input:focus{border-color:var(--a1);box-shadow:0 0 0 2px rgba(34,211,238,.18)}
 
-  /* Ctx menu */
   #ctxMenu{
     position:fixed;
     z-index:50;
@@ -152,16 +262,16 @@
     border:1px solid var(--border);
     border-radius:10px;
     overflow:hidden;
+    box-shadow:0 14px 40px rgba(0,0,0,.45);
   }
   #ctxMenu button{
     display:block;
-    width:200px;
+    width:210px;
     text-align:left;
     padding:10px 12px;
     background:transparent;
     border:0;
     color:#e2e8f0;
-    cursor:pointer;
   }
   #ctxMenu button:hover{background:#1b2540}
 
@@ -192,6 +302,7 @@
     border:1px solid var(--border);
     border-radius:12px;
     padding:6px;
+    box-shadow:0 12px 34px rgba(0,0,0,.35);
   }
   #reactMenu button{
     font-size:22px;
@@ -199,9 +310,7 @@
     padding:6px 8px;
     background:transparent;
     border:0;
-    cursor:pointer;
   }
-
   .bubble{
     position:absolute;
     transform:translate(-50%,-100%);
@@ -210,13 +319,34 @@
     border-radius:12px;
     padding:6px 10px;
     font-size:20px;
+    pointer-events:none;
+    z-index:19;
+  }
+
+  /* Flight */
+  #flyBtn{
+    position:fixed;
+    left:16px;
+    bottom:122px;
+    z-index:23;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+    box-shadow:0 8px 22px rgba(0,0,0,.35);
+  }
+  #flyBtn.on{
+    background:linear-gradient(180deg,#fde68a,#facc15);
+    color:#3b2500;
   }
 
   /* Joystick (mobile) */
   #joyBase{
     position:fixed;
     left:16px;
-    bottom:96px;
+    bottom:190px;
     z-index:23;
     width:108px;
     height:108px;
@@ -236,285 +366,71 @@
     transform:translate(-50%,-50%);
     border:1px solid var(--border);
     background:linear-gradient(180deg,var(--a1),var(--a2));
-    color:#06202a;
   }
 
-  /* ===== AV UI ===== */
-  .avbar{
-    position:fixed;
-    left:8px;
-    top:56px;
-    z-index:30;
-    display:flex;
-    gap:8px;
-  }
-  .avbar button{
-    font:18px/1 system-ui;
-    padding:8px 10px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:#101826;
-    color:#e2e8f0;
-    cursor:pointer;
-    min-width:48px;
-  }
-  .avbar button.on{
-    background:linear-gradient(180deg,var(--a1),var(--a2));
-    color:#06202a;
-    font-weight:700;
-  }
-
-  .avmenu{
-    position:fixed;
-    z-index:51;
-    display:none;
-    background:#101826;
-    border:1px solid var(--border);
-    border-radius:12px;
-    min-width:260px;
-    overflow:hidden;
-  }
-  .avmenu .row{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:8px 10px;
-    border-bottom:1px solid #223;
-  }
-  .avmenu .row:last-child{border-bottom:none}
-  .avmenu button,
-  .avmenu select{
-    font:inherit;
-    background:transparent;
-    color:#e2e8f0;
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:6px 8px;
-    cursor:pointer;
-  }
-  .avmenu button[disabled]{opacity:.5;cursor:not-allowed}
-
-  #avGrid{
-    position:fixed;
-    left:16px;
-    top:100px;
-    z-index:26;
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    max-width:42vw;
-    max-height:58vh;
-    overflow:auto;
-  }
-  .tile{
-    position:relative;
-    background:#101826;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:6px;
-  }
-  .tile video{
-    display:block;
-    width:240px;
-    height:135px;
-    background:#000;
-    border-radius:8px;
-  }
-  .tile .name{
-    position:absolute;
-    left:8px;
-    bottom:8px;
-    background:rgba(0,0,0,.45);
-    padding:2px 6px;
-    border-radius:6px;
-    font-size:12px;
-  }
-  .tile .btns{
-    position:absolute;
-    right:6px;
-    top:6px;
-    display:flex;
-    gap:6px;
-  }
-  .tile .btn{
-    border:1px solid var(--border);
-    background:#0f172a;
-    border-radius:8px;
-    padding:2px 6px;
-    font-size:12px;
-    color:#e2e8f0;
-    cursor:pointer;
-  }
-  .tile.big{
-    position:fixed;
-    inset:auto auto 16px 16px;
-    z-index:60;
-  }
-  .tile.big video{
-    width:min(80vw,960px);
-    height:auto;
-  }
-
-  #audioUnlock{
-    position:fixed;
-    left:16px;
-    top:calc(100px + 60vh);
-    z-index:40;
-    background:#101826;
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:8px 10px;
-    display:none;
-  }
-
-  /* ===== Flight Button ===== */
-  #flyBtn{
+  #toast{
     position:fixed;
     left:50%;
-    bottom:96px;
+    top:16px;
     transform:translateX(-50%);
-    z-index:23;
-    width:56px;
-    height:56px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    font-size:22px;
-    border:1px solid var(--border);
-    background:#101826;
-    color:#e2e8f0;
-    box-shadow:0 8px 22px rgba(0,0,0,.35);
-  }
-  #flyBtn.on{
-    background:linear-gradient(180deg,var(--a1),var(--a2));
-    color:#06202a;
-    font-weight:700;
-  }
-
-  /* ===== Voice gate hint ===== */
-  #voiceHint{
-    position:fixed;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    z-index:35;
-    background:rgba(15,23,42,.9);
-    border:1px solid var(--border);
+    z-index:90;
+    display:none;
+    max-width:min(92vw,720px);
+    padding:10px 14px;
     border-radius:12px;
-    padding:10px 16px;
-    font-size:16px;
-    display:none;
-    text-align:center;
-    max-width:80vw;
+    border:1px solid var(--border);
+    background:rgba(16,24,38,.95);
+    color:#e2e8f0;
+    box-shadow:0 14px 40px rgba(0,0,0,.45);
   }
 
-  /* ===== Voice modal ===== */
-  #voiceModalWrap{
-    position:fixed;
-    inset:0;
-    z-index:60;
-    background:rgba(15,23,42,.8);
-    display:none;
-    align-items:center;
-    justify-content:center;
-  }
-  #voiceModal{
-    background:#020617;
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:20px 24px;
-    max-width:420px;
-    width:calc(100vw - 40px);
-    box-shadow:0 24px 60px rgba(0,0,0,.6);
-  }
-  #voiceModal p{
-    margin:0 0 16px;
-    line-height:1.6;
-  }
-  #voiceModalBtns{
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-  }
-  #voiceEnter,#voiceCancel{
-    font:inherit;
-    padding:8px 14px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    cursor:pointer;
-  }
-  #voiceEnter{
-    background:linear-gradient(180deg,var(--a1),var(--a2));
-    color:#06202a;
-    font-weight:700;
-  }
-  #voiceCancel{
-    background:#101826;
-    color:#e2e8f0;
+  @media (pointer:coarse){
+    #joyBase{display:block}
+    #chatView{width:min(92vw,520px);max-height:38vh}
+    #composer{width:calc(100vw - 16px)}
+    #composer input{width:100%}
+    .avbar{top:58px}
+    #avGrid{bottom:74px;max-width:calc(100vw - 86px)}
   }
 </style>
 </head>
-
 <body>
-  <canvas id="game"></canvas>
+<canvas id="game"></canvas>
 
-  <div class="hud">
-    <button id="leave" title="退室">退室</button>
-    <div class="info">
-      ルーム: <span id="roomId">-</span>／ 自分: <span id="who">-</span>／ 人数: <span id="count">0</span>
-    </div>
-  </div>
+<div class="hud">
+  <button id="leaveBtn">退室</button>
+  <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
+</div>
 
-  <div class="avbar">
-    <button id="btnMic" title="マイク">🎙️</button>
-    <button id="btnCam" title="カメラ">📷</button>
-    <button id="btnScreen" title="画面共有">🖥️</button>
-  </div>
+<div class="avbar" aria-label="通話操作">
+  <button id="btnMic" title="マイク">🎙️</button>
+  <button id="btnCam" title="カメラ">📷</button>
+  <button id="btnScreen" title="画面共有">🖥️</button>
+</div>
 
-  <div id="chatView"></div>
-  <div id="composer">
-    <input id="text" placeholder="メッセージ…（@自分は水色 / 返信は右クリック）" maxlength="2000" />
-    <button id="send">送信</button>
-  </div>
+<div id="chatView" aria-label="チャット"></div>
+<div id="composer">
+  <input id="text" maxlength="2000" placeholder="メッセージを入力。Enterで送信 / @名前 でメンション" autocomplete="off" />
+  <button id="send">送信</button>
+</div>
 
-  <div id="ctxMenu">
-    <button id="ctxReply">返信</button>
-    <button id="ctxReactOpen">リアクション</button>
-    <button id="editMsg">編集</button>
-    <button id="delMsg">削除</button>
-  </div>
+<div id="ctxMenu">
+  <button id="ctxReply">返信</button>
+  <button id="ctxReactOpen">リアクション</button>
+  <button id="editMsg">編集</button>
+  <button id="delMsg">削除</button>
+</div>
 
-  <button id="reactFab" title="リアクション">😊</button>
-  <div id="reactMenu"></div>
+<button id="reactFab" title="リアクション">😊</button>
+<div id="reactMenu"></div>
 
-  <!-- Mobile joystick -->
-  <div id="joyBase"><div id="joyStick"></div></div>
+<button id="flyBtn" title="フライト">✈️</button>
+<div id="joyBase"><div id="joyStick"></div></div>
 
-  <!-- Flight button -->
-  <button id="flyBtn" title="フライトモード切替（PC: Shift+H）">✈️</button>
-
-  <!-- Voice gate hint -->
-  <div id="voiceHint">🎰 ゲームセンター入口です。<br>Zキーで「本格ボイスルーム」に入ります。</div>
-
-  <!-- Voice modal -->
-  <div id="voiceModalWrap">
-    <div id="voiceModal">
-      <p>
-        ゲームセンター併設の<br>
-        <strong>「本格ボイスルーム」</strong>に入室しますか？<br><br>
-        入室した人どうしだけで、高音質のボイスチャット（鍵付き）が有効になります。
-      </p>
-      <div id="voiceModalBtns">
-        <button id="voiceCancel">いいえ</button>
-        <button id="voiceEnter">はい</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- AV Grid & Menus -->
-  <div id="avGrid"></div>
-  <div id="avMenu" class="avmenu"></div>
-  <div id="audioUnlock">🔈 クリックして音声を有効化</div>
+<div id="avGrid"></div>
+<div id="avMenu" class="avmenu"></div>
+<div id="audioUnlock">クリックして音声を有効化</div>
+<div id="toast"></div>
 
 <script type="module">
 /* ===== Params ===== */
@@ -525,15 +441,10 @@ const PLAYER_INTERP = 12;
 const CAM_INTERP = 10;
 const SYNC_MS = 50;
 const MAX_MSG = 120;
-const FRAME_MIN = 1000/50;
-const EMOJIS = ['👍','❤️','😂','🎉','😮','🙏','🔥','😢'];
+const FRAME_MIN = 1000 / 50;
 const FLY_SPEED_PPS = SPEED_PPS * 2.2;
-
-/* ★ ゲームセンター入口付近（本格ボイスルームのゲート） */
-const VOICE_GATE_X = 2520;   // 中心X（スクショからざっくり）
-const VOICE_GATE_Y = 1980;   // 中心Y
-const VOICE_GATE_HALF_W = 180; // 横方向の半径
-const VOICE_GATE_HALF_H = 150; // 縦方向の半径
+const EMOJIS = ['👍','❤️','🎉','👏','😂','😮','🙌','🔥'];
+const RTC_CONFIG = { iceServers:[{urls:'stun:stun.l.google.com:19302'}] };
 
 /* ===== Firebase ===== */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
@@ -554,233 +465,221 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app,'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app');
+const db = getDatabase(app, firebaseConfig.databaseURL);
+
+/* ===== DOM ===== */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const roomIdEl = document.getElementById('roomId');
+const whoEl = document.getElementById('who');
+const countEl = document.getElementById('count');
+const leaveBtn = document.getElementById('leaveBtn');
+const btnMic = document.getElementById('btnMic');
+const btnCam = document.getElementById('btnCam');
+const btnScreen = document.getElementById('btnScreen');
+const avGrid = document.getElementById('avGrid');
+const avMenu = document.getElementById('avMenu');
+const audioUnlock = document.getElementById('audioUnlock');
+const toastEl = document.getElementById('toast');
+const chatView = document.getElementById('chatView');
+const textEl = document.getElementById('text');
+const sendBtn = document.getElementById('send');
+const ctxMenu = document.getElementById('ctxMenu');
+const reactFab = document.getElementById('reactFab');
+const reactMenu = document.getElementById('reactMenu');
+const flyBtn = document.getElementById('flyBtn');
+const joyBase = document.getElementById('joyBase');
+const joyStick = document.getElementById('joyStick');
 
 /* ===== Utilities ===== */
-function warn(msg){ console.warn(msg); }
-
+function showToast(message, ms=2800){
+  toastEl.textContent = message;
+  toastEl.style.display = 'block';
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>toastEl.style.display='none', ms);
+}
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function now(){ return Date.now(); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 async function ensureAnonAuth(auth){
   if (auth.currentUser) return auth.currentUser;
   await signInAnonymously(auth);
   return await new Promise(resolve=>{
     const stop = onAuthStateChanged(auth, u => {
-      if(u){
-        stop();
-        resolve(u);
-      }
+      if(u){ stop(); resolve(u); }
     });
   });
 }
-
-/* === Active Speaker (name tag glow) === */
-let audioCtx = null;
-const meters = new Map();
-const speakUntil = new Map();
-const SPEAK_THR  = 0.06;
-const SPEAK_HOLD = 300;
-
-function ensureAudioCtx(){
-  if(!audioCtx && (window.AudioContext||window.webkitAudioContext)){
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    const resume = ()=>audioCtx && audioCtx.resume();
-    document.addEventListener('pointerdown', resume, {passive:true});
-  }
-}
-function attachSpeechMeter(id, stream){
-  ensureAudioCtx();
-  if(!audioCtx || !stream) return;
-  const hasAudio = stream.getAudioTracks && stream.getAudioTracks().length;
-  if(!hasAudio) return;
-
-  detachSpeechMeter(id);
-
-  const src = audioCtx.createMediaStreamSource(stream);
-  const analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 256;
-  src.connect(analyser);
-  const data = new Uint8Array(analyser.frequencyBinCount);
-
-  let raf;
-  const loop = ()=>{
-    analyser.getByteTimeDomainData(data);
-    let sum=0;
-    for(let i=0;i<data.length;i++){
-      const v=(data[i]-128)/128;
-      sum+=v*v;
-    }
-    const rms = Math.sqrt(sum/data.length);
-    if(rms > SPEAK_THR){
-      speakUntil.set(id, performance.now()+SPEAK_HOLD);
-    }
-    raf = requestAnimationFrame(loop);
-  };
-  loop();
-
-  meters.set(id, ()=>{
-    try{ src.disconnect(); }catch{}
-    cancelAnimationFrame(raf);
+function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = ()=>res(img);
+    img.onerror = ()=>{
+      console.error('Image load failed:', src);
+      const c = document.createElement('canvas');
+      c.width = fallbackSize[0];
+      c.height = fallbackSize[1];
+      const g = c.getContext('2d');
+      g.fillStyle = '#0f172a';
+      g.fillRect(0,0,c.width,c.height);
+      g.fillStyle = '#94a3b8';
+      g.font = '24px system-ui';
+      g.fillText(label,20,42);
+      const fallback = new Image();
+      fallback.onload = ()=>res(fallback);
+      fallback.src = c.toDataURL('image/png');
+    };
+    img.src = src;
   });
 }
-function detachSpeechMeter(id){
-  const stop = meters.get(id);
-  if(stop) stop();
-  meters.delete(id);
-  speakUntil.delete(id);
-}
-function isSpeaking(id){
-  return (speakUntil.get(id)||0) > performance.now();
-}
+function safeKey(s){ return String(s||'').trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32) || 'room-001'; }
+function safeName(s){ return String(s||'guest').trim().slice(0,24) || 'guest'; }
 
 /* ===== URL ===== */
-const u = new URL(location.href);
-const rawRoom = (u.searchParams.get('room')||'room-001');
-const ROOM = rawRoom.trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').slice(0,32);
-const NAME = u.searchParams.get('name')||'guest';
-roomId.textContent = ROOM;
-who.textContent = NAME;
-
-/* ===== Image loader (fallback付き：絶対に null を返さない) ===== */
-function loadImage(src, {fallbackSize=[2048,2048], label='asset'}={}) {
-  return new Promise((res)=>{
-    const i = new Image();
-    i.onload = ()=>res(i);
-    i.onerror = ()=>{
-      console.error('Image load failed:', src);
-      warn(`画像読み込み失敗: ${src}`);
-      try{
-        const c = document.createElement('canvas');
-        c.width = fallbackSize[0];
-        c.height = fallbackSize[1];
-        const g = c.getContext('2d');
-        g.fillStyle = '#0f172a';
-        g.fillRect(0,0,c.width,c.height);
-        g.fillStyle = '#334155';
-        g.fillText(label,10,20);
-        const img = new Image();
-        img.onload = ()=>res(img);
-        img.src = c.toDataURL();
-      }catch{
-        const img = new Image();
-        img.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
-        img.onload = ()=>res(img);
-      }
-    };
-    i.src = src;
-  });
-}
+const url = new URL(location.href);
+const ROOM = safeKey(url.searchParams.get('room') || 'room-001');
+const NAME = safeName(url.searchParams.get('name') || 'guest');
+roomIdEl.textContent = ROOM;
+whoEl.textContent = NAME;
 
 /* ===== Assets ===== */
-const imgMap   = await loadImage('./map_1.png?v=20250927-2',{fallbackSize:[2048,2048],label:'map'});
-const imgMask  = await loadImage('./atarihantei.png?v=20250927-2',{fallbackSize:[2048,2048],label:'mask'});
-const imgFront = await loadImage('./nikorihito_dot_front.png?v=20250927-2');
-const imgBack  = await loadImage('./nikorihito_dot_behind.png?v=20250927-2');
-const imgSide  = await loadImage('./nikorihito_dot_right.png?v=20250927-2'); // 右向きだけ使う
-const imgPlane = await loadImage('./nikori_airplane.png?v=202511');
+const imgMap = await loadImage('./map_1.png?v=20250927-2', {fallbackSize:[2048,2048], label:'map'});
+const imgMask = await loadImage('./atarihantei.png?v=20250927-2', {fallbackSize:[2048,2048], label:'mask'});
+const imgFront = await loadImage('./nikorihito_dot_front.png?v=20250927-2', {fallbackSize:[32,32], label:'front'});
+const imgBack = await loadImage('./nikorihito_dot_behind.png?v=20250927-2', {fallbackSize:[32,32], label:'back'});
+const imgSide = await loadImage('./nikorihito_dot_right.png?v=20250927-2', {fallbackSize:[32,32], label:'side'});
+const imgPlane = await loadImage('./nikori_airplane.png?v=202511', {fallbackSize:[48,48], label:'plane'});
 
-/* ===== Canvas & world ===== */
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+/* ===== Canvas & collision ===== */
 ctx.imageSmoothingEnabled = false;
 function resize(){
   canvas.width = innerWidth;
   canvas.height = innerHeight;
+  ctx.imageSmoothingEnabled = false;
 }
-addEventListener('resize',resize);
+addEventListener('resize', resize);
 resize();
-const world = {w:imgMap.width,h:imgMap.height};
+const world = {w:imgMap.width, h:imgMap.height};
 
-/* ===== Collision ===== */
-const maskCanvas = (typeof OffscreenCanvas!=='undefined')
+const maskCanvas = (typeof OffscreenCanvas !== 'undefined')
   ? new OffscreenCanvas(imgMask.width,imgMask.height)
-  : Object.assign(document.createElement('canvas'),{width:imgMask.width,height:imgMask.height});
+  : Object.assign(document.createElement('canvas'), {width:imgMask.width, height:imgMask.height});
 const mctx = maskCanvas.getContext('2d');
 mctx.drawImage(imgMask,0,0);
 const mdata = mctx.getImageData(0,0,imgMask.width,imgMask.height);
-const mpix  = mdata.data;
-const MW    = imgMask.width;
-
+const mpix = mdata.data;
+const MW = imgMask.width;
 function isBlocked(x,y){
   x = x|0; y = y|0;
   if(x<0||y<0||x>=world.w||y>=world.h) return true;
   const i = (y*MW+x)*4;
   const r = mpix[i], g = mpix[i+1], b = mpix[i+2], a = mpix[i+3];
-  if(a<10) return false;
-  return (r>=180 && g<=80 && b<=80);
+  if(a < 10) return false;
+  return (r >= 180 && g <= 80 && b <= 80);
 }
 function hits(x,y){
-  const foot = y + (RADIUS*0.6);
-  return isBlocked(x,foot)
-      || isBlocked(x-RADIUS*0.7,foot)
-      || isBlocked(x+RADIUS*0.7,foot);
+  const foot = y + RADIUS * 0.6;
+  return isBlocked(x,foot) || isBlocked(x-RADIUS*0.7,foot) || isBlocked(x+RADIUS*0.7,foot);
 }
-function safeSpawn(maxTry=400){
+function safeSpawn(maxTry=500){
   for(let i=0;i<maxTry;i++){
     const x = Math.random()*(world.w-64)+32;
     const y = Math.random()*(world.h-64)+32;
     if(!hits(x,y)) return {x,y};
   }
-  const cx = world.w/2, cy = world.h/2;
-  return {x:cx,y:cy};
+  return {x:world.w/2, y:world.h/2};
 }
 
-/* ===== Players ===== */
-const playersRef = ref(db,`rooms/${ROOM}/players`);
-const meId = (crypto.randomUUID ? crypto.randomUUID() : (`m${Math.random().toString(36).slice(2)}`));
-const meRef = ref(db,`rooms/${ROOM}/players/${meId}`);
-
-let my = Object.assign({name:NAME,dir:'front',ts:Date.now(),fly:false,voice:false}, safeSpawn());
-let isFlying = false;
-let inVoiceRoom = false;   // 本格ボイスルーム参加中かどうか
-
+/* ===== User / players ===== */
 await ensureAnonAuth(auth);
-await set(meRef,my);
-onDisconnect(meRef).remove().catch(()=>{});
+const meId = (crypto.randomUUID ? crypto.randomUUID() : `m${Math.random().toString(36).slice(2)}`);
+const playersRef = ref(db, `rooms/${ROOM}/players`);
+const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
+const rtcInboxRef = ref(db, `rooms/${ROOM}/rtc/${meId}`);
 
+let localAvState = {mic:false, cam:false, screen:false};
+let my = Object.assign({name:NAME, dir:'front', ts:now(), fly:false, av:localAvState}, safeSpawn());
 let players = {};
 const ghosts = {};
+let isFlying = false;
+let lastSync = 0;
 
-onValue(playersRef,snap=>{
-  players = snap.val()||{};
-  count.textContent = Object.keys(players).length;
+await set(meRef, my);
+onDisconnect(meRef).remove().catch(()=>{});
+onDisconnect(rtcInboxRef).remove().catch(()=>{});
+
+onValue(playersRef, snap=>{
+  players = snap.val() || {};
+  countEl.textContent = Object.keys(players).length;
   for(const [id,p] of Object.entries(players)){
-    if(!ghosts[id] && p){
-      ghosts[id] = {x:p.x,y:p.y,dir:p.dir,name:p.name,fly:!!p.fly,voice:!!p.voice};
-    }else if(ghosts[id] && p){
-      ghosts[id].voice = !!p.voice;
+    if(!p) continue;
+    if(!ghosts[id]) ghosts[id] = {x:p.x||0, y:p.y||0, dir:p.dir||'front', name:p.name||'guest', fly:!!p.fly, av:p.av||{}};
+    ghosts[id].tx = p.x || ghosts[id].x;
+    ghosts[id].ty = p.y || ghosts[id].y;
+    ghosts[id].dir = p.dir || ghosts[id].dir;
+    ghosts[id].name = p.name || ghosts[id].name;
+    ghosts[id].fly = !!p.fly;
+    ghosts[id].av = p.av || {};
+  }
+  for(const id of Object.keys(ghosts)){
+    if(!players[id]){
+      delete ghosts[id];
+      closePeer(id);
+      detachSpeechMeter(id);
     }
   }
+  connectToKnownPeers();
+  renderAvGrid();
 });
 
+function syncMe(force=false){
+  const t = now();
+  if(!force && t-lastSync < SYNC_MS) return;
+  lastSync = t;
+  my.ts = t;
+  my.fly = isFlying;
+  my.av = localAvState;
+  update(meRef, {x:my.x, y:my.y, dir:my.dir, ts:my.ts, fly:my.fly, av:my.av}).catch(console.warn);
+}
+
+leaveBtn.onclick = async()=>{
+  await cleanup();
+  const back = url.searchParams.get('back') || './index.html';
+  location.href = back;
+};
+addEventListener('beforeunload', ()=>cleanup(false));
+async function cleanup(stopTracks=true){
+  try{ await remove(meRef); }catch{}
+  try{ await remove(rtcInboxRef); }catch{}
+  for(const id of Array.from(peerStates.keys())) closePeer(id);
+  if(stopTracks){
+    stopStream(micStream); stopStream(camStream); stopStream(screenStream);
+  }
+}
+
 /* ===== Chat ===== */
-const chatRef = ref(db,`rooms/${ROOM}/chat`);
-const chatView = document.getElementById('chatView');
-const textEl   = document.getElementById('text');
-const sendBtn  = document.getElementById('send');
-const ctxMenu  = document.getElementById('ctxMenu');
+const chatRef = ref(db, `rooms/${ROOM}/chat`);
 let ctxTargetId = null;
 let replyToMsgId = null;
-const items    = new Map();
+const items = new Map();
 const msgIndex = new Map();
 
 function openCtx(x,y){
   ctxMenu.style.display = 'block';
-  ctxMenu.style.left = x+'px';
-  ctxMenu.style.top  = y+'px';
+  ctxMenu.style.left = `${clamp(x,8,innerWidth-220)}px`;
+  ctxMenu.style.top = `${clamp(y,8,innerHeight-180)}px`;
 }
-function closeCtx(){
-  ctxMenu.style.display = 'none';
-  ctxTargetId = null;
-}
-addEventListener('click',()=>closeCtx());
+function closeCtx(){ ctxMenu.style.display='none'; ctxTargetId=null; }
+addEventListener('click', e=>{ if(!ctxMenu.contains(e.target)) closeCtx(); });
 
 function highlightMentions(container, text){
-  const meTag='@'+NAME;
-  const parts=(text||'').split(/(@[^\s]+)/g);
+  const meTag = '@' + NAME;
+  const parts = String(text||'').split(/(@[^\s]+)/g);
   for(const part of parts){
-    if(part===meTag){
-      const span=document.createElement('span');
-      span.className='mentionSelf';
-      span.textContent=part;
+    if(part === meTag){
+      const span = document.createElement('span');
+      span.className = 'mentionSelf';
+      span.textContent = part;
       container.appendChild(span);
     }else{
       container.appendChild(document.createTextNode(part));
@@ -788,1092 +687,663 @@ function highlightMentions(container, text){
   }
 }
 function messageEl(id,m){
-  const el=document.createElement('div');
-  el.className='item'+(m.uid===meId?' me':'') + (m.replyTo && msgIndex.get(m.replyTo)?.uid===meId ? ' replyToMe' : '');
-  el.dataset.id=id;
-  el.dataset.uid=m.uid||'';
+  const el = document.createElement('div');
+  const parent = m.replyTo ? msgIndex.get(m.replyTo) : null;
+  el.className = 'item' + (m.uid===meId ? ' me':'') + (parent?.uid===meId ? ' replyToMe':'');
+  el.dataset.id = id;
+  el.dataset.uid = m.uid || '';
 
   if(m.replyTo){
-    const parent=msgIndex.get(m.replyTo);
-    const r=document.createElement('div');
-    r.className='replyTo';
-    r.textContent= parent ? `↪ ${parent.name||'someone'} さんのメッセージ` : '↪ （元メッセージ）';
-    r.onclick=()=>{
-      const tgt=items.get(m.replyTo);
-      if(tgt){
-        tgt.scrollIntoView({behavior:'smooth',block:'center'});
-      }
+    const r = document.createElement('div');
+    r.className = 'replyTo';
+    r.textContent = parent ? `↪ ${parent.name || 'someone'} さんのメッセージ` : '↪ 元メッセージ';
+    r.onclick = e=>{
+      e.stopPropagation();
+      const tgt = items.get(m.replyTo);
+      if(tgt) tgt.scrollIntoView({behavior:'smooth', block:'center'});
     };
     el.appendChild(r);
   }
 
-  const line=document.createElement('div');
-  highlightMentions(line, m.text||'');
+  const nameLine = document.createElement('div');
+  nameLine.className = 'nameLine';
+  nameLine.textContent = m.name || 'guest';
+  el.appendChild(nameLine);
+
+  const line = document.createElement('div');
+  highlightMentions(line, m.text || '');
   el.appendChild(line);
 
-  const meta=document.createElement('div');
-  meta.className='meta';
-  meta.textContent=new Date(m.ts||Date.now()).toLocaleString() + (m.edited?'（編集済）':'');
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = new Date(m.ts || now()).toLocaleString() + (m.edited ? '（編集済）':'');
   el.appendChild(meta);
 
-  el.oncontextmenu=(e)=>{
+  el.oncontextmenu = e=>{
     e.preventDefault();
-    ctxTargetId=id;
-    openCtx(e.clientX,e.clientY);
+    ctxTargetId = id;
+    openCtx(e.clientX, e.clientY);
   };
-
-  let pressTimer;
-  el.addEventListener('touchstart',e=>{
-    pressTimer=setTimeout(()=>{
-      ctxTargetId=id;
-      const t=e.touches[0];
-      openCtx(t.clientX,t.clientY);
-    },600);
-  });
-  el.addEventListener('touchend',()=>clearTimeout(pressTimer));
-
+  let pressTimer = null;
+  el.addEventListener('touchstart', e=>{
+    pressTimer = setTimeout(()=>{
+      ctxTargetId = id;
+      const t = e.touches[0];
+      openCtx(t.clientX, t.clientY);
+    }, 600);
+  }, {passive:true});
+  el.addEventListener('touchend', ()=>clearTimeout(pressTimer));
   return el;
 }
-const chatQ=query(chatRef,limitToLast(MAX_MSG));
-onChildAdded(chatQ,s=>{
-  const id=s.key, m=s.val()||{};
+const chatQ = query(chatRef, limitToLast(MAX_MSG));
+onChildAdded(chatQ, snap=>{
+  const id = snap.key, m = snap.val() || {};
   msgIndex.set(id,m);
-  const el=messageEl(id,m);
+  const el = messageEl(id,m);
   items.set(id,el);
   chatView.appendChild(el);
-  chatView.scrollTop=chatView.scrollHeight;
+  chatView.scrollTop = chatView.scrollHeight;
 });
-onChildChanged(chatQ,s=>{
-  const id=s.key, m=s.val()||{};
+onChildChanged(chatQ, snap=>{
+  const id = snap.key, m = snap.val() || {};
   msgIndex.set(id,m);
-  const old=items.get(id);
+  const old = items.get(id);
   if(old){
-    const el=messageEl(id,m);
+    const el = messageEl(id,m);
     chatView.replaceChild(el,old);
     items.set(id,el);
   }
 });
-onChildRemoved(chatQ,s=>{
-  const id=s.key;
-  const el=items.get(id);
-  if(el){
-    el.remove();
-    items.delete(id);
-  }
+onChildRemoved(chatQ, snap=>{
+  const id = snap.key;
+  items.get(id)?.remove();
+  items.delete(id);
   msgIndex.delete(id);
 });
 async function sendMessage(payload){
-  await push(chatRef, Object.assign({uid:meId,name:NAME,ts:Date.now()}, payload));
+  await push(chatRef, Object.assign({uid:meId, name:NAME, ts:now()}, payload));
 }
-document.getElementById('ctxReply').onclick=()=>{
+
+document.getElementById('ctxReply').onclick = e=>{
+  e.stopPropagation();
   if(!ctxTargetId) return;
-  replyToMsgId=ctxTargetId;
+  replyToMsgId = ctxTargetId;
   closeCtx();
+  textEl.placeholder = '返信メッセージを入力中...';
   textEl.focus();
 };
-document.getElementById('ctxReactOpen').onclick=()=>{
+document.getElementById('ctxReactOpen').onclick = e=>{
+  e.stopPropagation();
   closeCtx();
   openReactMenu();
 };
-document.getElementById('editMsg').onclick=async()=>{
+document.getElementById('editMsg').onclick = async e=>{
+  e.stopPropagation();
   if(!ctxTargetId) return;
-  const old=items.get(ctxTargetId);
-  const cur=old?.querySelector('div')?.textContent||'';
-  const t=prompt('メッセージを編集',cur);
-  if(t==null) return;
-  await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), {
-    text:t.slice(0,2000),
-    edited:true,
-    ts:Date.now()
-  });
+  const m = msgIndex.get(ctxTargetId);
+  if(m?.uid !== meId){ showToast('自分のメッセージだけ編集できます'); closeCtx(); return; }
+  const t = prompt('メッセージを編集', m.text || '');
+  if(t == null) return;
+  await update(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`), {text:t.slice(0,2000), edited:true, ts:now()});
   closeCtx();
 };
-document.getElementById('delMsg').onclick=async()=>{
+document.getElementById('delMsg').onclick = async e=>{
+  e.stopPropagation();
   if(!ctxTargetId) return;
+  const m = msgIndex.get(ctxTargetId);
+  if(m?.uid !== meId){ showToast('自分のメッセージだけ削除できます'); closeCtx(); return; }
   await remove(ref(db,`rooms/${ROOM}/chat/${ctxTargetId}`));
   closeCtx();
 };
-let sending=false;
-sendBtn.onclick=async()=>{
+let sending = false;
+sendBtn.onclick = async()=>{
   if(sending) return;
-  const text=textEl.value.trim();
+  const text = textEl.value.trim();
   if(!text) return;
-  sending=true;
+  sending = true;
   try{
-    const msg={ text:text.slice(0,2000) };
-    if(replyToMsgId){
-      msg.replyTo=replyToMsgId;
-      replyToMsgId=null;
-    }
+    const msg = {text:text.slice(0,2000)};
+    if(replyToMsgId){ msg.replyTo = replyToMsgId; replyToMsgId = null; }
     await sendMessage(msg);
-    textEl.value='';
-  }finally{
-    sending=false;
-  }
+    textEl.value = '';
+    textEl.placeholder = 'メッセージを入力。Enterで送信 / @名前 でメンション';
+  }finally{ sending = false; }
 };
-textEl.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){
+textEl.addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){
     e.preventDefault();
     sendBtn.click();
+  }
+  if(e.key === 'Escape'){
+    replyToMsgId = null;
+    textEl.placeholder = 'メッセージを入力。Enterで送信 / @名前 でメンション';
   }
 });
 
 /* ===== Reactions ===== */
-const bubblesRef = ref(db,`rooms/${ROOM}/bubbles`);
-const reactFab = document.getElementById('reactFab');
-const reactMenu = document.getElementById('reactMenu');
-
+const bubblesRef = ref(db, `rooms/${ROOM}/bubbles`);
 function openReactMenu(){
-  reactMenu.innerHTML='';
-  EMOJIS.forEach(e=>{
-    const b=document.createElement('button');
-    b.textContent=e;
-    b.onclick=()=>{
-      push(bubblesRef,{uid:meId,emoji:e,ts:Date.now()});
-      reactMenu.style.display='none';
+  reactMenu.innerHTML = '';
+  EMOJIS.forEach(emoji=>{
+    const b = document.createElement('button');
+    b.textContent = emoji;
+    b.onclick = ()=>{
+      push(bubblesRef, {uid:meId, emoji, ts:now()});
+      reactMenu.style.display = 'none';
     };
     reactMenu.appendChild(b);
   });
-  reactMenu.style.display='block';
+  reactMenu.style.display = 'block';
 }
-reactFab.onclick=()=>{
-  const open = reactMenu.style.display==='block';
-  reactMenu.style.display = open ? 'none':'block';
-  if(!open) openReactMenu();
+reactFab.onclick = ()=>{
+  if(reactMenu.style.display === 'block') reactMenu.style.display = 'none';
+  else openReactMenu();
 };
-
-const bubbles=new Map();
+const bubbles = new Map();
 function showBubbleFor(uid,emoji){
-  let b=bubbles.get(uid);
+  let b = bubbles.get(uid);
   if(!b){
-    b=document.createElement('div');
-    b.className='bubble';
+    b = document.createElement('div');
+    b.className = 'bubble';
     document.body.appendChild(b);
     bubbles.set(uid,b);
   }
-  b.textContent=emoji;
-  b.style.display='block';
+  b.textContent = emoji;
+  b.style.display = 'block';
   clearTimeout(b._t);
-  b._t=setTimeout(()=>{ b.style.display='none'; },1800);
+  b._t = setTimeout(()=>{ b.style.display='none'; },1800);
 }
-onChildAdded(query(bubblesRef,limitToLast(50)), s=>{
-  const {uid,emoji,ts}=s.val()||{};
-  if(!uid||!emoji) return;
-  if(Date.now()-ts>5000) return;
-  showBubbleFor(uid,emoji);
+onChildAdded(query(bubblesRef, limitToLast(50)), snap=>{
+  const {uid, emoji, ts} = snap.val() || {};
+  if(!uid || !emoji) return;
+  if(now() - (ts||0) > 5000) return;
+  showBubbleFor(uid, emoji);
 });
 
-/* ===== Camera & Render ===== */
-
-/** 右向きスプライトだけを使い、左は左右反転 */
-function spriteByDir(d){
-  if(d==='back')  return {img:imgBack,  flip:false};
-  if(d==='left')  return {img:imgSide,  flip:true};
-  if(d==='right') return {img:imgSide,  flip:false};
-  return {img:imgFront, flip:false}; // front
-}
-
-let camX=0, camY=0;
-function camera(dt){
-  const tx=Math.round(my.x-canvas.width/2);
-  const ty=Math.round(my.y-canvas.height/2);
-  const k=Math.min(1,dt*CAM_INTERP);
-  camX+=(tx-camX)*k;
-  camY+=(ty-camY)*k;
-  camX=Math.max(0,Math.min(world.w-canvas.width,camX));
-  camY=Math.max(0,Math.min(world.h-canvas.height,camY));
-  return {x:camX,y:camY};
-}
-
-/* ===== Flight helpers ===== */
-const flyBtn = document.getElementById('flyBtn');
-let lastLandWarn = 0;
-
-function canLandHere(){
-  return !hits(my.x,my.y);
-}
-function applyFlightUI(){
-  flyBtn.classList.toggle('on', isFlying);
-}
-function setFlight(on){
-  if(on === isFlying) return;
-
-  if(!on){
-    if(!canLandHere()){
-      const now = Date.now();
-      if(now - lastLandWarn > 1500){
-        alert('ここには着陸できません。\n少し移動してからもう一度試してください。');
-        lastLandWarn = now;
-      }
-      return;
-    }
+/* ===== Active speaker meter ===== */
+let audioCtx = null;
+const meters = new Map();
+const speakUntil = new Map();
+const SPEAK_THR = 0.055;
+const SPEAK_HOLD = 330;
+function ensureAudioCtx(){
+  if(!audioCtx && (window.AudioContext || window.webkitAudioContext)){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  isFlying = on;
-  my.fly = isFlying;
-  applyFlightUI();
-  update(meRef,{fly:isFlying}).catch(()=>{});
+  if(audioCtx?.state === 'suspended') audioCtx.resume().catch(()=>{});
 }
-function toggleFlight(){
-  setFlight(!isFlying);
-}
-flyBtn.onclick = ()=>{ toggleFlight(); };
-
-/* ===== Voice gate & room ===== */
-const voiceHintEl   = document.getElementById('voiceHint');
-const voiceModalWrap= document.getElementById('voiceModalWrap');
-const voiceEnterBtn = document.getElementById('voiceEnter');
-const voiceCancelBtn= document.getElementById('voiceCancel');
-
-let inVoiceGate = false;
-let voiceModalOpen = false;
-
-function isInVoiceGate(){
-  return (
-    Math.abs(my.x - VOICE_GATE_X) <= VOICE_GATE_HALF_W &&
-    Math.abs(my.y - VOICE_GATE_Y) <= VOICE_GATE_HALF_H &&
-    !isFlying
-  );
-}
-function setVoiceHintVisible(on){
-  voiceHintEl.style.display = on ? 'block' : 'none';
-}
-function openVoiceModal(){
-  if(voiceModalOpen) return;
-  voiceModalOpen = true;
-  voiceModalWrap.style.display = 'flex';
-}
-function closeVoiceModal(){
-  if(!voiceModalOpen) return;
-  voiceModalOpen = false;
-  voiceModalWrap.style.display = 'none';
-}
-
-/* 本格ボイスルーム参加フラグ
-   room.html では通話自体は行わず、voice_room.html へ遷移する */
-function setVoiceRoom(on){
-  if(!on){
-    inVoiceRoom = false;
-    my.voice   = false;
-    update(meRef,{voice:false}).catch(()=>{});
-    if(!isInVoiceGate()){
-      setVoiceHintVisible(false);
-    }
-    return;
-  }
-
-  const next = new URL('./voice_room.html', location.href);
-  next.searchParams.set('room', ROOM);
-  next.searchParams.set('name', NAME);
-  next.searchParams.set('return', './room.html');
-  location.href = next.toString();
-}
-
-/* モーダルのボタン */
-voiceEnterBtn.onclick = ()=>{
-  closeVoiceModal();
-  setVoiceRoom(true);
-};
-voiceCancelBtn.onclick = ()=>{
-  closeVoiceModal();
-};
-
-/* ===== Inputs ===== */
-const keys=new Set();
-addEventListener('keydown',e=>{
-  // フライト切替
-  if((e.key==='H' || e.key==='h') && e.shiftKey){
-    e.preventDefault();
-    toggleFlight();
-    return;
-  }
-
-  // ゲーセン入口で Z キー → 本格ボイスルーム確認
-  if(e.key==='z' || e.key==='Z'){
-    if(isInVoiceGate() && !inVoiceRoom){
-      e.preventDefault();
-      openVoiceModal();
-      return;
-    }
-  }
-
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
-    e.preventDefault();
-  }
-  keys.add(e.key);
-});
-addEventListener('keyup',e=>keys.delete(e.key));
-
-const joyBase  = document.getElementById('joyBase');
-const joyStick = document.getElementById('joyStick');
-let joyVec     = {x:0,y:0};
-
-if ('ontouchstart' in window || navigator.maxTouchPoints>0){
-  joyBase.style.display='block';
-  const getVec=(clientX,clientY)=>{
-    const rect=joyBase.getBoundingClientRect();
-    const cx=rect.left+rect.width/2;
-    const cy=rect.top+rect.height/2;
-    let dx=clientX-cx;
-    let dy=clientY-cy;
-    const len=Math.hypot(dx,dy);
-    const limit=rect.width/2-10;
-    if(len>limit){
-      dx=dx*limit/len;
-      dy=dy*limit/len;
-    }
-    joyStick.style.transform=`translate(${dx}px,${dy}px) translate(-50%,-50%)`;
-    return {x:dx/limit, y:dy/limit};
-  };
-  const start=e=>{
-    const t=e.touches?e.touches[0]:e;
-    joyVec=getVec(t.clientX,t.clientY);
-  };
-  const move=e=>{
-    if(e.pressure===0) return;
-    const t=e.touches?e.touches[0]:e;
-    joyVec=getVec(t.clientX,t.clientY);
-  };
-  const end=()=>{
-    joyVec={x:0,y:0};
-    joyStick.style.transform='translate(-50%,-50%)';
-  };
-  joyBase.addEventListener('pointerdown',start);
-  joyBase.addEventListener('pointermove',move);
-  joyBase.addEventListener('pointerup',end);
-  joyBase.addEventListener('pointercancel',end);
-  joyBase.addEventListener('touchstart',start,{passive:false});
-  joyBase.addEventListener('touchmove',move,{passive:false});
-  joyBase.addEventListener('touchend',end);
-}
-
-/* ===== Loop ===== */
-let lastSync=0, selfLastX=my.x, selfLastY=my.y, selfLastDir=my.dir;
-let lastT=performance.now();
-
-function step(now){
-  if(now-lastT<FRAME_MIN){
-    requestAnimationFrame(step);
-    return;
-  }
-  const dt=Math.min(0.05,(now-lastT)/1000);
-  lastT=now;
-
-  let vx=0, vy=0;
-  if(keys.has('ArrowUp'))    vy-=1;
-  if(keys.has('ArrowDown'))  vy+=1;
-  if(keys.has('ArrowLeft'))  vx-=1;
-  if(keys.has('ArrowRight')) vx+=1;
-  vx += joyVec.x;
-  vy += joyVec.y;
-
-  if(vx||vy){
-    const len=Math.hypot(vx,vy);
-    vx/=len; vy/=len;
-    const s = (isFlying ? FLY_SPEED_PPS : SPEED_PPS) * dt;
-    const nx=my.x+vx*s;
-    const ny=my.y+vy*s;
-
-    if(isFlying){
-      my.x = nx;
-      my.y = ny;
-    }else{
-      if(!hits(nx,my.y)) my.x=nx;
-      if(!hits(my.x,ny)) my.y=ny;
-    }
-  }
-
-  my.x = Math.max(0,Math.min(world.w,my.x));
-  my.y = Math.max(0,Math.min(world.h,my.y));
-
-  if(vx||vy){
-    my.dir = Math.abs(vx)>Math.abs(vy)
-      ? (vx>0?'right':'left')
-      : (vy>0?'front':'back');
-  }
-
-  /* ゲームセンター入口にいるかどうかをチェック */
-  const insideGate = isInVoiceGate() && !inVoiceRoom;
-  if(insideGate !== inVoiceGate){
-    inVoiceGate = insideGate;
-    setVoiceHintVisible(insideGate);
-    if(!insideGate){
-      closeVoiceModal();
-    }
-  }
-
-  const cam=camera(dt);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(imgMap, cam.x, cam.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-
-  const kInterp=Math.min(1,dt*PLAYER_INTERP);
-
-  // 他人
-  for(const [id,p] of Object.entries(players)){
-    if(!p || id===meId) continue;
-    const g=(ghosts[id] ||= {x:p.x,y:p.y,dir:p.dir,name:p.name,fly:!!p.fly,voice:!!p.voice});
-    g.x += (p.x-g.x)*kInterp;
-    g.y += (p.y-g.y)*kInterp;
-    g.dir = p.dir || g.dir;
-    g.fly = !!p.fly;
-    g.voice = !!p.voice;
-
-    const spr = g.fly ? {img:imgPlane, flip:false} : spriteByDir(g.dir||'front');
-    const im  = spr.img;
-    const sw  = im.width * SCALE;
-    const sh  = im.height * SCALE;
-    const sx  = Math.round(g.x - sw/2 - cam.x);
-    const sy  = Math.round(g.y - sh/2 - cam.y);
-
-    if(spr.flip){
-      ctx.save();
-      ctx.translate(sx+sw, sy);
-      ctx.scale(-1,1);
-      ctx.drawImage(im, 0, 0, sw, sh);
-      ctx.restore();
-    }else{
-      ctx.drawImage(im, sx, sy, sw, sh);
-    }
-    drawName(g.name||'?', g.x-cam.x, (g.y-sh/2)-cam.y-2, false, id);
-  }
-
-  // 自分
-  const selfSpr = isFlying ? {img:imgPlane, flip:false} : spriteByDir(my.dir);
-  const selfIm  = selfSpr.img;
-  const mw   = selfIm.width * SCALE;
-  const mh   = selfIm.height * SCALE;
-  const mx   = Math.round(my.x - mw/2 - cam.x);
-  const myy  = Math.round(my.y - mh/2 - cam.y);
-
-  if(selfSpr.flip){
-    ctx.save();
-    ctx.translate(mx+mw, myy);
-    ctx.scale(-1,1);
-    ctx.drawImage(selfIm, 0, 0, mw, mh);
-    ctx.restore();
-  }else{
-    ctx.drawImage(selfIm, mx, myy, mw, mh);
-  }
-  drawName(NAME, my.x-cam.x, (my.y-mh/2)-cam.y-2, true, meId);
-
-  // バブル位置
-  for(const [uid,b] of bubbles){
-    const p = uid===meId ? my : (players[uid]||ghosts[uid]);
-    if(!p || b.style.display==='none') continue;
-    const x=(p.x||0)-cam.x;
-    const y=(p.y||0)-cam.y;
-    b.style.left = x+'px';
-    b.style.top  = (y - (mh/2) - 24)+'px';
-  }
-
-  if(now-lastSync>SYNC_MS){
-    const dx=my.x-selfLastX;
-    const dy=my.y-selfLastY;
-    const moved = (dx*dx+dy*dy)>1;
-    const dirChanged = my.dir!==selfLastDir;
-    const flyChanged = my.fly !== isFlying;
-    const voiceChanged = my.voice !== inVoiceRoom;
-    if(moved || dirChanged || flyChanged || voiceChanged){
-      lastSync   = now;
-      selfLastX  = my.x;
-      selfLastY  = my.y;
-      selfLastDir= my.dir;
-      my.fly     = isFlying;
-      my.voice   = inVoiceRoom;
-      update(meRef,{
-        x:my.x,
-        y:my.y,
-        dir:my.dir,
-        ts:Date.now(),
-        fly:isFlying,
-        voice:inVoiceRoom
-      }).catch(()=>{});
-    }
-  }
-
-  requestAnimationFrame(step);
-}
-requestAnimationFrame(step);
-
-function drawName(name,x,y,me=false,id=null){
-  ctx.font = '20px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(0,0,0,.6)';
-  ctx.fillRect(x-60, y-28, 120, 32);
-
-  if(id && isSpeaking(id)){
-    ctx.save();
-    ctx.shadowColor = '#22d3ee';
-    ctx.shadowBlur  = 16;
-    ctx.fillStyle   = '#22d3ee';
-    ctx.fillText(name, x, y-8);
-    ctx.restore();
-  }else{
-    ctx.fillStyle = me ? '#22d3ee' : '#e2e8f0';
-    ctx.fillText(name, x, y-8);
-  }
-}
-
-/* 退室 */
-document.getElementById('leave').onclick=()=>{
-  remove(meRef).finally(()=>{ location.href='./'; });
-};
-addEventListener('beforeunload', ()=>{
-  try{ remove(meRef); }catch{}
-});
-
-/* =========================================================
-   WebRTC
-   ========================================================= */
-const ICE={
-  iceServers:[{urls:'stun:stun.l.google.com:19302'}],
-  sdpSemantics:'unified-plan'
-};
-const avGrid      = document.getElementById('avGrid');
-const btnMic      = document.getElementById('btnMic');
-const btnCam      = document.getElementById('btnCam');
-const btnScreen   = document.getElementById('btnScreen');
-const avMenu      = document.getElementById('avMenu');
-const audioUnlock = document.getElementById('audioUnlock');
-
-const inboxRef = ref(db,`rooms/${ROOM}/webrtc/inbox/${meId}`);
-function sendSignal(to, data){
-  return push(ref(db,`rooms/${ROOM}/webrtc/inbox/${to}`),
-    Object.assign({from:meId,ts:Date.now()},data));
-}
-
-const peers=new Map();
-let micStream=null, camStream=null, screenStream=null;
-let selectedMic=null, selectedCam=null;
-
-function showUnlock(){ audioUnlock.style.display='block'; }
-function hideUnlock(){ audioUnlock.style.display='none'; }
-function tryPlayAll(){
-  document.querySelectorAll('audio[data-remote],video[data-remote]').forEach(el=>{
-    el.play?.().catch(()=>showUnlock());
-  });
-}
-document.addEventListener('pointerdown',()=>{
-  tryPlayAll();
-  hideUnlock();
-},{once:true});
-
-async function listDevices(){
-  const devs=await navigator.mediaDevices.enumerateDevices();
-  return {
-    mics: devs.filter(d=>d.kind==='audioinput'),
-    cams: devs.filter(d=>d.kind==='videoinput')
-  };
-}
-
-/* ---- Local Media ---- */
-async function ensureMic(on=true){
+function attachSpeechMeter(id, stream){
+  ensureAudioCtx();
+  if(!audioCtx || !stream || !stream.getAudioTracks().length) return;
+  detachSpeechMeter(id);
   try{
-    if(!navigator.mediaDevices?.getUserMedia){
-      throw new Error('このブラウザまたは実行環境ではマイクが利用できません。HTTPS で開いているか確認してください。');
-    }
-    if(on && !micStream){
-      const c={audio:{deviceId:selectedMic?{exact:selectedMic}:undefined}, video:false};
-      micStream=await navigator.mediaDevices.getUserMedia(c);
-      attachSpeechMeter(meId, micStream);
-    }
-    if(!on && micStream){
-      detachSpeechMeter(meId);
-      micStream.getTracks().forEach(t=>t.stop());
-      micStream=null;
-    }
-    btnMic.classList.toggle('on', !!micStream);
-    await refreshSenders();
-  }catch(e){
-    console.error('Mic error:', e);
-    alert('マイクを開始できませんでした。\n' + (e?.message || e));
-  }
-}
-async function ensureCam(on=true){
-  try{
-    if(!navigator.mediaDevices?.getUserMedia){
-      throw new Error('このブラウザまたは実行環境ではカメラが利用できません。HTTPS で開いているか確認してください。');
-    }
-    if(on && !camStream){
-      const c={video:{deviceId:selectedCam?{exact:selectedCam}:undefined, width:{ideal:640}, height:{ideal:360}}, audio:false};
-      camStream=await navigator.mediaDevices.getUserMedia(c);
-      showLocalTile('camera', camStream);
-    }
-    if(!on && camStream){
-      removeLocalTile('camera');
-      camStream.getTracks().forEach(t=>t.stop());
-      camStream=null;
-    }
-    btnCam.classList.toggle('on', !!camStream);
-    await refreshSenders();
-  }catch(e){
-    console.error('Camera error:', e);
-    alert('カメラを開始できませんでした。\n' + (e?.message || e));
-  }
-}
-async function startScreen(){
-  try{
-    if(screenStream) return;
-    if(!navigator.mediaDevices?.getDisplayMedia){
-      throw new Error('このブラウザでは画面共有に対応していません。');
-    }
-    screenStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
-    screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
-    showLocalTile('screen', screenStream);
-    btnScreen.classList.add('on');
-    await refreshSenders();
-  }catch(e){
-    if(e?.name === 'NotAllowedError') return;
-    console.error('Screen share error:', e);
-    alert('画面共有を開始できませんでした。\n' + (e?.message || e));
-  }
-}
-async function changeScreen(){
-  try{
-    if(!screenStream) return;
-    const newStream=await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
-    const newTrack=newStream.getVideoTracks()[0];
-    for(const {screenSender} of peers.values()){
-      if(screenSender) await screenSender.replaceTrack(newTrack);
-    }
-    replaceLocalTileStream('screen', newStream);
-    screenStream.getTracks().forEach(t=>t.stop());
-    screenStream=newStream;
-    screenStream.getVideoTracks()[0].addEventListener('ended', ()=> stopScreen());
-  }catch(e){
-    if(e?.name === 'NotAllowedError') return;
-    console.error('Screen change error:', e);
-    alert('画面共有の切り替えに失敗しました。\n' + (e?.message || e));
-  }
-}
-async function stopScreen(){
-  if(!screenStream) return;
-  screenStream.getTracks().forEach(t=>t.stop());
-  screenStream=null;
-  removeLocalTile('screen');
-  btnScreen.classList.remove('on');
-  await refreshSenders();
-}
-
-async function refreshSenders(){
-  for(const [pid,st] of peers){
-    const pc=st.pc;
-    if(micStream){
-      const track=micStream.getAudioTracks()[0];
-      if(!st.audioSender){
-        st.audioSender=pc.addTrack(track, micStream);
-      }else{
-        await st.audioSender.replaceTrack(track);
-      }
-    }else if(st.audioSender){
-      await st.audioSender.replaceTrack(null);
-    }
-
-    if(camStream){
-      const v=camStream.getVideoTracks()[0];
-      if(!st.videoSender){
-        st.videoSender=pc.addTrack(v, camStream);
-      }else{
-        await st.videoSender.replaceTrack(v);
-      }
-    }else if(st.videoSender){
-      await st.videoSender.replaceTrack(null);
-    }
-
-    if(screenStream){
-      const s=screenStream.getVideoTracks()[0];
-      if(!st.screenSender){
-        st.screenSender=pc.addTrack(s, screenStream);
-      }else{
-        await st.screenSender.replaceTrack(s);
-      }
-    }else if(st.screenSender){
-      await st.screenSender.replaceTrack(null);
-    }
-  }
-}
-
-function showLocalTile(kind, stream){
-  const id = `local-${kind}`;
-  let tile = document.getElementById(id);
-  if(!tile){
-    tile = document.createElement('div');
-    tile.className = 'tile';
-    tile.id = id;
-
-    const v = document.createElement('video');
-    v.autoplay = true;
-    v.muted = true;
-    v.playsInline = true;
-    v.srcObject = stream;
-
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = `${NAME}（${kind==='screen'?'画面':'カメラ'}）`;
-
-    const btns = document.createElement('div');
-    btns.className = 'btns';
-    const enlarge = document.createElement('button');
-    enlarge.className = 'btn';
-    enlarge.textContent = '⤢';
-    enlarge.onclick = () => tile.classList.toggle('big');
-    btns.appendChild(enlarge);
-
-    tile.appendChild(v);
-    tile.appendChild(name);
-    tile.appendChild(btns);
-    avGrid.appendChild(tile);
-  }else{
-    tile.querySelector('video').srcObject = stream;
-  }
-}
-function replaceLocalTileStream(kind, newStream){
-  const id=`local-${kind}`;
-  const tile=document.getElementById(id);
-  if(tile){
-    tile.querySelector('video').srcObject=newStream;
-  }
-}
-function removeLocalTile(kind){
-  const id=`local-${kind}`;
-  const tile=document.getElementById(id);
-  if(tile) tile.remove();
-}
-
-function ensureRemoteTile(peerId, stream, label){
-  const id=`remote-${peerId}-${label}`;
-  let tile=document.getElementById(id);
-  const kind = stream.getVideoTracks().length ? 'video' : 'audio';
-  if(!tile){
-    tile=document.createElement('div');
-    tile.className='tile';
-    tile.id=id;
-    if(kind==='video'){
-      const v=document.createElement('video');
-      v.autoplay=true;
-      v.playsInline=true;
-      v.setAttribute('data-remote','');
-      v.srcObject=stream;
-      const name=document.createElement('div');
-      name.className='name';
-      name.textContent=`${players[peerId]?.name||'guest'}（${label}）`;
-      const btns=document.createElement('div');
-      btns.className='btns';
-      const enlarge=document.createElement('button');
-      enlarge.className='btn';
-      enlarge.textContent='⤢';
-      enlarge.onclick=()=>tile.classList.toggle('big');
-      btns.appendChild(enlarge);
-      tile.appendChild(v);
-      tile.appendChild(name);
-      tile.appendChild(btns);
-    }else{
-      const a=document.createElement('audio');
-      a.autoplay=true;
-      a.setAttribute('data-remote','');
-      a.srcObject=stream;
-      const name=document.createElement('div');
-      name.className='name';
-      name.textContent=`🎙️ ${players[peerId]?.name||'guest'}`;
-      tile.appendChild(a);
-      tile.appendChild(name);
-    }
-    avGrid.appendChild(tile);
-    tryPlayAll();
-  }else{
-    (tile.querySelector('video')||tile.querySelector('audio')).srcObject=stream;
-  }
-}
-function removePeerTiles(peerId){
-  [...document.querySelectorAll(`[id^="remote-${peerId}-"]`)].forEach(n=>n.remove());
-}
-
-/* ---- PeerConnection ---- */
-function getOrCreatePeer(pid){
-  let st=peers.get(pid);
-  if(st) return st;
-  const pc=new RTCPeerConnection(ICE);
-  st={pc, audioSender:null, videoSender:null, screenSender:null, negotiating:false};
-  peers.set(pid, st);
-
-  pc.onicecandidate=(e)=>{
-    if(e.candidate) sendSignal(pid,{type:'ice',candidate:e.candidate});
-  };
-  pc.onconnectionstatechange=()=>{
-    if(['failed','disconnected','closed'].includes(pc.connectionState)){
-      removePeerTiles(pid);
-      detachSpeechMeter(pid);
-    }
-  };
-  pc.ontrack=(e)=>{
-    const stream=e.streams[0];
-    const isVideo = e.track.kind==='video';
-    ensureRemoteTile(pid, stream, isVideo ? (e.track.label||'映像') : '音声');
-    if(!isVideo){
-      attachSpeechMeter(pid, stream);
-    }
-  };
-  pc.onnegotiationneeded = async () => {
-    if (meId >= pid) return;
-    if (st.negotiating) return;
-    st.negotiating = true;
-    try{
-      const offer=await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await sendSignal(pid,{type:'offer',sdp:offer});
-    }catch(e){
-      warn('negotiate err: '+e.message);
-    }finally{
-      st.negotiating = false;
-    }
-  };
-
-  (async()=>{
-    if(micStream){
-      st.audioSender=pc.addTrack(micStream.getAudioTracks()[0], micStream);
-    }
-    if(camStream){
-      st.videoSender=pc.addTrack(camStream.getVideoTracks()[0], camStream);
-    }
-    if(screenStream){
-      st.screenSender=pc.addTrack(screenStream.getVideoTracks()[0], screenStream);
-    }
-  })();
-
-  return st;
-}
-async function makeOfferTo(pid){
-  const st=getOrCreatePeer(pid);
-  const pc=st.pc;
-  const offer=await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await sendSignal(pid,{type:'offer',sdp:offer});
-}
-async function handleOffer(from, sdp){
-  const st=getOrCreatePeer(from);
-  const pc=st.pc;
-  await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-  const ans=await pc.createAnswer();
-  await pc.setLocalDescription(ans);
-  await sendSignal(from,{type:'answer',sdp:ans});
-}
-async function handleAnswer(from, sdp){
-  const st=peers.get(from);
-  if(!st) return;
-  await st.pc.setRemoteDescription(new RTCSessionDescription(sdp));
-}
-async function handleIce(from, cand){
-  const st=peers.get(from);
-  if(!st) return;
-  try{
-    await st.pc.addIceCandidate(new RTCIceCandidate(cand));
-  }catch(e){
-    // duplicate などは無視
-  }
-}
-
-/* ---- Signaling inbox ---- */
-onChildAdded(inboxRef, async snap=>{
-  const msg=snap.val();
-  const {from,type}=msg||{};
-  try{
-    if(from===meId) return;
-    if(type==='offer')      await handleOffer(from,msg.sdp);
-    else if(type==='answer')await handleAnswer(from,msg.sdp);
-    else if(type==='ice')   await handleIce(from,msg.candidate);
-  }catch(e){
-    warn('signal err: '+e.message);
-  }
-  remove(snap.ref).catch(()=>{});
-});
-
-/* ---- room.html では自動通話しない ---- */
-onValue(playersRef, snap => {
-  const ps = snap.val() || {};
-
-  for (const pid of [...peers.keys()]) {
-    if (!ps[pid]) {
-      peers.get(pid)?.pc.close();
-      peers.delete(pid);
-      removePeerTiles(pid);
-      detachSpeechMeter(pid);
-    }
-  }
-});
-
-/* ---- AV Buttons ---- */
-function openAvMenu(x,y, contentEl){
-  avMenu.innerHTML='';
-  avMenu.appendChild(contentEl);
-  avMenu.style.left=x+'px';
-  avMenu.style.top =y+'px';
-  avMenu.style.display='block';
-}
-function closeAvMenu(){
-  avMenu.style.display='none';
-}
-document.addEventListener('click', e=>{
-  if(!avMenu.contains(e.target)) closeAvMenu();
-});
-
-function goVoiceRoomNotice(){
-  alert('通話・カメラ・画面共有は「本格ボイスルーム」で利用できます。ゲームセンター入口まで移動して Z キーを押してください。');
-}
-btnMic.onclick=()=>{ goVoiceRoomNotice(); };
-btnCam.onclick=()=>{ goVoiceRoomNotice(); };
-btnScreen.onclick=()=>{ goVoiceRoomNotice(); };
-
-btnMic.oncontextmenu=async(e)=>{
-  e.preventDefault();
-  const {mics}=await listDevices();
-  const wrap=document.createElement('div');
-
-  const row1=document.createElement('div');
-  row1.className='row';
-  row1.innerHTML='<strong>マイク</strong>';
-
-  const row2=document.createElement('div');
-  row2.className='row';
-  const sel=document.createElement('select');
-  mics.forEach(d=>{
-    const o=document.createElement('option');
-    o.value=d.deviceId;
-    o.textContent=d.label||'mic';
-    if(d.deviceId===selectedMic) o.selected=true;
-    sel.appendChild(o);
-  });
-  const apply=document.createElement('button');
-  apply.textContent='切替';
-  apply.onclick=async()=>{
-    selectedMic=sel.value;
-    if(micStream){ await ensureMic(false); }
-    await ensureMic(true);
-  };
-
-  const row3=document.createElement('div');
-  row3.className='row';
-  const meter=document.createElement('div');
-  meter.style.cssText='height:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;flex:1;overflow:hidden';
-  const bar=document.createElement('div');
-  bar.style.cssText='height:100%;width:0%;background:linear-gradient(90deg,#22d3ee,#06b6d4)';
-  meter.appendChild(bar);
-  const test=document.createElement('button');
-  test.textContent='テスト';
-  test.onclick=async()=>{
-    if(!micStream) await ensureMic(true);
-    if(!micStream) return;
-    const ctxA=new (window.AudioContext||window.webkitAudioContext)();
-    const src=ctxA.createMediaStreamSource(micStream);
-    const analyser=ctxA.createAnalyser();
-    analyser.fftSize=256;
+    const src = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
     src.connect(analyser);
-    const data=new Uint8Array(analyser.frequencyBinCount);
-    const loop=()=>{
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    let raf = 0;
+    const loop = ()=>{
       analyser.getByteTimeDomainData(data);
-      let peak=0;
+      let sum = 0;
       for(let i=0;i<data.length;i++){
-        const v=(data[i]-128)/128;
-        peak=Math.max(peak, Math.abs(v));
+        const v = (data[i]-128)/128;
+        sum += v*v;
       }
-      bar.style.width=Math.round(peak*100)+'%';
-      requestAnimationFrame(loop);
+      if(Math.sqrt(sum/data.length) > SPEAK_THR) speakUntil.set(id, performance.now()+SPEAK_HOLD);
+      raf = requestAnimationFrame(loop);
     };
     loop();
-  };
+    meters.set(id, ()=>{ try{src.disconnect();}catch{} cancelAnimationFrame(raf); });
+  }catch(err){ console.warn(err); }
+}
+function detachSpeechMeter(id){
+  const stop = meters.get(id);
+  if(stop) stop();
+  meters.delete(id);
+  speakUntil.delete(id);
+}
+function isSpeaking(id){ return (speakUntil.get(id)||0) > performance.now(); }
 
-  row2.appendChild(sel);
-  row2.appendChild(apply);
-  row3.appendChild(meter);
-  row3.appendChild(test);
-  wrap.appendChild(row1);
-  wrap.appendChild(row2);
-  wrap.appendChild(row3);
+/* ===== AV / WebRTC ===== */
+let micStream = null;
+let camStream = null;
+let screenStream = null;
+const peerStates = new Map();
+const remoteStreams = new Map();
 
-  openAvMenu(e.clientX,e.clientY,wrap);
+function stopStream(stream){
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+}
+function getAudioTrack(){ return micStream?.getAudioTracks()[0] || null; }
+function getVideoTrack(){ return screenStream?.getVideoTracks()[0] || camStream?.getVideoTracks()[0] || null; }
+function getLocalPreviewStream(){
+  const s = new MediaStream();
+  const a = getAudioTrack();
+  const v = getVideoTrack();
+  if(a) s.addTrack(a);
+  if(v) s.addTrack(v);
+  return s;
+}
+function updateAvButtons(){
+  btnMic.classList.toggle('on', !!micStream);
+  btnCam.classList.toggle('on', !!camStream);
+  btnScreen.classList.toggle('on', !!screenStream);
+  localAvState = {mic:!!micStream, cam:!!camStream, screen:!!screenStream};
+  update(meRef,{av:localAvState, ts:now()}).catch(()=>{});
+  renderAvGrid();
+}
+async function requestMedia(kind){
+  if(!navigator.mediaDevices){
+    showToast('このブラウザではメディア機能が使えません');
+    return null;
+  }
+  try{
+    if(kind === 'mic') return await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    if(kind === 'cam') return await navigator.mediaDevices.getUserMedia({audio:false, video:{width:{ideal:960}, height:{ideal:540}}});
+    if(kind === 'screen') return await navigator.mediaDevices.getDisplayMedia({video:true, audio:false});
+  }catch(err){
+    console.warn(err);
+    showToast('許可がキャンセルされたか、端末で利用できません');
+    return null;
+  }
+}
+btnMic.onclick = async()=>{
+  ensureAudioCtx();
+  if(micStream){ stopStream(micStream); micStream = null; }
+  else micStream = await requestMedia('mic');
+  updateAvButtons();
+  await syncAllSendersAndNegotiate();
 };
-
-btnCam.oncontextmenu=async(e)=>{
-  e.preventDefault();
-  const {cams}=await listDevices();
-  const wrap=document.createElement('div');
-
-  const row1=document.createElement('div');
-  row1.className='row';
-  row1.innerHTML='<strong>カメラ</strong>';
-
-  const row2=document.createElement('div');
-  row2.className='row';
-  const sel=document.createElement('select');
-  cams.forEach(d=>{
-    const o=document.createElement('option');
-    o.value=d.deviceId;
-    o.textContent=d.label||'camera';
-    if(d.deviceId===selectedCam) o.selected=true;
-    sel.appendChild(o);
-  });
-  const apply=document.createElement('button');
-  apply.textContent='切替';
-  apply.onclick=async()=>{
-    selectedCam=sel.value;
-    if(camStream){ await ensureCam(false); }
-    await ensureCam(true);
-  };
-  row2.appendChild(sel);
-  row2.appendChild(apply);
-
-  wrap.appendChild(row1);
-  wrap.appendChild(row2);
-  openAvMenu(e.clientX,e.clientY,wrap);
+btnCam.onclick = async()=>{
+  if(camStream){ stopStream(camStream); camStream = null; }
+  else camStream = await requestMedia('cam');
+  updateAvButtons();
+  await syncAllSendersAndNegotiate();
 };
-
-btnScreen.oncontextmenu=(e)=>{
-  e.preventDefault();
-  const wrap=document.createElement('div');
-
-  const row1=document.createElement('div');
-  row1.className='row';
-  row1.innerHTML='<strong>画面共有</strong>';
-
-  const row2=document.createElement('div');
-  row2.className='row';
-  const startBtn=document.createElement('button');
-  startBtn.textContent= screenStream ? '停止' : '開始';
-  startBtn.onclick=()=>{
-    screenStream ? stopScreen() : startScreen();
-    closeAvMenu();
-  };
-  const changeBtn=document.createElement('button');
-  changeBtn.textContent='共有している画面を変更';
-  changeBtn.disabled = !screenStream;
-  changeBtn.onclick=async()=>{
-    await changeScreen();
-    closeAvMenu();
-  };
-
-  const row3=document.createElement('div');
-  row3.className='row';
-  const zoomBtn=document.createElement('button');
-  zoomBtn.textContent='共有画面を拡大';
-  zoomBtn.disabled = !document.getElementById('local-screen');
-  zoomBtn.onclick=()=>{
-    const t=document.getElementById('local-screen');
-    if(t){ t.classList.toggle('big'); }
-    closeAvMenu();
-  };
-
-  row2.appendChild(startBtn);
-  row2.appendChild(changeBtn);
-  row3.appendChild(zoomBtn);
-
-  wrap.appendChild(row1);
-  wrap.appendChild(row2);
-  wrap.appendChild(row3);
-
-  openAvMenu(e.clientX,e.clientY,wrap);
+btnScreen.onclick = async()=>{
+  if(screenStream){ stopStream(screenStream); screenStream = null; }
+  else{
+    screenStream = await requestMedia('screen');
+    const track = screenStream?.getVideoTracks()[0];
+    if(track) track.onended = async()=>{
+      screenStream = null;
+      updateAvButtons();
+      await syncAllSendersAndNegotiate();
+    };
+  }
+  updateAvButtons();
+  await syncAllSendersAndNegotiate();
 };
+audioUnlock.onclick = ()=>{
+  ensureAudioCtx();
+  document.querySelectorAll('audio,video').forEach(el=>el.play?.().catch(()=>{}));
+  audioUnlock.style.display = 'none';
+};
+document.addEventListener('pointerdown', ()=>{
+  ensureAudioCtx();
+  audioUnlock.style.display = 'none';
+}, {passive:true, once:true});
 
-/* 最後：受信要素の自動再生トライ */
-setTimeout(()=>{ tryPlayAll(); }, 1500);
+function otherPlayerIds(){ return Object.keys(players).filter(id=>id !== meId); }
+function connectToKnownPeers(){
+  for(const id of otherPlayerIds()) ensurePeer(id);
+}
+function ensurePeer(peerId){
+  if(peerId === meId) return null;
+  let st = peerStates.get(peerId);
+  if(st) return st;
 
+  const pc = new RTCPeerConnection(RTC_CONFIG);
+  const polite = meId > peerId;
+  st = {pc, polite, makingOffer:false, ignoreOffer:false, senders:{audio:null, video:null}, remoteStream:new MediaStream()};
+  peerStates.set(peerId, st);
+  remoteStreams.set(peerId, st.remoteStream);
+
+  pc.onicecandidate = e=>{
+    if(e.candidate) sendSignal(peerId, {type:'ice', candidate:e.candidate.toJSON()});
+  };
+  pc.ontrack = e=>{
+    const stream = st.remoteStream;
+    stream.addTrack(e.track);
+    attachSpeechMeter(peerId, stream);
+    e.track.onended = ()=>renderAvGrid();
+    renderAvGrid();
+  };
+  pc.onconnectionstatechange = ()=>{
+    if(['failed','closed','disconnected'].includes(pc.connectionState)){
+      if(pc.connectionState === 'failed') pc.restartIce?.();
+      if(pc.connectionState === 'closed') closePeer(peerId);
+    }
+  };
+  pc.onnegotiationneeded = ()=>negotiate(peerId).catch(console.warn);
+  syncSenders(peerId).catch(console.warn);
+  return st;
+}
+function closePeer(peerId){
+  const st = peerStates.get(peerId);
+  if(!st) return;
+  try{ st.pc.close(); }catch{}
+  peerStates.delete(peerId);
+  remoteStreams.delete(peerId);
+  detachSpeechMeter(peerId);
+  renderAvGrid();
+}
+async function sendSignal(to, payload){
+  await push(ref(db, `rooms/${ROOM}/rtc/${to}`), Object.assign({from:meId, ts:now()}, payload));
+}
+async function syncSenders(peerId){
+  const st = ensurePeer(peerId);
+  if(!st) return;
+  const pc = st.pc;
+  const a = getAudioTrack();
+  const v = getVideoTrack();
+
+  if(a){
+    if(st.senders.audio) await st.senders.audio.replaceTrack(a);
+    else st.senders.audio = pc.addTrack(a, getLocalPreviewStream());
+  }else if(st.senders.audio){
+    await st.senders.audio.replaceTrack(null);
+  }
+  if(v){
+    if(st.senders.video) await st.senders.video.replaceTrack(v);
+    else st.senders.video = pc.addTrack(v, getLocalPreviewStream());
+  }else if(st.senders.video){
+    await st.senders.video.replaceTrack(null);
+  }
+}
+async function syncAllSendersAndNegotiate(){
+  connectToKnownPeers();
+  for(const id of otherPlayerIds()){
+    await syncSenders(id);
+    await negotiate(id).catch(console.warn);
+  }
+}
+async function negotiate(peerId){
+  const st = ensurePeer(peerId);
+  if(!st || st.makingOffer || st.pc.signalingState !== 'stable') return;
+  try{
+    st.makingOffer = true;
+    await st.pc.setLocalDescription(await st.pc.createOffer());
+    await sendSignal(peerId, {type:'offer', description:st.pc.localDescription.toJSON()});
+  }finally{
+    st.makingOffer = false;
+  }
+}
+async function handleSignal(msgKey, msg){
+  const from = msg?.from;
+  if(!from || from === meId) return;
+  const st = ensurePeer(from);
+  const pc = st.pc;
+  try{
+    if(msg.type === 'offer' || msg.type === 'answer'){
+      const desc = new RTCSessionDescription(msg.description);
+      const offerCollision = desc.type === 'offer' && (st.makingOffer || pc.signalingState !== 'stable');
+      st.ignoreOffer = !st.polite && offerCollision;
+      if(st.ignoreOffer) return;
+      await pc.setRemoteDescription(desc);
+      if(desc.type === 'offer'){
+        await syncSenders(from);
+        await pc.setLocalDescription(await pc.createAnswer());
+        await sendSignal(from, {type:'answer', description:pc.localDescription.toJSON()});
+      }
+    }else if(msg.type === 'ice' && msg.candidate){
+      try{ await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); }
+      catch(err){ if(!st.ignoreOffer) throw err; }
+    }
+  }catch(err){
+    console.warn('RTC signal error', err);
+  }finally{
+    remove(ref(db, `rooms/${ROOM}/rtc/${meId}/${msgKey}`)).catch(()=>{});
+  }
+}
+onChildAdded(rtcInboxRef, snap=>handleSignal(snap.key, snap.val()));
+
+function renderAvGrid(){
+  avGrid.innerHTML = '';
+  const localPreview = getLocalPreviewStream();
+  if(localPreview.getTracks().length){
+    avGrid.appendChild(makeAvCard(meId, NAME + '（自分）', localPreview, true, localAvState));
+  }
+  for(const [id,stream] of remoteStreams){
+    const p = players[id] || ghosts[id] || {};
+    const hasTrack = stream.getTracks().some(t=>t.readyState === 'live');
+    const av = p.av || {};
+    if(hasTrack || av.mic || av.cam || av.screen){
+      avGrid.appendChild(makeAvCard(id, p.name || 'guest', stream, false, av));
+    }
+  }
+}
+function makeAvCard(id, name, stream, muted, av={}){
+  const card = document.createElement('div');
+  card.className = 'avCard' + (isSpeaking(id) ? ' speaking':'');
+  const videoTrack = stream.getVideoTracks().find(t=>t.readyState === 'live');
+  if(videoTrack){
+    const video = document.createElement('video');
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = muted;
+    video.srcObject = stream;
+    video.play?.().catch(()=>{ if(!muted) audioUnlock.style.display='block'; });
+    card.appendChild(video);
+  }else{
+    const audioOnly = document.createElement('div');
+    audioOnly.className = 'audioOnly';
+    audioOnly.textContent = '🎧';
+    card.appendChild(audioOnly);
+    if(stream.getAudioTracks().length){
+      const audio = document.createElement('audio');
+      audio.autoplay = true;
+      audio.muted = muted;
+      audio.srcObject = stream;
+      audio.play?.().catch(()=>{ if(!muted) audioUnlock.style.display='block'; });
+      card.appendChild(audio);
+    }
+  }
+  const badges = document.createElement('div');
+  badges.className = 'badges';
+  if(av.mic) badges.appendChild(makeBadge('🎙'));
+  if(av.cam) badges.appendChild(makeBadge('📷'));
+  if(av.screen) badges.appendChild(makeBadge('🖥'));
+  card.appendChild(badges);
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = name;
+  card.appendChild(label);
+  return card;
+}
+function makeBadge(t){ const b=document.createElement('span'); b.className='badge'; b.textContent=t; return b; }
+setInterval(renderAvGrid, 500);
+
+/* ===== Movement ===== */
+const keys = new Set();
+addEventListener('keydown', e=>{
+  if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  keys.add(e.key.toLowerCase());
+  if(e.key.toLowerCase() === 'f'){
+    e.preventDefault();
+    setFlight(!isFlying);
+  }
+});
+addEventListener('keyup', e=>keys.delete(e.key.toLowerCase()));
+
+let joy = {x:0,y:0,active:false};
+function updateJoy(touch){
+  const r = joyBase.getBoundingClientRect();
+  const cx = r.left + r.width/2;
+  const cy = r.top + r.height/2;
+  const dx = touch.clientX - cx;
+  const dy = touch.clientY - cy;
+  const len = Math.hypot(dx,dy) || 1;
+  const max = r.width * 0.34;
+  joy.x = clamp(dx/max,-1,1);
+  joy.y = clamp(dy/max,-1,1);
+  const px = clamp(dx,-max,max);
+  const py = clamp(dy,-max,max);
+  joyStick.style.transform = `translate(calc(-50% + ${px}px), calc(-50% + ${py}px))`;
+}
+joyBase.addEventListener('touchstart', e=>{ joy.active=true; updateJoy(e.touches[0]); }, {passive:false});
+joyBase.addEventListener('touchmove', e=>{ e.preventDefault(); updateJoy(e.touches[0]); }, {passive:false});
+joyBase.addEventListener('touchend', ()=>{
+  joy.active=false; joy.x=0; joy.y=0;
+  joyStick.style.transform = 'translate(-50%,-50%)';
+});
+
+function setFlight(on){
+  if(on === isFlying) return;
+  if(!on && hits(my.x,my.y)){
+    showToast('ここでは着地できません。赤い当たり判定の外に移動してください。');
+    return;
+  }
+  isFlying = on;
+  flyBtn.classList.toggle('on', isFlying);
+  syncMe(true);
+}
+flyBtn.onclick = ()=>setFlight(!isFlying);
+
+function move(dt){
+  let dx = 0, dy = 0;
+  if(keys.has('arrowleft') || keys.has('a')) dx -= 1;
+  if(keys.has('arrowright') || keys.has('d')) dx += 1;
+  if(keys.has('arrowup') || keys.has('w')) dy -= 1;
+  if(keys.has('arrowdown') || keys.has('s')) dy += 1;
+  if(joy.active){ dx += joy.x; dy += joy.y; }
+  if(dx === 0 && dy === 0) return;
+  const len = Math.hypot(dx,dy) || 1;
+  dx /= len; dy /= len;
+  if(Math.abs(dx) > Math.abs(dy)) my.dir = dx < 0 ? 'left' : 'right';
+  else my.dir = dy < 0 ? 'back' : 'front';
+
+  const speed = isFlying ? FLY_SPEED_PPS : SPEED_PPS;
+  const nx = clamp(my.x + dx * speed * dt, 0, world.w-1);
+  const ny = clamp(my.y + dy * speed * dt, 0, world.h-1);
+  if(isFlying || !hits(nx,my.y)) my.x = nx;
+  if(isFlying || !hits(my.x,ny)) my.y = ny;
+  syncMe();
+}
+
+/* ===== Render ===== */
+function spriteByDir(d){
+  if(d === 'back') return {img:imgBack, flip:false};
+  if(d === 'left') return {img:imgSide, flip:true};
+  if(d === 'right') return {img:imgSide, flip:false};
+  return {img:imgFront, flip:false};
+}
+let camX = 0, camY = 0;
+function camera(dt){
+  const tx = Math.round(my.x - canvas.width/2);
+  const ty = Math.round(my.y - canvas.height/2);
+  const k = Math.min(1, dt*CAM_INTERP);
+  camX += (tx-camX)*k;
+  camY += (ty-camY)*k;
+  camX = clamp(camX,0,Math.max(0,world.w-canvas.width));
+  camY = clamp(camY,0,Math.max(0,world.h-canvas.height));
+  return {x:camX,y:camY};
+}
+function drawPlayer(p, id, cam){
+  const sx = Math.round(p.x - cam.x);
+  const sy = Math.round(p.y - cam.y);
+  const fly = !!p.fly;
+  if(fly){
+    drawImageCentered(imgPlane, sx, sy-12, Math.max(54,imgPlane.width*2.4), Math.max(54,imgPlane.height*2.4), false, .98);
+  }
+  const sp = spriteByDir(p.dir || 'front');
+  const w = sp.img.width * SCALE;
+  const h = sp.img.height * SCALE;
+  drawImageCentered(sp.img, sx, sy, w, h, sp.flip, fly ? .72 : 1);
+
+  const name = p.name || 'guest';
+  const speaking = isSpeaking(id);
+  ctx.save();
+  ctx.font = speaking ? '800 14px system-ui' : '700 13px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const textW = ctx.measureText(name).width;
+  ctx.fillStyle = speaking ? 'rgba(34,211,238,.30)' : 'rgba(15,23,42,.72)';
+  ctx.strokeStyle = speaking ? '#22d3ee' : 'rgba(148,163,184,.45)';
+  ctx.lineWidth = speaking ? 2 : 1;
+  roundRect(ctx, sx-textW/2-8, sy-h/2-26, textW+16, 20, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillText(name, sx, sy-h/2-16);
+  ctx.restore();
+}
+function drawImageCentered(img,x,y,w,h,flip=false,alpha=1){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x,y);
+  if(flip) ctx.scale(-1,1);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, -w/2, -h/2, w, h);
+  ctx.restore();
+}
+function roundRect(g,x,y,w,h,r){
+  g.beginPath();
+  g.moveTo(x+r,y);
+  g.arcTo(x+w,y,x+w,y+h,r);
+  g.arcTo(x+w,y+h,x,y+h,r);
+  g.arcTo(x,y+h,x,y,r);
+  g.arcTo(x,y,x+w,y,r);
+  g.closePath();
+}
+function updateBubbles(cam){
+  for(const [uid, el] of bubbles){
+    const p = uid === meId ? my : ghosts[uid];
+    if(!p){ el.style.display='none'; continue; }
+    el.style.left = `${p.x - cam.x}px`;
+    el.style.top = `${p.y - cam.y - 72}px`;
+  }
+}
+function interpolateGhosts(dt){
+  const k = Math.min(1, dt*PLAYER_INTERP);
+  for(const [id,g] of Object.entries(ghosts)){
+    if(id === meId) continue;
+    if(typeof g.tx === 'number') g.x += (g.tx-g.x)*k;
+    if(typeof g.ty === 'number') g.y += (g.ty-g.y)*k;
+  }
+}
+let last = performance.now();
+let acc = 0;
+function frame(t){
+  const rawDt = Math.min(0.05, (t-last)/1000);
+  last = t;
+  acc += rawDt*1000;
+  const dt = Math.max(rawDt, FRAME_MIN/1000);
+  move(dt);
+  interpolateGhosts(dt);
+
+  const cam = camera(dt);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(imgMap, -Math.round(cam.x), -Math.round(cam.y));
+
+  const drawList = [];
+  for(const [id,g] of Object.entries(ghosts)){
+    if(id !== meId) drawList.push([id,g]);
+  }
+  drawList.push([meId,my]);
+  drawList.sort((a,b)=>(a[1].y||0)-(b[1].y||0));
+  for(const [id,p] of drawList) drawPlayer(p,id,cam);
+  updateBubbles(cam);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ===== Periodic maintenance ===== */
+setInterval(()=>{
+  syncMe(true);
+  connectToKnownPeers();
+}, 2500);
+setInterval(()=>{
+  const cutoff = now() - 15000;
+  for(const [id,p] of Object.entries(players)){
+    if(id !== meId && p.ts && p.ts < cutoff) closePeer(id);
+  }
+}, 5000);
+
+updateAvButtons();
+showToast('マイクボタンを押すと、このルーム内の相手とそのまま会話できます。', 3500);
 </script>
 </body>
 </html>
