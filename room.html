@@ -405,7 +405,7 @@
 <div class="hud">
   <button id="leaveBtn">退室</button>
   <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
-  <button id="copyRoomBtn" title="このルームのURLをコピー">コピー</button>
+  <button id="copyRoomBtn" title="このルームのURLをコピー">ルームURLをコピー</button>
 </div>
 
 <div class="avbar" aria-label="通話操作">
@@ -430,7 +430,7 @@
 <button id="reactFab" title="リアクション">😊</button>
 <div id="reactMenu"></div>
 
-<button id="flyBtn" title="フライト">✈️</button>
+<button id="flyBtn" title="フライト（↓ + H）">✈️</button>
 <div id="joyBase"><div id="joyStick"></div></div>
 
 <div id="avGrid"></div>
@@ -482,7 +482,6 @@ const roomIdEl = document.getElementById('roomId');
 const whoEl = document.getElementById('who');
 const countEl = document.getElementById('count');
 const leaveBtn = document.getElementById('leaveBtn');
-const copyRoomBtn = document.getElementById('copyRoomBtn');
 const btnMic = document.getElementById('btnMic');
 const btnCam = document.getElementById('btnCam');
 const btnScreen = document.getElementById('btnScreen');
@@ -655,38 +654,6 @@ leaveBtn.onclick = async()=>{
   await cleanup();
   const back = url.searchParams.get('back') || './index.html';
   location.href = back;
-};
-
-function roomShareUrl(){
-  const u = new URL(location.href);
-  u.search = '';
-  u.hash = '';
-  u.searchParams.set('room', ROOM);
-  return u.toString();
-}
-async function copyText(value){
-  if(navigator.clipboard && window.isSecureContext){
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-  const ta = document.createElement('textarea');
-  ta.value = value;
-  ta.setAttribute('readonly','');
-  ta.style.position = 'fixed';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  ta.remove();
-}
-copyRoomBtn.onclick = async()=>{
-  try{
-    await copyText(roomShareUrl());
-    showToast('ルームURLをコピーしました。');
-  }catch(err){
-    console.warn(err);
-    showToast('コピーに失敗しました。URLを手動でコピーしてください。');
-  }
 };
 addEventListener('beforeunload', ()=>cleanup(false));
 async function cleanup(stopTracks=true){
@@ -1203,7 +1170,7 @@ addEventListener('keydown', e=>{
   if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
   const k = e.key.toLowerCase();
   keys.add(k);
-  if(keys.has('arrowdown') && keys.has('s') && !flightComboLocked){
+  if(keys.has('arrowdown') && keys.has('h') && !flightComboLocked){
     e.preventDefault();
     flightComboLocked = true;
     setFlight(!isFlying);
@@ -1211,7 +1178,7 @@ addEventListener('keydown', e=>{
 });
 addEventListener('keyup', e=>{
   keys.delete(e.key.toLowerCase());
-  if(!keys.has('arrowdown') || !keys.has('s')) flightComboLocked = false;
+  if(!keys.has('arrowdown') || !keys.has('h')) flightComboLocked = false;
 });
 
 let joy = {x:0,y:0,active:false};
@@ -1291,15 +1258,20 @@ function drawPlayer(p, id, cam){
   const sx = Math.round(p.x - cam.x);
   const sy = Math.round(p.y - cam.y);
   const fly = !!p.fly;
+  let labelY;
+
   if(fly){
     const planeW = Math.max(PLANE_MIN_SIZE, imgPlane.width * PLANE_SCALE);
     const planeH = Math.max(PLANE_MIN_SIZE, imgPlane.height * PLANE_SCALE);
     drawImageCentered(imgPlane, sx, sy + 8, planeW, planeH, false, 1);
+    labelY = sy + 8 - planeH / 2 - 16;
+  }else{
+    const sp = spriteByDir(p.dir || 'front');
+    const w = sp.img.width * SCALE;
+    const h = sp.img.height * SCALE;
+    drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
+    labelY = sy - h / 2 - 16;
   }
-  const sp = spriteByDir(p.dir || 'front');
-  const w = sp.img.width * SCALE;
-  const h = sp.img.height * SCALE;
-  drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
 
   const name = p.name || 'guest';
   const speaking = isSpeaking(id);
@@ -1311,11 +1283,11 @@ function drawPlayer(p, id, cam){
   ctx.fillStyle = speaking ? 'rgba(34,211,238,.30)' : 'rgba(15,23,42,.72)';
   ctx.strokeStyle = speaking ? '#22d3ee' : 'rgba(148,163,184,.45)';
   ctx.lineWidth = speaking ? 2 : 1;
-  roundRect(ctx, sx-textW/2-8, sy-h/2-26, textW+16, 20, 8);
+  roundRect(ctx, sx-textW/2-8, labelY-10, textW+16, 20, 8);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#e2e8f0';
-  ctx.fillText(name, sx, sy-h/2-16);
+  ctx.fillText(name, sx, labelY);
   ctx.restore();
 }
 function drawImageCentered(img,x,y,w,h,flip=false,alpha=1){
