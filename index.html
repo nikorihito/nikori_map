@@ -1,123 +1,71 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
-  <title>ニコリタウン - ホーム</title>
-  <style>
-    :root{
-      --bg:#0f172a; --card:#111827; --panel:#0b1220; --border:#334155;
-      --text:#e2e8f0; --muted:#94a3b8; --a1:#22d3ee; --a2:#06b6d4;
-      --danger:#ef4444; --ok:#22c55e;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; min-height:100svh; font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-      background:radial-gradient(circle at top,#1e293b 0,#0f172a 46%,#020617 100%);
-      color:var(--text); display:grid; place-items:center; padding:18px;
-    }
-    .card{width:min(860px,94vw); background:rgba(17,24,39,.94); border-radius:20px; padding:26px; box-shadow:0 18px 50px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.06)}
-    h1{margin:0 0 6px; font-size:clamp(24px,4vw,34px)}
-    h2{font-size:18px; margin:6px 0 12px}.muted{color:var(--muted); margin:0 0 18px; line-height:1.7}.hidden{display:none!important}
-    .pill{display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; background:rgba(15,118,110,.25); color:#a5f3fc; font-size:12px; margin-bottom:10px}
-    .grid{display:grid; gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:1.2fr 1fr 1fr}@media(max-width:720px){.two,.three{grid-template-columns:1fr}.card{padding:20px}}
-    label{display:grid; gap:7px; font-weight:700; font-size:14px}
-    input,button{font:inherit; border-radius:12px; padding:11px 13px; outline:none}
-    input{border:1px solid var(--border); background:#0b1220; color:var(--text)}
-    input:focus{border-color:var(--a1); box-shadow:0 0 0 3px rgba(34,211,238,.22)}
-    button{border:0; background:linear-gradient(180deg,var(--a1),var(--a2)); color:#06202a; cursor:pointer; font-weight:800}
-    button.ghost{background:transparent; border:1px dashed var(--border); color:#cbd5e1}
-    button.secondary{background:#1e293b; border:1px solid var(--border); color:#e2e8f0} button.danger{background:#2a1111;color:#fecaca;border:1px solid #7f1d1d}
-    button:disabled{opacity:.55; cursor:not-allowed}.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}.right{justify-content:flex-end}
-    .account{display:grid; grid-template-columns:1fr auto; gap:12px; padding:12px 14px; margin:16px 0; border-radius:15px; background:rgba(15,23,42,.82); border:1px solid #1f2937}.account-main{display:flex; gap:10px; align-items:center; min-width:0}.avatar{width:42px;height:42px;border-radius:999px;background:radial-gradient(circle at 30% 30%,#22d3ee,#0f172a);display:grid;place-items:center;font-weight:800;overflow:hidden;flex-shrink:0}.avatar img{width:100%;height:100%;object-fit:cover}.account-name{font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}.account-meta{font-size:12px;color:#9ca3af}.account-actions{display:flex;gap:8px;align-items:center}@media(max-width:560px){.account{grid-template-columns:1fr}.account-actions{flex-wrap:wrap}}
-    .section{margin-top:16px; padding:16px; border:1px solid rgba(148,163,184,.24); border-radius:16px; background:rgba(15,23,42,.55)}
-    .room-list{display:grid; gap:10px; max-height:260px; overflow:auto}.room-item{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:12px; border-radius:13px; background:#0b1220; border:1px solid #243244}.room-title{font-weight:800}.room-meta{font-size:12px;color:#94a3b8;margin-top:3px}.empty{color:#94a3b8; padding:10px; border:1px dashed #334155; border-radius:12px; text-align:center}
-    dialog{border:1px solid var(--border); border-radius:18px; background:#101826; color:#e2e8f0; width:min(520px,94vw); padding:0; box-shadow:0 22px 80px rgba(0,0,0,.62)}dialog::backdrop{background:rgba(2,6,23,.72); backdrop-filter:blur(3px)}.modal-head{padding:16px 18px;border-bottom:1px solid #273449;font-weight:900}.modal-body{padding:18px}.emoji-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0}.emoji-grid button{height:54px; font-size:28px; background:#0b1220; border:1px solid #334155; color:#fff}.emoji-grid button:hover,.emoji-grid button.selected{border-color:#22d3ee; box-shadow:0 0 0 3px rgba(34,211,238,.22); background:#123044}.selected-pass{display:flex; gap:8px; justify-content:center; font-size:28px; min-height:42px; padding:8px; border-radius:12px; background:#0b1220; border:1px solid #334155}.footer{margin-top:18px; font-size:12px; color:#94a3b8; text-align:center; line-height:1.6}.notice{font-size:13px;color:#a5f3fc;background:rgba(8,145,178,.12);border:1px solid rgba(34,211,238,.25);border-radius:12px;padding:10px;line-height:1.6}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+<title>ニコリタウン - ホーム</title>
+<link rel="icon" href="./logo.png" type="image/png" />
+<style>
+  :root{--bg:#0f172a;--card:#111827;--panel:#0b1220;--panel2:#152033;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--a1:#22d3ee;--a2:#06b6d4;--danger:#ef4444;--ok:#22c55e;--warn:#facc15}
+  *{box-sizing:border-box}html,body{min-height:100%}body{margin:0;min-height:100svh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;background:radial-gradient(circle at top,#1e3a5f 0,#0f172a 44%,#020617 100%);color:var(--text);display:grid;place-items:center;padding:18px}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.hidden{display:none!important}
+  .shell{width:min(980px,94vw)}.card{background:rgba(17,24,39,.94);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:26px;box-shadow:0 20px 70px rgba(0,0,0,.48)}.top{display:flex;gap:14px;align-items:center;margin-bottom:18px}.logo{width:64px;height:64px;border-radius:18px;box-shadow:0 10px 30px rgba(6,182,212,.25)}h1{margin:0;font-size:clamp(25px,4vw,38px);letter-spacing:.02em}h2{font-size:20px;margin:0 0 12px}.muted{color:var(--muted);line-height:1.7}.pill{display:inline-flex;gap:6px;align-items:center;padding:5px 11px;border-radius:999px;background:rgba(8,145,178,.16);border:1px solid rgba(34,211,238,.24);color:#a5f3fc;font-size:12px;margin-bottom:7px}.grid{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:1.1fr 1fr auto}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.right{justify-content:flex-end}.section{padding:16px;border:1px solid rgba(148,163,184,.22);border-radius:18px;background:rgba(15,23,42,.58);margin-top:14px}label{display:grid;gap:7px;font-weight:800;font-size:14px}input{width:100%;border:1px solid var(--border);background:#0b1220;color:var(--text);padding:12px 13px;border-radius:13px;outline:none}input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.22)}button{border:0;border-radius:13px;padding:12px 14px;background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:900}button.secondary{background:#1e293b;color:#e2e8f0;border:1px solid var(--border)}button.ghost{background:transparent;border:1px dashed var(--border);color:#cbd5e1}button.danger{background:#2a1111;color:#fecaca;border:1px solid #7f1d1d}.wide{width:100%}.big{padding:15px 16px;font-size:16px}
+  .home-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.account{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:rgba(15,23,42,.82);border:1px solid #1f2937;margin:12px 0}.account-main{display:flex;gap:10px;align-items:center;min-width:0}.avatar{width:42px;height:42px;border-radius:999px;background:radial-gradient(circle at 30% 30%,#22d3ee,#0f172a);display:grid;place-items:center;font-weight:900;overflow:hidden;flex-shrink:0}.avatar img{width:100%;height:100%;object-fit:cover}.account-name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.account-meta{font-size:12px;color:#9ca3af}.tabs{display:flex;gap:8px;margin:12px 0 16px;padding:6px;background:rgba(15,23,42,.8);border:1px solid rgba(148,163,184,.22);border-radius:16px}.tab{flex:1;background:transparent;color:#cbd5e1;border:1px solid transparent}.tab.active{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;border-color:transparent}.emoji-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.emoji-grid button{height:56px;background:#0b1220;color:#fff;border:1px solid #334155;font-size:28px}.emoji-grid button.selected{background:#123044;border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.2)}.selected-pass{display:flex;justify-content:center;gap:8px;min-height:48px;padding:9px;border-radius:13px;background:#0b1220;border:1px solid #334155;font-size:28px}.room-list{display:grid;gap:10px;max-height:320px;overflow:auto}.room-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px;border-radius:14px;background:#0b1220;border:1px solid #243244}.room-title{font-weight:900}.room-meta{font-size:12px;color:#94a3b8;margin-top:3px}.empty{padding:14px;border:1px dashed #334155;border-radius:13px;color:#94a3b8;text-align:center}.notice{font-size:13px;color:#a5f3fc;background:rgba(8,145,178,.12);border:1px solid rgba(34,211,238,.25);border-radius:13px;padding:10px;line-height:1.6}.footer{margin-top:16px;text-align:center;color:#94a3b8;font-size:12px;line-height:1.6}
+  @media(max-width:720px){body{padding:12px}.card{padding:18px;border-radius:20px}.top{align-items:flex-start}.logo{width:54px;height:54px}.two,.three,.home-actions{grid-template-columns:1fr}.account{grid-template-columns:1fr}.tabs{overflow-x:auto}.tab{min-width:110px}.room-item{grid-template-columns:1fr}.room-item .row{justify-content:flex-start}.emoji-grid button{height:50px;font-size:25px}}
+</style>
 </head>
 <body>
+<div class="shell">
   <main class="card">
-    <div class="pill">β版・テスト中</div>
-    <h1>ニコリタウン</h1>
-    <p class="muted">ルーム名だけで作成し、入室は顔絵文字4つのパスワードで管理します。</p>
+    <div class="top"><img class="logo" src="./logo.png" alt="ニコリタウン ロゴ"><div><div class="pill">β版・テスト中</div><h1>ニコリタウン</h1><div class="muted">歩き回って、チャットと通話ができる2Dタウン。</div></div></div>
 
-    <div id="accountBox" class="account">
-      <div class="account-main"><div id="avatar" class="avatar">G</div><div><div id="accountName" class="account-name">ゲスト（未ログイン）</div><div id="accountMeta" class="account-meta">ログインすると作成したルーム一覧を保存できます。</div></div></div>
-      <div class="account-actions"><button id="loginGoogle">Googleでログイン</button><button id="emailAuthBtn" class="secondary">メール登録/ログイン</button><button id="logoutBtn" class="ghost">ログアウト</button></div>
-    </div>
-
-    <section class="section">
-      <h2>ルームに入る / 作る</h2>
-      <div class="grid three">
-        <label>表示名<input id="displayName" maxlength="16" placeholder="例）こっぴー"></label>
-        <label>ルーム名<input id="roomId" maxlength="32" placeholder="例）park-001"></label>
-        <div class="grid" style="align-content:end"><button id="goBtn">入室 / 作成</button></div>
-      </div>
-      <p class="notice">未作成のルーム名ならその場で作成されます。作成後、room.html内のEscメニューから絵文字パスワードを確認・共有してください。</p>
+    <section id="screenHome">
+      <div class="section"><h2>ホーム</h2><p class="muted">ルームに入る場合は、ルーム名と顔絵文字4つのパスワードを入力します。ルーム作成はルーム名だけで作成できます。</p><div class="home-actions"><button id="homeStart" class="big">はじめる</button><button id="homeLogin" class="big secondary">ログイン / アカウント作成</button></div></div>
     </section>
 
-    <section id="roomsSection" class="section hidden">
-      <div class="row right"><h2 style="margin-right:auto">ルーム一覧</h2><button id="refreshRooms" class="secondary">更新</button></div>
-      <div id="roomList" class="room-list"></div>
+    <section id="screenLogin" class="hidden">
+      <div class="section"><h2>ログイン</h2><p class="muted">ログインすると、作ったルームが一覧に保存されます。</p><div class="grid"><button id="loginGoogle" class="wide">Googleでログイン</button><div class="grid two"><label>メールアドレス<input id="emailInput" type="email" autocomplete="email" placeholder="mail@example.com"></label><label>パスワード<input id="passwordInput" type="password" autocomplete="current-password" placeholder="6文字以上"></label></div><div class="row right"><button id="emailLogin">ログイン</button><button id="emailSignup" class="secondary">アカウントが無い場合：新規作成</button></div></div></div><div class="row right" style="margin-top:12px"><button id="loginBack" class="ghost">ホームへ戻る</button><button id="loginSkip" class="secondary">ゲストで進む</button></div>
+    </section>
+
+    <section id="screenRooms" class="hidden">
+      <div id="accountBox" class="account"><div class="account-main"><div id="avatar" class="avatar">G</div><div><div id="accountName" class="account-name">ゲスト（未ログイン）</div><div id="accountMeta" class="account-meta">ログインするとルーム一覧を保存できます。</div></div></div><div class="row right"><button id="toLogin" class="secondary">ログイン</button><button id="logoutBtn" class="ghost">ログアウト</button></div></div>
+      <div class="tabs"><button class="tab active" data-tab="join">ルームに入る</button><button class="tab" data-tab="create">ルームを作る</button><button class="tab" data-tab="list">ルーム一覧</button></div>
+
+      <div id="tabJoin" class="section"><h2>ルームに入る</h2><div class="grid two"><label>表示名<input id="joinName" maxlength="16" placeholder="例）こっぴー"></label><label>ルーム名<input id="joinRoom" maxlength="32" placeholder="例）park-001"></label></div><div style="margin-top:14px"><div class="selected-pass" id="joinSelectedPass">4つ選んでください</div><div class="emoji-grid" id="joinEmojiGrid" style="margin-top:10px"></div></div><div class="row right" style="margin-top:14px"><button id="joinClear" class="secondary">消す</button><button id="joinEnter">入る</button></div></div>
+
+      <div id="tabCreate" class="section hidden"><h2>ルームを作る</h2><div class="grid three"><label>表示名<input id="createName" maxlength="16" placeholder="例）こっぴー"></label><label>ルーム名<input id="createRoom" maxlength="32" placeholder="例）park-001"></label><button id="createRoomBtn" style="align-self:end">作成して入る</button></div><p class="notice">作成後、room.htmlのEscメニューから現在の顔絵文字パスワードを確認できます。入るたびに次のパスワードへ更新されます。</p></div>
+
+      <div id="tabList" class="section hidden"><div class="row right"><h2 style="margin-right:auto">ルーム一覧</h2><button id="refreshRooms" class="secondary">更新</button></div><div id="roomList" class="room-list"></div></div>
     </section>
 
     <p class="footer">※ Firebase Authenticationで Google と メール/パスワード を有効化してください。</p>
   </main>
-
-  <dialog id="passDialog"><div class="modal-head">パスワードを入力</div><div class="modal-body"><div id="passRoomName" class="muted"></div><div id="selectedPass" class="selected-pass"></div><div id="emojiGrid" class="emoji-grid"></div><div class="row right"><button id="clearPass" class="secondary">消す</button><button id="cancelPass" class="ghost">キャンセル</button><button id="enterPass">入る</button></div></div></dialog>
-  <dialog id="emailDialog"><div class="modal-head">メール登録 / ログイン</div><div class="modal-body grid"><label>メールアドレス<input id="emailInput" type="email" autocomplete="email"></label><label>パスワード<input id="passwordInput" type="password" autocomplete="current-password"></label><div class="row right"><button id="emailCancel" class="ghost">閉じる</button><button id="emailLogin">ログイン</button><button id="emailSignup" class="secondary">新規作成</button></div></div></dialog>
+</div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
 import { getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider,signOut,createUserWithEmailAndPassword,signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-import { getDatabase,ref,get,set,update,onValue,query,orderByChild,equalTo } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+import { getDatabase,ref,get,set,update,remove } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'nikori-town',storageBucket:'nikori-town.appspot.com',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getDatabase(app,firebaseConfig.databaseURL), provider=new GoogleAuthProvider();
 const EMOJIS=['😀','😄','😊','😎','🤔','😮','😂','😍','🥳','😺','🐶','🐼','🤖','👻','🌟','🔥'];
-const $=id=>document.getElementById(id); const nameInput=$('displayName'), roomInput=$('roomId');
-const LS_NAME='nikoriTown.displayName', LS_ROOM='nikoriTown.lastRoom'; nameInput.value=localStorage.getItem(LS_NAME)||''; roomInput.value=localStorage.getItem(LS_ROOM)||'';
-let currentUser=null, pendingRoom=null, selected=[];
+const $=id=>document.getElementById(id);let currentUser=null,joinPass=[];const LS_NAME='nikoriTown.displayName',LS_ROOM='nikoriTown.lastRoom';
+function show(id){['screenHome','screenLogin','screenRooms'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
 function safeRoom(raw){return String(raw||'').trim().toLowerCase().replace(/[.#$/\[\]/]/g,'-').replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g,'-').slice(0,32)}
 function safeName(raw){return String(raw||'').trim().slice(0,16)}
 function makePassword(){return Array.from({length:4},()=>EMOJIS[Math.floor(Math.random()*EMOJIS.length)]).join('')}
-function roomKey(name){return safeRoom(name)}
-function gotoRoom(room,name){localStorage.setItem(LS_NAME,name);localStorage.setItem(LS_ROOM,room);const u=new URL('./room.html',location.href);u.searchParams.set('room',room);u.searchParams.set('name',name);location.href=u.toString()}
-async function ensureRoom(room){const r=ref(db,`roomMeta/${room}`);const s=await get(r);if(s.exists())return s.val();const pass=makePassword();const meta={room,name:room,pass,createdAt:Date.now(),updatedAt:Date.now(),ownerUid:currentUser?.uid||null,ownerName:currentUser?.displayName||currentUser?.email||'guest'};await set(r,meta);if(currentUser) await update(ref(db,`users/${currentUser.uid}/rooms/${room}`),{room,name:room,createdAt:meta.createdAt,updatedAt:meta.updatedAt});sessionStorage.setItem(`roomPassOK:${room}`,pass);return meta}
-async function openPassword(room){pendingRoom=room; selected=[]; $('passRoomName').textContent=`ルーム: ${room}`; renderPass(); $('passDialog').showModal()}
-function renderPass(){ $('selectedPass').textContent=selected.join(' ') || '4つ選んでください'; $('emojiGrid').innerHTML=''; EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.className=selected.includes(e)?'selected':'';b.onclick=()=>{if(selected.length<4){selected.push(e);renderPass()}};$('emojiGrid').appendChild(b)}); }
-$('clearPass').onclick=()=>{selected=[];renderPass()}; $('cancelPass').onclick=()=>$('passDialog').close();
-$('enterPass').onclick=async()=>{const name=safeName(nameInput.value); if(!name){alert('表示名を入力してください');return} if(selected.length!==4){alert('顔絵文字を4つ選んでください');return} const metaRef=ref(db,`roomMeta/${pendingRoom}`); const meta=(await get(metaRef)).val(); if(!meta){alert('ルームが見つかりません');return} const currentPass=meta.pass||meta.password||''; if(selected.join('')!==currentPass){alert('パスワードが違います'); selected=[]; renderPass(); return} const nextPass=makePassword(); await update(metaRef,{pass:nextPass,password:null,updatedAt:Date.now()}); if(currentUser) await update(ref(db,`users/${currentUser.uid}/rooms/${pendingRoom}`),{room:pendingRoom,name:meta.name||pendingRoom,updatedAt:Date.now(),createdAt:meta.createdAt||Date.now()}); sessionStorage.setItem(`roomPassOK:${pendingRoom}`,nextPass); gotoRoom(pendingRoom,name)};
-$('goBtn').onclick=async()=>{const name=safeName(nameInput.value);const room=roomKey(roomInput.value); if(!name){alert('表示名を入力してください');nameInput.focus();return} if(!room){alert('ルーム名を入力してください');roomInput.focus();return} const snap=await get(ref(db,`roomMeta/${room}`)); if(snap.exists()) openPassword(room); else {await ensureRoom(room); gotoRoom(room,name)}};
-function updateAccount(user){currentUser=user; if(!user){$('avatar').innerHTML='G';$('accountName').textContent='ゲスト（未ログイン）';$('accountMeta').textContent='ログインすると作成したルーム一覧を保存できます。';$('logoutBtn').disabled=true;$('roomsSection').classList.add('hidden');return} const nm=user.displayName||user.email||'ユーザー'; if(user.photoURL){$('avatar').innerHTML=`<img src="${user.photoURL}" alt="">`}else $('avatar').textContent=nm[0]?.toUpperCase()||'U'; $('accountName').textContent=`${nm} でログイン中`; $('accountMeta').textContent=`作成したルーム一覧を利用できます。`; $('logoutBtn').disabled=false; if(!nameInput.value.trim()) nameInput.value=nm.slice(0,16); $('roomsSection').classList.remove('hidden'); loadRooms();}
-onAuthStateChanged(auth,updateAccount); $('loginGoogle').onclick=()=>signInWithPopup(auth,provider).catch(e=>alert(e.message)); $('logoutBtn').onclick=()=>signOut(auth).catch(e=>alert(e.message));
-$('emailAuthBtn').onclick=()=>$('emailDialog').showModal(); $('emailCancel').onclick=()=>$('emailDialog').close(); $('emailSignup').onclick=async()=>{try{await createUserWithEmailAndPassword(auth,$('emailInput').value,$('passwordInput').value);$('emailDialog').close()}catch(e){alert(e.message)}}; $('emailLogin').onclick=async()=>{try{await signInWithEmailAndPassword(auth,$('emailInput').value,$('passwordInput').value);$('emailDialog').close()}catch(e){alert(e.message)}};
-async function loadRooms(){
-  const box=$('roomList'); box.innerHTML='<div class="empty">読み込み中...</div>'; if(!currentUser)return;
-  const s=await get(ref(db,`users/${currentUser.uid}/rooms`)); const data=s.val()||{};
-  const arr=Object.values(data).sort((a,b)=>(b.updatedAt||b.last||0)-(a.updatedAt||a.last||0));
-  if(!arr.length){box.innerHTML='<div class="empty">まだ作成したルームはありません。</div>';return}
-  box.innerHTML='';
-  arr.forEach(r=>{
-    const el=document.createElement('div'); el.className='room-item';
-    const d=new Date(r.updatedAt||r.last||r.createdAt||Date.now()).toLocaleString();
-    const info=document.createElement('div');
-    const title=document.createElement('div'); title.className='room-title'; title.textContent=r.name||r.room;
-    const meta=document.createElement('div'); meta.className='room-meta'; meta.textContent=`更新: ${d}`;
-    info.append(title,meta);
-    const actions=document.createElement('div'); actions.className='row right';
-    const enter=document.createElement('button'); enter.textContent='入る'; enter.onclick=()=>openPassword(r.room);
-    const rename=document.createElement('button'); rename.textContent='名前変更'; rename.className='secondary'; rename.onclick=async()=>{
-      const next=prompt('一覧に表示する名前', r.name||r.room); if(!next)return;
-      await update(ref(db,`users/${currentUser.uid}/rooms/${r.room}`),{name:next.slice(0,32),updatedAt:Date.now()}); loadRooms();
-    };
-    const del=document.createElement('button'); del.textContent='削除'; del.className='danger'; del.onclick=async()=>{
-      if(!confirm('ルーム一覧から削除しますか？\n※ルーム本体は削除しません。'))return;
-      await set(ref(db,`users/${currentUser.uid}/rooms/${r.room}`),null); loadRooms();
-    };
-    actions.append(enter,rename,del); el.append(info,actions); box.appendChild(el);
-  });
-}
-$('refreshRooms').onclick=loadRooms; roomInput.addEventListener('keydown',e=>{if(e.key==='Enter')$('goBtn').click()}); nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')roomInput.focus()});
+function gotoRoom(room,name,pass){localStorage.setItem(LS_NAME,name);localStorage.setItem(LS_ROOM,room);if(pass)sessionStorage.setItem(`roomPassOK:${room}`,pass);const u=new URL('./room.html',location.href);u.searchParams.set('room',room);u.searchParams.set('name',name);location.href=u.toString()}
+function fillSaved(){const params=new URL(location.href).searchParams;const n=params.get('name')||localStorage.getItem(LS_NAME)||'',r=params.get('room')||localStorage.getItem(LS_ROOM)||'';['joinName','createName'].forEach(id=>{if(!$(id).value)$(id).value=n});['joinRoom','createRoom'].forEach(id=>{if(!$(id).value)$(id).value=r})}
+$('homeStart').onclick=()=>{show('screenRooms');fillSaved()};$('homeLogin').onclick=()=>show('screenLogin');$('loginBack').onclick=()=>show('screenHome');$('loginSkip').onclick=()=>{show('screenRooms');fillSaved()};$('toLogin').onclick=()=>show('screenLogin');
+function setTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$('tabJoin').classList.toggle('hidden',tab!=='join');$('tabCreate').classList.toggle('hidden',tab!=='create');$('tabList').classList.toggle('hidden',tab!=='list');if(tab==='list')loadRooms()}document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+function renderJoinPass(){const box=$('joinSelectedPass');box.textContent=joinPass.length?joinPass.join(' '):'4つ選んでください';$('joinEmojiGrid').innerHTML='';EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.className=joinPass.includes(e)?'selected':'';b.onclick=()=>{if(joinPass.length<4){joinPass.push(e);renderJoinPass()}};$('joinEmojiGrid').appendChild(b)})}$('joinClear').onclick=()=>{joinPass=[];renderJoinPass()};renderJoinPass();
+async function createRoom(room,name){const metaRef=ref(db,`roomMeta/${room}`);const snap=await get(metaRef);if(snap.exists())throw new Error('このルーム名はすでに使われています。');const pass=makePassword();const meta={room,name:room,pass,createdAt:Date.now(),updatedAt:Date.now(),ownerUid:currentUser?.uid||null,ownerName:currentUser?.displayName||currentUser?.email||'guest'};await set(metaRef,meta);if(currentUser)await update(ref(db,`users/${currentUser.uid}/rooms/${room}`),{room,name:room,createdAt:meta.createdAt,updatedAt:meta.updatedAt});return pass}
+$('createRoomBtn').onclick=async()=>{try{const name=safeName($('createName').value),room=safeRoom($('createRoom').value);if(!name)return alert('表示名を入力してください');if(!room)return alert('ルーム名を入力してください');const pass=await createRoom(room,name);gotoRoom(room,name,pass)}catch(e){alert(e.message||e)}};
+$('joinEnter').onclick=async()=>{try{const name=safeName($('joinName').value),room=safeRoom($('joinRoom').value);if(!name)return alert('表示名を入力してください');if(!room)return alert('ルーム名を入力してください');if(joinPass.length!==4)return alert('顔絵文字を4つ選んでください');const metaRef=ref(db,`roomMeta/${room}`);const snap=await get(metaRef);if(!snap.exists())return alert('ルームが見つかりません。先に「ルームを作る」から作成してください。');const meta=snap.val()||{};const currentPass=meta.pass||'';if(joinPass.join('')!==currentPass){joinPass=[];renderJoinPass();return alert('パスワードが違います。')}const nextPass=makePassword();await update(metaRef,{pass:nextPass,updatedAt:Date.now()});if(currentUser)await update(ref(db,`users/${currentUser.uid}/rooms/${room}`),{room,name:meta.name||room,createdAt:meta.createdAt||Date.now(),updatedAt:Date.now()});gotoRoom(room,name,nextPass)}catch(e){alert(e.message||e)}};
+function updateAccount(user){currentUser=user;if(!user){$('avatar').textContent='G';$('accountName').textContent='ゲスト（未ログイン）';$('accountMeta').textContent='ログインするとルーム一覧を保存できます。';$('logoutBtn').disabled=true;return}const nm=user.displayName||user.email||'ユーザー';if(user.photoURL){$('avatar').innerHTML=`<img src="${user.photoURL}" alt="">`}else{$('avatar').textContent=nm[0]?.toUpperCase()||'U'}$('accountName').textContent=`${nm} でログイン中`;$('accountMeta').textContent='作成したルーム一覧を利用できます。';$('logoutBtn').disabled=false;if(!$('joinName').value)$('joinName').value=nm.slice(0,16);if(!$('createName').value)$('createName').value=nm.slice(0,16);loadRooms()}
+onAuthStateChanged(auth,updateAccount);$('loginGoogle').onclick=()=>signInWithPopup(auth,provider).then(()=>{show('screenRooms');fillSaved()}).catch(e=>alert(e.message));$('logoutBtn').onclick=()=>signOut(auth).catch(e=>alert(e.message));$('emailSignup').onclick=async()=>{try{await createUserWithEmailAndPassword(auth,$('emailInput').value,$('passwordInput').value);show('screenRooms');fillSaved()}catch(e){alert(e.message)}};$('emailLogin').onclick=async()=>{try{await signInWithEmailAndPassword(auth,$('emailInput').value,$('passwordInput').value);show('screenRooms');fillSaved()}catch(e){alert(e.message)}};
+async function loadRooms(){const box=$('roomList');if(!currentUser){box.innerHTML='<div class="empty">ルーム一覧を使うにはログインしてください。</div>';return}box.innerHTML='<div class="empty">読み込み中...</div>';const s=await get(ref(db,`users/${currentUser.uid}/rooms`));const data=s.val()||{};const arr=Object.values(data).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));if(!arr.length){box.innerHTML='<div class="empty">まだ作成したルームはありません。</div>';return}box.innerHTML='';arr.forEach(r=>{const el=document.createElement('div');el.className='room-item';const info=document.createElement('div');const title=document.createElement('div');title.className='room-title';title.textContent=r.name||r.room;const meta=document.createElement('div');meta.className='room-meta';meta.textContent=`ルーム名: ${r.room} ／ 更新: ${new Date(r.updatedAt||r.createdAt||Date.now()).toLocaleString()}`;info.append(title,meta);const actions=document.createElement('div');actions.className='row right';const enter=document.createElement('button');enter.textContent='入る';enter.onclick=()=>{setTab('join');$('joinRoom').value=r.room;$('joinName').focus()};const rename=document.createElement('button');rename.textContent='名前変更';rename.className='secondary';rename.onclick=async()=>{const next=prompt('一覧に表示する名前',r.name||r.room);if(!next)return;await update(ref(db,`users/${currentUser.uid}/rooms/${r.room}`),{name:next.slice(0,32),updatedAt:Date.now()});loadRooms()};const del=document.createElement('button');del.textContent='削除';del.className='danger';del.onclick=async()=>{if(!confirm('ルーム一覧から削除しますか？\n※ルーム本体は削除しません。'))return;await remove(ref(db,`users/${currentUser.uid}/rooms/${r.room}`));loadRooms()};actions.append(enter,rename,del);el.append(info,actions);box.appendChild(el)})}
+if(new URL(location.href).searchParams.get('room')){show('screenRooms');setTab('join');fillSaved()}
+$('refreshRooms').onclick=loadRooms;['joinRoom','createRoom'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();id==='joinRoom'?$('joinEnter').click():$('createRoomBtn').click()}}));fillSaved();
 </script>
 </body>
 </html>
