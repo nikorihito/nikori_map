@@ -69,6 +69,7 @@
     font-weight:700;
   }
   #leaveBtn{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
+  #copyRoomBtn{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
 
   /* AV buttons */
   .avbar{
@@ -403,8 +404,8 @@
 
 <div class="hud">
   <button id="leaveBtn">退室</button>
-  <button id="menuBtn" title="Escでメニュー">メニュー</button>
   <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
+  <button id="copyRoomBtn" title="このルームのURLをコピー">コピー</button>
 </div>
 
 <div class="avbar" aria-label="通話操作">
@@ -437,21 +438,6 @@
 <div id="audioUnlock">クリックして音声を有効化</div>
 <div id="toast"></div>
 
-<div id="roomMenuWrap" aria-label="ルームメニュー">
-  <div id="roomMenu">
-    <h2>ルームメニュー</h2>
-    <div class="line">ルーム名: <strong id="menuRoomName">-</strong></div>
-    <div class="line">現在共有するパスワード</div>
-    <div id="roomPassDisplay"></div>
-    <div class="line">この4つの顔絵文字を相手に共有してください。誰かが入室すると、次回用のパスワードへ更新されます。</div>
-    <div class="menuActions">
-      <button id="copyRoomUrlBtn">URLをコピー</button>
-      <button id="copyRoomPassBtn">パスワードをコピー</button>
-      <button id="closeRoomMenuBtn">閉じる</button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
 /* ===== Params ===== */
 const SCALE = 6;
@@ -473,7 +459,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
 import {
   getDatabase, ref, onDisconnect, set, update, remove, onValue,
-  push, limitToLast, query, get, onChildAdded, onChildChanged, onChildRemoved
+  push, limitToLast, query, onChildAdded, onChildChanged, onChildRemoved
 } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
 const firebaseConfig = {
@@ -563,69 +549,6 @@ const ROOM = safeKey(url.searchParams.get('room') || 'room-001');
 const NAME = safeName(url.searchParams.get('name') || 'guest');
 roomIdEl.textContent = ROOM;
 whoEl.textContent = NAME;
-
-/* ===== Room metadata / password access ===== */
-const PASSWORD_EMOJIS = ['😀','😄','😊','😎','🤔','😮','😂','😍','🥳','😺','🐶','🐼','🤖','👻','🌟','🔥'];
-const roomMetaRef = ref(db, `roomMeta/${ROOM}`);
-let currentRoomPass = '';
-function makeRoomPassword(){
-  let pass = '';
-  for(let i=0;i<4;i++) pass += PASSWORD_EMOJIS[Math.floor(Math.random()*PASSWORD_EMOJIS.length)];
-  return pass;
-}
-function renderRoomPass(){
-  roomPassDisplay.innerHTML = '';
-  [...String(currentRoomPass || '')].forEach(e=>{
-    const span = document.createElement('span');
-    span.textContent = e;
-    roomPassDisplay.appendChild(span);
-  });
-  if(!currentRoomPass) roomPassDisplay.textContent = '未設定';
-}
-async function verifyRoomAccess(){
-  const snap = await get(roomMetaRef);
-  if(!snap.exists()){
-    currentRoomPass = makeRoomPassword();
-    await set(roomMetaRef, {room:ROOM, name:ROOM, pass:currentRoomPass, createdAt:now(), updatedAt:now()});
-    sessionStorage.setItem(`roomPassOK:${ROOM}`, currentRoomPass);
-    return;
-  }
-  const meta = snap.val() || {};
-  currentRoomPass = meta.pass || '';
-  if(currentRoomPass && sessionStorage.getItem(`roomPassOK:${ROOM}`) !== currentRoomPass){
-    const back = new URL('./index.html', location.href);
-    back.searchParams.set('room', ROOM);
-    back.searchParams.set('name', NAME);
-    location.replace(back.toString());
-    await new Promise(()=>{});
-  }
-}
-function openRoomMenu(){
-  menuRoomName.textContent = ROOM;
-  renderRoomPass();
-  roomMenuWrap.style.display = 'flex';
-}
-function closeRoomMenu(){ roomMenuWrap.style.display = 'none'; }
-menuBtn.onclick = openRoomMenu;
-closeRoomMenuBtn.onclick = closeRoomMenu;
-roomMenuWrap.addEventListener('click', e=>{ if(e.target === roomMenuWrap) closeRoomMenu(); });
-copyRoomUrlBtn.onclick = async()=>{
-  const u = new URL('./index.html', location.href);
-  u.searchParams.set('room', ROOM);
-  try{ await navigator.clipboard.writeText(u.toString()); showToast('ルームURLをコピーしました'); }
-  catch{ showToast('コピーできませんでした'); }
-};
-copyRoomPassBtn.onclick = async()=>{
-  try{ await navigator.clipboard.writeText([...String(currentRoomPass||'')].join(' ')); showToast('パスワードをコピーしました'); }
-  catch{ showToast('コピーできませんでした'); }
-};
-addEventListener('keydown', e=>{
-  if(e.key === 'Escape' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){
-    e.preventDefault();
-    roomMenuWrap.style.display === 'flex' ? closeRoomMenu() : openRoomMenu();
-  }
-});
-await verifyRoomAccess();
 
 /* ===== Assets ===== */
 const imgMap = await loadImage('./map_1.png?v=20250927-2', {fallbackSize:[2048,2048], label:'map'});
@@ -1335,15 +1258,20 @@ function drawPlayer(p, id, cam){
   const sx = Math.round(p.x - cam.x);
   const sy = Math.round(p.y - cam.y);
   const fly = !!p.fly;
+  let labelY;
+
   if(fly){
     const planeW = Math.max(PLANE_MIN_SIZE, imgPlane.width * PLANE_SCALE);
     const planeH = Math.max(PLANE_MIN_SIZE, imgPlane.height * PLANE_SCALE);
     drawImageCentered(imgPlane, sx, sy + 8, planeW, planeH, false, 1);
+    labelY = sy + 8 - planeH / 2 - 16;
+  }else{
+    const sp = spriteByDir(p.dir || 'front');
+    const w = sp.img.width * SCALE;
+    const h = sp.img.height * SCALE;
+    drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
+    labelY = sy - h / 2 - 16;
   }
-  const sp = spriteByDir(p.dir || 'front');
-  const w = sp.img.width * SCALE;
-  const h = sp.img.height * SCALE;
-  drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
 
   const name = p.name || 'guest';
   const speaking = isSpeaking(id);
@@ -1355,11 +1283,11 @@ function drawPlayer(p, id, cam){
   ctx.fillStyle = speaking ? 'rgba(34,211,238,.30)' : 'rgba(15,23,42,.72)';
   ctx.strokeStyle = speaking ? '#22d3ee' : 'rgba(148,163,184,.45)';
   ctx.lineWidth = speaking ? 2 : 1;
-  roundRect(ctx, sx-textW/2-8, sy-h/2-26, textW+16, 20, 8);
+  roundRect(ctx, sx-textW/2-8, labelY-10, textW+16, 20, 8);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#e2e8f0';
-  ctx.fillText(name, sx, sy-h/2-16);
+  ctx.fillText(name, sx, labelY);
   ctx.restore();
 }
 function drawImageCentered(img,x,y,w,h,flip=false,alpha=1){
