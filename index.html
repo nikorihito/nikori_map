@@ -6,591 +6,295 @@
   <title>ニコリタウン - ホーム</title>
   <style>
     :root{
-      color-scheme:light dark;
-      --bg:#0f172a;--card:#111827;--panel:#0b1220;--border:#334155;
-      --text:#e2e8f0;--muted:#94a3b8;--a1:#22d3ee;--a2:#06b6d4;
-      --danger:#ef4444;--ok:#22c55e;
+      color-scheme:dark;
+      --bg:#0f172a;
+      --card:#111827;
+      --panel:#0b1220;
+      --border:#334155;
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --a1:#22d3ee;
+      --a2:#06b6d4;
+      --danger:#ef4444;
+      --ok:#22c55e;
     }
     *{box-sizing:border-box}
     body{
-      margin:0;min-height:100svh;padding:18px;display:grid;place-items:center;
+      margin:0;
+      min-height:100svh;
+      padding:18px;
+      display:grid;
+      place-items:center;
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-      background:#0f172a;color:var(--text);
+      background:
+        radial-gradient(circle at 20% 12%,rgba(34,211,238,.18),transparent 32%),
+        radial-gradient(circle at 85% 18%,rgba(59,130,246,.14),transparent 30%),
+        var(--bg);
+      color:var(--text);
     }
     .card{
-      width:min(880px,94vw);background:#111827;border-radius:18px;padding:28px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.06);
+      width:min(860px,94vw);
+      background:rgba(17,24,39,.92);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:22px;
+      padding:28px;
+      box-shadow:0 24px 80px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,255,255,.04);
+      backdrop-filter:blur(10px);
     }
-    h1{margin:0 0 6px;font-size:clamp(22px,4vw,30px);letter-spacing:.02em}
-    h2{margin:0 0 14px;font-size:18px}
-    .muted{color:var(--muted);margin:0 0 18px;line-height:1.7}
-    .hidden{display:none!important}
-    .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(15,118,110,.25);color:#a5f3fc;font-size:11px;margin-bottom:10px}
-    .logo-line{display:flex;gap:12px;align-items:center;margin-bottom:6px}
-    .logo-mark{width:46px;height:46px;border-radius:14px;background:radial-gradient(circle at 35% 30%,#67e8f9,#0891b2 55%,#0f172a);display:grid;place-items:center;font-size:25px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);flex-shrink:0}
-    .screen{margin-top:16px;padding:16px;border-radius:16px;background:rgba(15,23,42,.66);border:1px solid rgba(148,163,184,.20)}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 10px;
+      margin-bottom:12px;
+      border-radius:999px;
+      background:rgba(14,165,233,.16);
+      border:1px solid rgba(34,211,238,.25);
+      color:#a5f3fc;
+      font-size:12px;
+      font-weight:800;
+    }
+    .logo-line{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .logo-mark{
+      width:50px;height:50px;border-radius:15px;
+      display:grid;place-items:center;font-size:27px;
+      background:radial-gradient(circle at 35% 30%,#67e8f9,#0891b2 58%,#0f172a);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 14px 34px rgba(6,182,212,.16);
+      flex-shrink:0;
+    }
+    h1{margin:0;font-size:clamp(24px,4vw,34px);letter-spacing:.03em}
+    .lead{margin:8px 0 22px;color:var(--muted);line-height:1.75}
+    .screen{
+      margin-top:18px;
+      padding:18px;
+      border-radius:18px;
+      background:rgba(15,23,42,.72);
+      border:1px solid rgba(148,163,184,.20);
+    }
     .grid{display:grid;gap:14px}
     .two{grid-template-columns:repeat(2,minmax(0,1fr))}
     @media(max-width:720px){.two{grid-template-columns:1fr}.card{padding:22px}}
-    label{display:grid;gap:7px;font-weight:700;font-size:14px}
-    input,button{font:inherit;border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 12px;border-radius:12px;outline:none}
-    input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.25)}
-    button{border:0;background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;cursor:pointer;font-weight:800}
-    button.ghost{background:transparent;border:1px dashed var(--border);color:#cbd5e1;font-weight:700}
+    label{display:grid;gap:8px;font-weight:800;font-size:14px}
+    input,button{font:inherit;border-radius:13px;outline:none}
+    input{
+      width:100%;
+      border:1px solid var(--border);
+      background:#07101f;
+      color:var(--text);
+      padding:12px 13px;
+    }
+    input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.20)}
+    button{
+      border:0;
+      padding:12px 14px;
+      background:linear-gradient(180deg,var(--a1),var(--a2));
+      color:#06202a;
+      font-weight:900;
+      cursor:pointer;
+    }
     button.secondary{background:#1e293b;border:1px solid var(--border);color:var(--text)}
-    button.danger{background:#2a1111;border:1px solid #7f1d1d;color:#fecaca}
-    button.link{background:transparent;border:0;color:#a5f3fc;padding:4px 0;border-radius:0;text-align:left;font-weight:700}
     button:disabled{opacity:.55;cursor:not-allowed}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .right{justify-content:flex-end}
-    .account{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 14px;margin:18px 0;border-radius:14px;background:rgba(15,23,42,.85);border:1px solid #1f2937}
-    .account-main{display:flex;gap:10px;align-items:center;min-width:0}
-    .avatar{width:40px;height:40px;border-radius:999px;background:radial-gradient(circle at 30% 30%,#22d3ee,#0f172a);display:grid;place-items:center;font-weight:800;font-size:18px;overflow:hidden;flex-shrink:0}
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-    .account-name{font-size:14px;font-weight:800;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-    .account-meta{font-size:12px;color:#9ca3af}
-    .account-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-    .account-actions button{padding-block:7px;font-size:13px;white-space:nowrap}
-    @media(max-width:560px){.account{grid-template-columns:1fr}.account-actions{justify-content:flex-start}}
-    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-    .tabs button{background:transparent;border:1px solid var(--border);color:#cbd5e1}
-    .tabs button.active{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;border:0}
-    .notice{font-size:13px;color:#a5f3fc;background:rgba(8,145,178,.12);border:1px solid rgba(34,211,238,.25);border-radius:12px;padding:10px;line-height:1.6}
-    .room-list{display:grid;gap:10px;max-height:300px;overflow:auto}
-    .room-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px;border-radius:13px;background:#0b1220;border:1px solid #243244}
-    @media(max-width:640px){.room-item{grid-template-columns:1fr}}
-    .room-title{font-weight:800}
-    .room-meta{font-size:12px;color:#94a3b8;margin-top:3px;line-height:1.5}
-    .empty{color:#94a3b8;padding:12px;border:1px dashed var(--border);border-radius:12px;text-align:center}
-    .footer{margin-top:16px;font-size:12px;color:#94a3b8;text-align:center;line-height:1.7}
-    .login-stack{width:min(460px,100%);margin:0 auto}
-    .login-links{display:grid;gap:8px;margin-top:12px}
+    .notice{margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
+    .skin-picker{
+      margin:16px 0;
+      padding:14px;
+      border:1px solid rgba(148,163,184,.24);
+      border-radius:18px;
+      background:rgba(2,6,23,.25);
+    }
+    .skin-picker-title{font-weight:900;letter-spacing:.04em;margin-bottom:10px}
+    .skin-choice-row{display:flex;gap:10px;flex-wrap:wrap}
+    .skin-choice{
+      min-width:150px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(148,163,184,.28);
+      background:rgba(15,23,42,.70);
+      color:#e5f3ff;
+    }
+    .skin-choice img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}
+    .skin-choice.active{
+      border-color:rgba(34,211,238,.9);
+      box-shadow:0 0 0 3px rgba(34,211,238,.18),0 14px 30px rgba(34,211,238,.10);
+      background:linear-gradient(135deg,rgba(14,165,233,.36),rgba(15,23,42,.78));
+    }
+    .skin-picker-note{margin-top:8px;font-size:12px;color:var(--muted)}
+    .status{min-height:22px;margin-top:12px;color:#a5f3fc;font-size:13px;font-weight:700}
   </style>
 </head>
 <body>
   <main class="card">
-    <div class="pill">β版・テスト中 ／ ニコリタウン</div>
+    <div class="pill">β版・テスト中 ／ アカウントなし版</div>
     <div class="logo-line">
-      <div class="logo-mark">🏙️</div>
+      <div class="logo-mark">✈️</div>
       <div>
         <h1>ニコリタウン</h1>
-        <p class="muted" style="margin-bottom:0;">歩き回って、同じルームの人と話せる2Dタウン。</p>
+        <p class="lead">ルーム名を入力するだけで、同じルームの人と歩き回って話せる2Dタウン。</p>
       </div>
     </div>
 
-    <div id="accountBox" class="account hidden">
-      <div class="account-main">
-        <div id="avatar" class="avatar">G</div>
-        <div>
-          <div id="accountName" class="account-name">ゲスト（未ログイン）</div>
-          <div id="accountMeta" class="account-meta">ログインすると作成したルーム一覧を保存できます。</div>
-        </div>
-      </div>
-      <div class="account-actions">
-        <button id="logoutBtn" class="ghost">ログアウト</button>
-      </div>
-    </div>
-
-    <section id="screenHome" class="screen">
-      <h2>ログイン</h2>
-      <div class="grid login-stack">
-        <label>
-          ログインID
-          <input id="homeLoginId" maxlength="32" placeholder="例）koppy" autocomplete="username" />
-        </label>
-        <label>
-          認証パスワード
-          <input id="homeLoginPass" type="password" autocomplete="current-password" placeholder="6文字以上" />
-        </label>
-        <button id="homeIdLogin">ログイン</button>
-        <button id="homeGoogleLogin" class="secondary">Googleでログイン</button>
-        <button id="guestLogin" class="ghost">ゲストとしてログイン</button>
-        <div class="login-links">
-          <button id="noAccountBtn" class="link">アカウントが無い場合</button>
-          <button id="forgotPassBtn" class="link">パスワードが分からない場合</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="screenSignup" class="screen hidden">
-      <h2>アカウント作成</h2>
-      <p class="muted">表示名はここで決めます。ルーム入室時はこの表示名を使います。</p>
+    <section class="screen">
       <div class="grid two">
-        <label>表示名<input id="signupName" maxlength="16" placeholder="例）こっぴー" /></label>
-        <label>ログインID<input id="signupId" maxlength="32" placeholder="例）koppy" autocomplete="username" /></label>
-        <label>認証パスワード<input id="signupPass" type="password" placeholder="6文字以上" autocomplete="new-password" /></label>
-        <label>認証パスワード確認<input id="signupPass2" type="password" placeholder="もう一度入力" autocomplete="new-password" /></label>
-      </div>
-      <div class="row right" style="margin-top:14px;">
-        <button id="signupBack" class="ghost">戻る</button>
-        <button id="signupCreate">アカウント作成</button>
-      </div>
-    </section>
-
-    <section id="screenForgot" class="screen hidden">
-      <h2>パスワードが分からない場合</h2>
-      <p class="muted">ログインID方式では、通常のメール再設定リンクは使いません。管理者に「ログインID」と「表示名」を伝えて、認証パスワードの再発行を依頼してください。</p>
-      <div class="notice">Googleで登録した場合は、「Googleでログイン」からそのまま入れます。</div>
-      <div class="row right" style="margin-top:14px;"><button id="forgotBack" class="ghost">戻る</button></div>
-    </section>
-
-    <section id="screenRooms" class="screen hidden">
-      <div class="row right" style="margin-bottom:10px;">
-        <h2 style="margin-right:auto;">ルーム</h2>
-        <button id="backHome" class="ghost">ホームへ</button>
-      </div>
-      <div class="tabs">
-        <button id="tabJoin" class="active">ルームに入る</button>
-        <button id="tabCreate">ルームを作る</button>
-        <button id="tabList">ルーム一覧</button>
+        <label>ルーム名
+          <input id="roomName" maxlength="32" placeholder="例）park-001" autocomplete="off" />
+        </label>
+        <label>表示名（空ならゲスト）
+          <input id="playerName" maxlength="16" placeholder="例）こっぴー" autocomplete="off" />
+        </label>
       </div>
 
-      <div id="panelJoin" class="grid">
-        <label>ルーム名<input id="joinRoom" maxlength="32" placeholder="例）park-001" /></label>
-        <div class="row right"><button id="joinRoomBtn">パスワードを入力して入る</button></div>
-        <p class="notice">通常の入室には顔絵文字4つのパスワードが必要です。表示名はアカウントの表示名を使います。</p>
+      <div id="skinPicker" class="skin-picker" aria-label="スキン変更">
+        <div class="skin-picker-title">スキン変更</div>
+        <div class="skin-choice-row">
+          <button type="button" class="skin-choice" data-skin="nikorihito" aria-pressed="false">
+            <img src="./nikorihito_dot_front.png" alt="" />
+            <span>ニコリヒト</span>
+          </button>
+          <button type="button" class="skin-choice" data-skin="turuturu" aria-pressed="false">
+            <img src="./turuturu_front.png" alt="" />
+            <span>つるつる君</span>
+          </button>
+        </div>
+        <div class="skin-picker-note">飛行機はどちらのスキンでも共通です。</div>
       </div>
 
-      <div id="panelCreate" class="grid hidden">
-        <label>ルーム名<input id="createRoom" maxlength="32" placeholder="例）park-001" /></label>
-        <div class="row right"><button id="createRoomBtn">ルームを作る</button></div>
-        <p class="notice">作成後、room.htmlのEscメニューでパスワードを確認して共有してください。</p>
+      <div class="row right">
+        <button id="enterRoomBtn">ルームに入る</button>
+        <button id="randomRoomBtn" class="secondary">ランダム名</button>
       </div>
-
-      <div id="panelList" class="hidden">
-        <div class="row right" style="margin-bottom:10px;"><button id="refreshRooms" class="secondary">更新</button></div>
-        <div id="roomList" class="room-list"><div class="empty">ログインするとルーム一覧を表示できます。</div></div>
-        <p class="notice">ルーム一覧から入る場合は、本人の保存済みルームとして扱うためパスワード入力は不要です。</p>
-      </div>
+      <p class="notice">アカウント作成・ログイン・ルームパスワードは使いません。同じルーム名を入力した人が同じ部屋に入ります。</p>
+      <div id="status" class="status"></div>
     </section>
   </main>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInAnonymously,
-  updateProfile
-} from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-import {
-  getDatabase,
-  ref,
-  get,
-  set,
-  update,
-  remove
-} from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
+    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+    import { getDatabase, ref, update } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
-  authDomain: 'nikori-town.firebaseapp.com',
-  databaseURL: 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
-  projectId: 'nikori-town',
-  storageBucket: 'nikori-town.appspot.com',
-  messagingSenderId: '836836010871',
-  appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
-};
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
+      authDomain: 'nikori-town.firebaseapp.com',
+      databaseURL: 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: 'nikori-town',
+      storageBucket: 'nikori-town.appspot.com',
+      messagingSenderId: '836836010871',
+      appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
+    };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app, firebaseConfig.databaseURL);
-const googleProvider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app, firebaseConfig.databaseURL);
+    const $ = id => document.getElementById(id);
 
-const PASSWORD_EMOJIS = ['😀','😄','😊','😎','🤔','😮','😂','😍','🥳','😺','🐶','🐼','🤖','👻','🌟','🔥'];
-const $ = id => document.getElementById(id);
-const LS_ROOM = 'nikoriTown.lastRoom';
+    const LS_ROOM = 'nikoriTown.lastRoom';
+    const LS_NAME = 'nikoriTown.playerName';
+    const LS_SKIN = 'nikoriTown.skin';
 
-let currentUser = null;
-let currentProfile = null;
-let isGuest = false;
+    $('roomName').value = localStorage.getItem(LS_ROOM) || '';
+    $('playerName').value = localStorage.getItem(LS_NAME) || '';
 
-$('joinRoom').value = localStorage.getItem(LS_ROOM) || '';
-$('createRoom').value = localStorage.getItem(LS_ROOM) || '';
+    function status(text){ $('status').textContent = text || ''; }
 
-function showScreen(id) {
-  ['screenHome', 'screenSignup', 'screenForgot', 'screenRooms'].forEach(x => {
-    $(x).classList.toggle('hidden', x !== id);
-  });
-  $('accountBox').classList.toggle('hidden', !currentUser && !isGuest);
-}
+    function safeRoom(raw){
+      return String(raw || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[.#$/\[\]\/]/g,'-')
+        .replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g,'-')
+        .slice(0,32);
+    }
 
-function showTab(name) {
-  ['Join', 'Create', 'List'].forEach(x => {
-    $('tab' + x).classList.toggle('active', x === name);
-    $('panel' + x).classList.toggle('hidden', x !== name);
-  });
-  if (name === 'List') loadRooms();
-}
+    function safeName(raw){
+      const name = String(raw || '').trim().slice(0,16);
+      return name || 'ゲスト';
+    }
 
-function safeRoom(raw) {
-  return String(raw || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[.#$/\[\]/]/g, '-')
-    .replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g, '-')
-    .slice(0, 32);
-}
+    function normalizeSkin(raw){
+      return raw === 'turuturu' ? 'turuturu' : 'nikorihito';
+    }
 
-function safeName(raw) {
-  return String(raw || '').trim().slice(0, 16);
-}
+    function getSelectedSkin(){
+      return normalizeSkin(localStorage.getItem(LS_SKIN) || 'nikorihito');
+    }
 
-function makePassword() {
-  return Array.from({ length: 4 }, () => {
-    return PASSWORD_EMOJIS[Math.floor(Math.random() * PASSWORD_EMOJIS.length)];
-  }).join('');
-}
-
-function idToEmail(id) {
-  const clean = String(id || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_.-]/g, '-')
-    .slice(0, 32);
-
-  if (!clean) throw new Error('ログインIDを入力してください');
-  return `${clean}@nikori-town.local`;
-}
-
-function displayName() {
-  return safeName(
-    currentProfile?.displayName ||
-    currentUser?.displayName ||
-    (currentUser?.email || '').split('@')[0] ||
-    'ゲスト'
-  );
-}
-
-async function loadProfile(user) {
-  if (!user || user.isAnonymous) return null;
-  const snap = await get(ref(db, `users/${user.uid}/profile`)).catch(() => null);
-  return snap?.exists() ? snap.val() : null;
-}
-
-async function saveProfile(user, profile) {
-  if (!user || user.isAnonymous) return;
-  await update(ref(db, `users/${user.uid}/profile`), {
-    ...profile,
-    updatedAt: Date.now()
-  });
-}
-
-function gotoRoom(room) {
-  const name = displayName();
-  localStorage.setItem(LS_ROOM, room);
-
-  const u = new URL('./room.html', location.href);
-  u.searchParams.set('room', room);
-  u.searchParams.set('name', name);
-  location.href = u.toString();
-}
-
-async function createRoom(room) {
-  const metaRef = ref(db, `roomMeta/${room}`);
-  const snap = await get(metaRef);
-
-  if (snap.exists()) {
-    alert('このルーム名はすでにあります。「ルームに入る」から入室してください。');
-    return;
-  }
-
-  const pass = makePassword();
-  const meta = {
-    room,
-    name: room,
-    pass,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    ownerUid: currentUser?.uid || null,
-    ownerName: displayName()
-  };
-
-  await set(metaRef, meta);
-
-  if (currentUser && !currentUser.isAnonymous) {
-    await update(ref(db, `users/${currentUser.uid}/rooms/${room}`), {
-      room,
-      name: room,
-      createdAt: meta.createdAt,
-      updatedAt: meta.updatedAt
-    });
-  }
-
-  sessionStorage.setItem(`roomPassOK:${room}`, pass);
-  gotoRoom(room);
-}
-
-async function enterRoomFromList(room) {
-  const snap = await get(ref(db, `roomMeta/${room}`));
-  const meta = snap.val();
-
-  if (meta?.pass) {
-    sessionStorage.setItem(`roomPassOK:${room}`, meta.pass);
-  }
-
-  gotoRoom(room);
-}
-
-$('homeIdLogin').onclick = async () => {
-  try {
-    const email = idToEmail($('homeLoginId').value);
-    const pass = $('homeLoginPass').value;
-
-    if (!pass) return alert('認証パスワードを入力してください');
-
-    await signInWithEmailAndPassword(auth, email, pass);
-    showScreen('screenRooms');
-  } catch (e) {
-    console.error(e);
-    alert(e.message);
-  }
-};
-
-$('homeGoogleLogin').onclick = async () => {
-  try {
-    const res = await signInWithPopup(auth, googleProvider);
-    const user = res.user;
-    const profile = await loadProfile(user);
-
-    if (!profile) {
-      await saveProfile(user, {
-        displayName: user.displayName || 'Googleユーザー',
-        loginType: 'google',
-        createdAt: Date.now()
+    function setSelectedSkin(skin){
+      const value = normalizeSkin(skin);
+      localStorage.setItem(LS_SKIN, value);
+      document.querySelectorAll('[data-skin]').forEach(btn => {
+        const active = btn.dataset.skin === value;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
       });
     }
 
-    showScreen('screenRooms');
-  } catch (e) {
-    console.error(e);
-    alert(e.message);
-  }
-};
-
-$('guestLogin').onclick = async () => {
-  const name = safeName(prompt('ゲスト表示名を入力してください', 'ゲスト'));
-  if (!name) return;
-
-  try {
-    await signInAnonymously(auth);
-    isGuest = true;
-    currentProfile = {
-      displayName: name,
-      loginType: 'guest'
-    };
-    showScreen('screenRooms');
-    updateAccountUI();
-  } catch (e) {
-    console.error(e);
-    alert(e.message);
-  }
-};
-
-$('noAccountBtn').onclick = () => showScreen('screenSignup');
-$('forgotPassBtn').onclick = () => showScreen('screenForgot');
-$('signupBack').onclick = () => showScreen('screenHome');
-$('forgotBack').onclick = () => showScreen('screenHome');
-$('backHome').onclick = () => showScreen('screenHome');
-$('tabJoin').onclick = () => showTab('Join');
-$('tabCreate').onclick = () => showTab('Create');
-$('tabList').onclick = () => showTab('List');
-
-$('signupCreate').onclick = async () => {
-  try {
-    const name = safeName($('signupName').value);
-    const id = $('signupId').value;
-    const pass = $('signupPass').value;
-    const pass2 = $('signupPass2').value;
-
-    if (!name) return alert('表示名を入力してください');
-    if (!id) return alert('ログインIDを入力してください');
-    if (!pass || pass.length < 6) return alert('認証パスワードは6文字以上にしてください');
-    if (pass !== pass2) return alert('認証パスワード確認が一致しません');
-
-    const userCred = await createUserWithEmailAndPassword(auth, idToEmail(id), pass);
-
-    await updateProfile(userCred.user, {
-      displayName: name
-    }).catch(() => {});
-
-    await saveProfile(userCred.user, {
-      displayName: name,
-      loginId: id,
-      loginType: 'id',
-      createdAt: Date.now()
-    });
-
-    showScreen('screenRooms');
-  } catch (e) {
-    console.error(e);
-    alert(e.message);
-  }
-};
-
-$('joinRoomBtn').onclick = async () => {
-  const room = safeRoom($('joinRoom').value);
-  if (!room) return alert('ルーム名を入力してください');
-
-  const snap = await get(ref(db, `roomMeta/${room}`));
-
-  if (!snap.exists()) {
-    return alert('ルームが見つかりません。作る場合は「ルームを作る」から作成してください。');
-  }
-
-  alert('通常入室ではパスワードが必要です。現在の最新版では、ルーム一覧から入る場合のみパスワード不要です。');
-};
-
-$('createRoomBtn').onclick = async () => {
-  try {
-    const room = safeRoom($('createRoom').value);
-    if (!room) return alert('ルーム名を入力してください');
-    await createRoom(room);
-  } catch (e) {
-    console.error(e);
-    alert(e.message);
-  }
-};
-
-$('refreshRooms').onclick = loadRooms;
-
-$('logoutBtn').onclick = async () => {
-  try {
-    await signOut(auth);
-    currentUser = null;
-    currentProfile = null;
-    isGuest = false;
-    updateAccountUI();
-    showScreen('screenHome');
-  } catch (e) {
-    alert(e.message);
-  }
-};
-
-onAuthStateChanged(auth, async user => {
-  currentUser = user;
-  isGuest = !!user?.isAnonymous;
-  currentProfile = await loadProfile(user);
-
-  if (user && !currentProfile && !user.isAnonymous) {
-    currentProfile = {
-      displayName: user.displayName || String(user.email || 'user').split('@')[0],
-      loginType: 'unknown'
-    };
-    await saveProfile(user, currentProfile).catch(() => {});
-  }
-
-  updateAccountUI();
-});
-
-function updateAccountUI() {
-  if (!currentUser && !isGuest) {
-    $('accountBox').classList.add('hidden');
-    return;
-  }
-
-  const name = displayName();
-
-  $('accountBox').classList.remove('hidden');
-  $('avatar').textContent = (name[0] || 'G').toUpperCase();
-
-  if (currentUser?.photoURL) {
-    $('avatar').innerHTML = `<img src="${currentUser.photoURL}" alt="">`;
-  }
-
-  $('accountName').textContent = `${name} でログイン中`;
-  $('accountMeta').textContent = isGuest
-    ? 'ゲストログイン中です。ルーム一覧は保存されません。'
-    : 'ルーム一覧を利用できます。';
-  $('logoutBtn').disabled = false;
-}
-
-async function loadRooms() {
-  const box = $('roomList');
-
-  if (!currentUser || currentUser.isAnonymous) {
-    box.innerHTML = '<div class="empty">アカウントでログインするとルーム一覧を表示できます。</div>';
-    return;
-  }
-
-  box.innerHTML = '<div class="empty">読み込み中...</div>';
-
-  try {
-    const snap = await get(ref(db, `users/${currentUser.uid}/rooms`));
-    const data = snap.val() || {};
-    const rooms = Object.values(data).sort((a, b) => {
-      return (b.updatedAt || 0) - (a.updatedAt || 0);
-    });
-
-    if (!rooms.length) {
-      box.innerHTML = '<div class="empty">まだ作成・参加したルームはありません。</div>';
-      return;
+    function initSkinPicker(){
+      document.querySelectorAll('[data-skin]').forEach(btn => {
+        btn.onclick = () => setSelectedSkin(btn.dataset.skin);
+      });
+      setSelectedSkin(getSelectedSkin());
     }
 
-    box.innerHTML = '';
-
-    rooms.forEach(room => {
-      const el = document.createElement('div');
-      el.className = 'room-item';
-
-      const info = document.createElement('div');
-
-      const title = document.createElement('div');
-      title.className = 'room-title';
-      title.textContent = room.name || room.room;
-
-      const meta = document.createElement('div');
-      meta.className = 'room-meta';
-      meta.textContent = `ID: ${room.room} ／ 更新: ${new Date(room.updatedAt || room.createdAt || Date.now()).toLocaleString()}`;
-
-      info.append(title, meta);
-
-      const actions = document.createElement('div');
-      actions.className = 'row right';
-
-      const enter = document.createElement('button');
-      enter.textContent = '入る';
-      enter.onclick = () => enterRoomFromList(room.room);
-
-      const rename = document.createElement('button');
-      rename.className = 'secondary';
-      rename.textContent = '名前変更';
-      rename.onclick = async () => {
-        const next = prompt('一覧に表示する名前', room.name || room.room);
-        if (!next) return;
-
-        await update(ref(db, `users/${currentUser.uid}/rooms/${room.room}`), {
-          name: next.slice(0, 32),
-          updatedAt: Date.now()
+    async function ensureAnonAuth(){
+      if (auth.currentUser) return auth.currentUser;
+      await signInAnonymously(auth);
+      return await new Promise(resolve => {
+        const stop = onAuthStateChanged(auth, user => {
+          if (user) { stop(); resolve(user); }
         });
+      });
+    }
 
-        loadRooms();
-      };
+    async function enterRoom(){
+      const room = safeRoom($('roomName').value);
+      if (!room) {
+        status('ルーム名を入力してください。');
+        $('roomName').focus();
+        return;
+      }
+      const name = safeName($('playerName').value);
+      const skin = getSelectedSkin();
+      localStorage.setItem(LS_ROOM, room);
+      localStorage.setItem(LS_NAME, name);
+      localStorage.setItem(LS_SKIN, skin);
 
-      const del = document.createElement('button');
-      del.className = 'danger';
-      del.textContent = '削除';
-      del.onclick = async () => {
-        if (!confirm('ルーム一覧から削除しますか？\n※ルーム本体は削除しません。')) return;
+      $('enterRoomBtn').disabled = true;
+      status('ルームを準備しています...');
+      try {
+        const user = await ensureAnonAuth();
+        await update(ref(db, `roomMeta/${room}`), {
+          room,
+          noAccountMode: true,
+          passwordEnabled: false,
+          updatedAt: Date.now(),
+          lastJoinUid: user.uid
+        });
+        const u = new URL('./room.html', location.href);
+        u.searchParams.set('room', room);
+        u.searchParams.set('name', name);
+        u.searchParams.set('skin', skin);
+        location.href = u.toString();
+      } catch (error) {
+        console.error(error);
+        status('入室準備に失敗しました。Firebaseの設定またはDBルールを確認してください。');
+        $('enterRoomBtn').disabled = false;
+      }
+    }
 
-        await remove(ref(db, `users/${currentUser.uid}/rooms/${room.room}`));
-        loadRooms();
-      };
+    $('enterRoomBtn').onclick = enterRoom;
+    $('roomName').addEventListener('keydown', e => { if (e.key === 'Enter') enterRoom(); });
+    $('playerName').addEventListener('keydown', e => { if (e.key === 'Enter') enterRoom(); });
+    $('randomRoomBtn').onclick = () => {
+      $('roomName').value = 'room-' + Math.random().toString(36).slice(2,7);
+      $('roomName').focus();
+    };
 
-      actions.append(enter, rename, del);
-      el.append(info, actions);
-      box.appendChild(el);
-    });
-  } catch (e) {
-    console.error(e);
-    box.innerHTML = '<div class="empty">ルーム一覧を読み込めません。Firebase Rulesを確認してください。</div>';
-  }
-}
-</script>
+    initSkinPicker();
+  </script>
 </body>
 </html>
