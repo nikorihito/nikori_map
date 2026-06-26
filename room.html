@@ -2,730 +2,1350 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>ニコリタウン - ルーム</title>
+
   <style>
-    :root{
-      --bg:#0b1220;
-      --panel:#101826;
-      --panel2:#0f172a;
-      --border:#334155;
-      --text:#e2e8f0;
-      --muted:#94a3b8;
-      --a1:#22d3ee;
-      --a2:#06b6d4;
-      --green:#22c55e;
-      --danger:#ef4444;
+    :root {
+      --bg: #020617;
+      --panel: rgba(15, 23, 42, 0.88);
+      --panel2: rgba(2, 6, 23, 0.75);
+      --border: rgba(148, 163, 184, 0.28);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --accent2: #06b6d4;
+      --danger: #ef4444;
+      --ok: #22c55e;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
-      overflow:hidden;
-      touch-action:none;
+
+    * {
+      box-sizing: border-box;
     }
-    button,input{font:inherit}
-    button{cursor:pointer}
-    #game{display:block;width:100vw;height:100vh;image-rendering:pixelated;background:#0b1220}
-    .hud{
-      position:fixed;left:8px;top:8px;z-index:30;
-      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
     }
-    .hud .info{
-      background:rgba(16,24,38,.88);
-      border:1px solid var(--border);
-      padding:6px 10px;
-      border-radius:10px;
-      backdrop-filter:blur(6px);
-      white-space:nowrap;
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
     }
-    .hud button,.primaryBtn,#composer button,#flyBtn{
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background:linear-gradient(180deg,var(--a1),var(--a2));
-      color:#06202a;
-      font-weight:900;
+
+    button {
+      cursor: pointer;
+      border: 0;
     }
-    .subBtn{background:#1e293b!important;color:#e2e8f0!important;border:1px solid var(--border)!important}
-    #chatView{
-      position:fixed;
-      left:8px;
-      bottom:72px;
-      z-index:22;
-      width:min(420px,calc(100vw - 16px));
-      max-height:34vh;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      pointer-events:auto;
+
+    #gameCanvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: #0f172a;
+      image-rendering: auto;
     }
-    .chatItem{
-      background:rgba(16,24,38,.86);
-      border:1px solid rgba(148,163,184,.22);
-      border-radius:12px;
-      padding:8px 10px;
-      box-shadow:0 8px 20px rgba(0,0,0,.24);
+
+    .topbar {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
     }
-    .chatItem.me{border-color:rgba(34,211,238,.36)}
-    .nameLine{font-size:12px;color:#a5f3fc;font-weight:900;margin-bottom:3px}
-    .meta{font-size:10px;color:var(--muted);margin-top:4px}
-    #composer{
-      position:fixed;
-      left:8px;
-      bottom:10px;
-      z-index:24;
-      width:min(520px,calc(100vw - 16px));
-      display:flex;
-      gap:8px;
+
+    .info {
+      pointer-events: auto;
+      min-height: 44px;
+      padding: 10px 13px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(10px);
+      font-size: 13px;
+      line-height: 1.5;
     }
-    #composer input{
-      flex:1;
-      min-width:0;
-      border:1px solid var(--border);
-      background:rgba(16,24,38,.92);
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      outline:none;
+
+    .info strong {
+      color: #a5f3fc;
     }
-    #composer input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.18)}
-    #reactFab{
-      position:fixed;
-      right:16px;
-      bottom:96px;
-      z-index:30;
-      width:56px;height:56px;border-radius:50%;
-      display:grid;place-items:center;font-size:22px;
-      border:1px solid var(--border);
-      background:linear-gradient(180deg,var(--a1),var(--a2));
-      color:#06202a;
-      box-shadow:0 8px 22px rgba(0,0,0,.35);
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
     }
-    #reactMenu{
-      position:fixed;
-      right:16px;
-      bottom:160px;
-      z-index:31;
-      display:none;
-      background:#101826;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:6px;
-      box-shadow:0 12px 34px rgba(0,0,0,.35);
+
+    .btn {
+      min-height: 42px;
+      padding: 10px 13px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      color: #06202a;
+      font-weight: 950;
+      box-shadow: 0 12px 26px rgba(6, 182, 212, 0.13);
     }
-    #reactMenu button{font-size:22px;line-height:1.2;padding:6px 8px;background:transparent;border:0}
-    .bubble{
-      position:absolute;
-      transform:translate(-50%,-100%);
-      background:#101826;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:6px 10px;
-      font-size:20px;
-      pointer-events:none;
-      z-index:23;
+
+    .btn.secondary {
+      background: rgba(30, 41, 59, 0.92);
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: none;
     }
-    #flyBtn{
-      position:fixed;
-      left:16px;
-      bottom:122px;
-      z-index:29;
-      width:56px;height:56px;border-radius:50%;
-      display:grid;place-items:center;font-size:22px;
-      background:linear-gradient(180deg,#64748b,#334155);
-      color:#e2e8f0;
-      box-shadow:0 8px 22px rgba(0,0,0,.35);
+
+    .btn.danger {
+      background: rgba(239, 68, 68, 0.95);
+      color: white;
+      box-shadow: none;
     }
-    #flyBtn.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a}
-    #joyBase{
-      position:fixed;
-      left:16px;
-      bottom:190px;
-      z-index:29;
-      width:108px;height:108px;border-radius:50%;
-      border:1px solid var(--border);
-      background:rgba(15,23,42,.60);
-      display:none;
-      touch-action:none;
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
-    #joyStick{
-      position:absolute;
-      left:50%;top:50%;
-      width:52px;height:52px;border-radius:50%;
-      transform:translate(-50%,-50%);
-      border:1px solid var(--border);
-      background:linear-gradient(180deg,var(--a1),var(--a2));
+
+    .chat {
+      position: fixed;
+      left: 12px;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      z-index: 10;
+      width: min(430px, calc(100vw - 24px));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
     }
-    #toast{
-      position:fixed;
-      left:50%;top:16px;
-      transform:translateX(-50%);
-      z-index:120;
-      display:none;
-      max-width:min(92vw,720px);
-      padding:10px 14px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(16,24,38,.95);
-      color:#e2e8f0;
-      box-shadow:0 14px 40px rgba(0,0,0,.45);
+
+    .chat-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 950;
+      font-size: 13px;
+      color: #a5f3fc;
     }
-    .modalWrap{
-      position:fixed;inset:0;z-index:110;
-      display:none;align-items:center;justify-content:center;
-      background:rgba(2,6,23,.68);
-      backdrop-filter:blur(4px);
+
+    .chat-list {
+      height: 150px;
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: grid;
+      align-content: start;
+      gap: 7px;
+      font-size: 13px;
+      line-height: 1.45;
     }
-    .modal{
-      width:min(540px,92vw);
-      background:#101826;
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:0 22px 80px rgba(0,0,0,.62);
-      padding:18px;
+
+    .message {
+      padding: 7px 9px;
+      border-radius: 13px;
+      background: rgba(2, 6, 23, 0.42);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      word-break: break-word;
     }
-    .modal h2{margin:0 0 12px;font-size:18px}
-    .modal p{color:var(--muted);line-height:1.7}
-    .roomSkinPicker{
-      margin:12px 0 14px;
-      padding:12px;
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,.22);
-      background:rgba(15,23,42,.36);
+
+    .message-name {
+      color: #67e8f9;
+      font-weight: 950;
+      margin-right: 5px;
     }
-    .roomSkinTitle{font-weight:900;margin-bottom:8px}
-    .roomSkinChoices{display:flex;gap:10px;flex-wrap:wrap}
-    .roomSkinChoices button{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:9px 11px;
-      border-radius:14px;
-      border:1px solid rgba(148,163,184,.32);
-      background:rgba(15,23,42,.62);
-      color:#e5f3ff;
-      font-weight:900;
+
+    .chat-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px;
+      border-top: 1px solid var(--border);
     }
-    .roomSkinChoices button img{width:34px;height:34px;object-fit:contain;image-rendering:pixelated}
-    .roomSkinChoices button.active{
-      border-color:rgba(34,211,238,.9);
-      box-shadow:0 0 0 3px rgba(34,211,238,.18);
-      background:linear-gradient(135deg,rgba(14,165,233,.36),rgba(15,23,42,.76));
+
+    .chat-form input {
+      min-width: 0;
+      padding: 11px 12px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: #07101f;
+      color: var(--text);
+      outline: none;
     }
-    .roomSkinNote{margin:8px 0 0;font-size:12px;color:var(--muted)}
-    .actionRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}
-    .actionRow button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-weight:900}
-    @media (pointer:coarse){#joyBase{display:block}.hud .info{max-width:calc(100vw - 18px);overflow:hidden;text-overflow:ellipsis}.hud{right:8px}#chatView{display:none;left:8px;right:8px;top:62px;bottom:auto;width:auto;max-height:42vh}#chatView.mobileOpen{display:flex}#composer{bottom:8px}.mobileOnly{display:inline-flex!important}}
-    .mobileOnly{display:none!important}
+
+    .chat-form input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.17);
+    }
+
+    .quick {
+      display: flex;
+      gap: 7px;
+      padding: 0 10px 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick button {
+      min-width: 40px;
+      min-height: 35px;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 850;
+    }
+
+    .menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(2, 6, 23, 0.62);
+      backdrop-filter: blur(7px);
+    }
+
+    .menu-backdrop[hidden] {
+      display: none;
+    }
+
+    .menu {
+      width: min(560px, 94vw);
+      max-height: 90svh;
+      overflow: auto;
+      border-radius: 24px;
+      background: rgba(15, 23, 42, 0.97);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+      padding: 20px;
+    }
+
+    .menu h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .menu p {
+      color: var(--muted);
+      line-height: 1.75;
+      margin: 8px 0 14px;
+      font-size: 13px;
+    }
+
+    .menu-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .room-copy {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .room-copy input {
+      min-width: 0;
+      padding: 11px 12px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: #07101f;
+      color: var(--text);
+    }
+
+    .skin-picker {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(2, 6, 23, 0.28);
+    }
+
+    .skin-title {
+      font-weight: 950;
+      margin-bottom: 10px;
+      letter-spacing: 0.04em;
+    }
+
+    .skin-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .skin-choice {
+      min-width: 165px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border-radius: 17px;
+      border: 1px solid rgba(148, 163, 184, 0.30);
+      background: rgba(15, 23, 42, 0.82);
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .skin-choice img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .skin-choice.active {
+      border-color: rgba(34, 211, 238, 0.95);
+      box-shadow:
+        0 0 0 3px rgba(34, 211, 238, 0.18),
+        0 14px 34px rgba(34, 211, 238, 0.10);
+      background: linear-gradient(135deg, rgba(14,165,233,0.34), rgba(15,23,42,0.82));
+    }
+
+    .menu-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+
+    .mobile-pad {
+      position: fixed;
+      right: 12px;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      z-index: 11;
+      display: none;
+      grid-template-columns: repeat(3, 48px);
+      grid-template-rows: repeat(3, 48px);
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .mobile-pad button {
+      border-radius: 15px;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 950;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.25);
+    }
+
+    .pad-up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .pad-left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .pad-fly {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .pad-right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    .pad-down {
+      grid-column: 2;
+      grid-row: 3;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(34,211,238,0.18), transparent 35%),
+        #020617;
+      color: #a5f3fc;
+      font-weight: 950;
+      letter-spacing: 0.04em;
+    }
+
+    .loading[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 800px) {
+      .chat {
+        width: min(360px, calc(100vw - 24px));
+      }
+
+      .chat-list {
+        height: 116px;
+      }
+
+      .mobile-pad {
+        display: grid;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .topbar {
+        align-items: stretch;
+      }
+
+      .info {
+        font-size: 12px;
+      }
+
+      .top-actions {
+        flex-direction: column;
+      }
+
+      .chat {
+        left: 8px;
+        right: 8px;
+        bottom: calc(176px + env(safe-area-inset-bottom));
+        width: auto;
+      }
+
+      .mobile-pad {
+        right: 8px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <canvas id="game"></canvas>
-  <div class="hud">
-    <button id="leaveBtn">退室</button>
-    <button id="menuBtn">メニュー</button>
-    <button id="toggleChat" class="mobileOnly">チャット</button>
-    <div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span></div>
-    <button id="copyRoomBtn">コピー</button>
-  </div>
+  <canvas id="gameCanvas"></canvas>
 
-  <div id="chatView" aria-label="チャット"></div>
-  <div id="composer">
-    <input id="text" maxlength="500" placeholder="メッセージを入力。Enterで送信" autocomplete="off" />
-    <button id="send">送信</button>
-  </div>
+  <div class="topbar">
+    <div class="info">
+      ルーム: <strong id="roomLabel">-</strong>
+      ／ 自分: <strong id="nameLabel">-</strong>
+      ／ 人数: <strong id="countLabel">0</strong>
+      <br />
+      <span id="helpLabel">移動: WASD / 矢印　飛行機: F　メニュー: Esc</span>
+    </div>
 
-  <button id="reactFab" title="リアクション">😊</button>
-  <div id="reactMenu"></div>
-  <button id="flyBtn" title="フライト">✈️</button>
-  <div id="joyBase"><div id="joyStick"></div></div>
-  <div id="toast"></div>
-
-  <div id="roomMenuWrap" class="modalWrap">
-    <div class="modal">
-      <h2>ルームメニュー</h2>
-      <div id="roomSkinPicker" class="roomSkinPicker">
-        <div class="roomSkinTitle">スキン変更</div>
-        <div class="roomSkinChoices">
-          <button type="button" data-room-skin="nikorihito" aria-pressed="false">
-            <img src="./nikorihito_dot_front.png" alt="" />
-            <span>ニコリヒト</span>
-          </button>
-          <button type="button" data-room-skin="turuturu" aria-pressed="false">
-            <img src="./turuturu_front.png" alt="" />
-            <span>つるつる君</span>
-          </button>
-        </div>
-        <p class="roomSkinNote">飛行機はどちらを選んでも共通です。</p>
-      </div>
-      <p>このルームはアカウント・パスワードなしで入室できます。同じルーム名を入力した人が同じ部屋に入ります。</p>
-      <div class="actionRow">
-        <button id="closeMenuBtn" class="subBtn">閉じる</button>
-      </div>
+    <div class="top-actions">
+      <button id="flyBtn" class="btn secondary" type="button">✈️ 飛行機</button>
+      <button id="menuBtn" class="btn" type="button">メニュー</button>
     </div>
   </div>
 
+  <section class="chat">
+    <div class="chat-head">
+      <span>通話チャット</span>
+      <span id="chatStatus">接続中...</span>
+    </div>
+
+    <div id="chatList" class="chat-list"></div>
+
+    <form id="chatForm" class="chat-form">
+      <input id="chatInput" maxlength="80" placeholder="メッセージを入力" autocomplete="off" />
+      <button class="btn" type="submit">送信</button>
+    </form>
+
+    <div class="quick">
+      <button type="button" data-reaction="👋">👋</button>
+      <button type="button" data-reaction="😄">😄</button>
+      <button type="button" data-reaction="❤️">❤️</button>
+      <button type="button" data-reaction="✈️">✈️</button>
+    </div>
+  </section>
+
+  <div class="mobile-pad" aria-label="移動ボタン">
+    <button class="pad-up" type="button" data-pad="up">▲</button>
+    <button class="pad-left" type="button" data-pad="left">◀</button>
+    <button class="pad-fly" type="button" data-pad="fly">✈️</button>
+    <button class="pad-right" type="button" data-pad="right">▶</button>
+    <button class="pad-down" type="button" data-pad="down">▼</button>
+  </div>
+
+  <div id="menuBackdrop" class="menu-backdrop" hidden>
+    <section class="menu">
+      <h2>ルームメニュー</h2>
+      <p>
+        このルームはパスワードなしです。同じルーム名を入力すると入れます。
+        飛行機はニコリヒト・つるつる君で共通です。
+      </p>
+
+      <div class="menu-grid">
+        <div>
+          <div style="font-weight:950;margin-bottom:8px;">ルーム共有</div>
+          <div class="room-copy">
+            <input id="roomShareInput" readonly />
+            <button id="copyRoomBtn" class="btn secondary" type="button">コピー</button>
+          </div>
+        </div>
+
+        <section class="skin-picker" aria-label="スキン変更">
+          <div class="skin-title">スキン変更</div>
+
+          <div class="skin-row">
+            <button class="skin-choice" type="button" data-skin="nikorihito" aria-pressed="false">
+              <img src="./nikorihito_dot_front.png" alt="" />
+              <span>ニコリヒト</span>
+            </button>
+
+            <button class="skin-choice" type="button" data-skin="turuturu" aria-pressed="false">
+              <img src="./turuturu_front.png" alt="" />
+              <span>つるつる君</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div class="menu-actions">
+        <button id="closeMenuBtn" class="btn secondary" type="button">閉じる</button>
+        <button id="leaveBtn" class="btn danger" type="button">ホームへ戻る</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="loading" class="loading">読み込み中...</div>
+
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-    import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, query, limitToLast, onChildAdded } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      update,
+      onValue,
+      onDisconnect,
+      remove,
+      push,
+      limitToLast,
+      query,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
-      authDomain: 'nikori-town.firebaseapp.com',
-      databaseURL: 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
-      projectId: 'nikori-town',
-      storageBucket: 'nikori-town.appspot.com',
-      messagingSenderId: '836836010871',
-      appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
+      apiKey: "AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ",
+      authDomain: "nikori-town.firebaseapp.com",
+      databaseURL: "https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "nikori-town",
+      storageBucket: "nikori-town.appspot.com",
+      messagingSenderId: "836836010871",
+      appId: "1:836836010871:web:74ae40cb16ee6d50368f72"
     };
-
-    const SCALE = 6;
-    const SPEED_PPS = 320;
-    const FLY_SPEED_PPS = SPEED_PPS * 2.2;
-    const RADIUS = 10;
-    const PLAYER_INTERP = 12;
-    const CAM_INTERP = 10;
-    const SYNC_MS = 50;
-    const MAX_MSG = 100;
-    const PLANE_MIN_SIZE = 190;
-    const PLANE_SCALE = 4.6;
-    const EMOJIS = ['😊','❤️','👏','🎉','👍','✨','😂','😮'];
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app, firebaseConfig.databaseURL);
-    const $ = id => document.getElementById(id);
-    const canvas = $('game');
-    const ctx = canvas.getContext('2d');
-    const roomIdEl = $('roomId');
-    const whoEl = $('who');
-    const countEl = $('count');
-    const chatView = $('chatView');
-    const textEl = $('text');
-    const sendBtn = $('send');
-    const toastEl = $('toast');
-    const flyBtn = $('flyBtn');
-    const joyBase = $('joyBase');
-    const joyStick = $('joyStick');
-    const reactFab = $('reactFab');
-    const reactMenu = $('reactMenu');
 
-    const LS_SKIN = 'nikoriTown.skin';
-    const url = new URL(location.href);
-    const ROOM = safeKey(url.searchParams.get('room') || 'room-001');
-    const NAME = safeName(url.searchParams.get('name') || localStorage.getItem('nikoriTown.playerName') || 'ゲスト');
-    let mySkin = normalizeSkin(url.searchParams.get('skin') || localStorage.getItem(LS_SKIN) || 'nikorihito');
-    localStorage.setItem(LS_SKIN, mySkin);
-    roomIdEl.textContent = ROOM;
-    whoEl.textContent = NAME;
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    function showToast(message, ms = 2600){
-      toastEl.textContent = message;
-      toastEl.style.display = 'block';
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toastEl.style.display = 'none', ms);
-    }
-    function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
-    function now(){return Date.now()}
-    function safeKey(s){return String(s||'').trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g,'-').slice(0,32)||'room-001'}
-    function safeName(s){return String(s||'guest').trim().slice(0,24)||'guest'}
-    function normalizeSkin(s){return s === 'turuturu' ? 'turuturu' : 'nikorihito'}
+    const roomLabel = document.getElementById("roomLabel");
+    const nameLabel = document.getElementById("nameLabel");
+    const countLabel = document.getElementById("countLabel");
+    const chatStatus = document.getElementById("chatStatus");
+    const chatList = document.getElementById("chatList");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const flyBtn = document.getElementById("flyBtn");
+    const menuBtn = document.getElementById("menuBtn");
+    const menuBackdrop = document.getElementById("menuBackdrop");
+    const closeMenuBtn = document.getElementById("closeMenuBtn");
+    const leaveBtn = document.getElementById("leaveBtn");
+    const copyRoomBtn = document.getElementById("copyRoomBtn");
+    const roomShareInput = document.getElementById("roomShareInput");
+    const loading = document.getElementById("loading");
 
-    async function ensureAnonAuth(){
-      if (auth.currentUser) return auth.currentUser;
-      await signInAnonymously(auth);
-      return await new Promise(resolve => {
-        const stop = onAuthStateChanged(auth, user => {
-          if (user) { stop(); resolve(user); }
-        });
-      });
+    const LS_NAME = "nikoriTown.playerName";
+    const LS_ROOM = "nikoriTown.lastRoom";
+    const LS_SKIN = "nikoriTown.skin";
+
+    const params = new URLSearchParams(location.search);
+
+    const room = safeRoom(params.get("room") || localStorage.getItem(LS_ROOM) || "");
+    const playerName = safeName(params.get("name") || localStorage.getItem(LS_NAME) || "ゲスト");
+    let selectedSkin = normalizeSkin(params.get("skin") || localStorage.getItem(LS_SKIN) || "nikorihito");
+
+    if (!room) {
+      alert("ルーム名がありません。index.htmlから入り直してください。");
+      location.href = "./index.html";
     }
 
-    function loadImage(src,{fallbackSize=[2048,2048],label='asset'}={}){
-      return new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => {
-          const c = document.createElement('canvas');
-          c.width = fallbackSize[0];
-          c.height = fallbackSize[1];
-          const g = c.getContext('2d');
-          g.fillStyle = '#0f172a';
-          g.fillRect(0,0,c.width,c.height);
-          g.fillStyle = '#94a3b8';
-          g.font = '24px system-ui';
-          g.fillText(label,20,42);
-          const f = new Image();
-          f.onload = () => resolve(f);
-          f.src = c.toDataURL('image/png');
-        };
-        img.src = src;
-      });
-    }
+    localStorage.setItem(LS_ROOM, room);
+    localStorage.setItem(LS_NAME, playerName);
+    localStorage.setItem(LS_SKIN, selectedSkin);
 
-    const imgMap = await loadImage('./map_1.png?v=20260625-no-account', {fallbackSize:[2048,2048], label:'map'});
-    const imgMask = await loadImage('./atarihantei.png?v=20260625-no-account', {fallbackSize:[2048,2048], label:'mask'});
-    const imgPlane = await loadImage('./nikori_airplane.png?v=20260625-common-plane', {fallbackSize:[48,48], label:'plane'});
-    const imgNikoriFront = await loadImage('./nikorihito_dot_front.png?v=20260625-skin', {fallbackSize:[32,32], label:'nikorihito front'});
-    const imgNikoriBack = await loadImage('./nikorihito_dot_behind.png?v=20260625-skin', {fallbackSize:[32,32], label:'nikorihito back'});
-    const imgNikoriLeft = await loadImage('./nikorihito_dot_left.png?v=20260625-skin', {fallbackSize:[32,32], label:'nikorihito left'});
-    const imgNikoriRight = await loadImage('./nikorihito_dot_right.png?v=20260625-skin', {fallbackSize:[32,32], label:'nikorihito right'});
-    const imgTuruturuFront = await loadImage('./turuturu_front.png?v=20260625-skin', {fallbackSize:[32,32], label:'turuturu front'});
-    const imgTuruturuBack = await loadImage('./turuturu_behind.png?v=20260625-skin', {fallbackSize:[32,32], label:'turuturu back'});
-    const imgTuruturuLeft = await loadImage('./turuturu_left.png?v=20260625-skin', {fallbackSize:[32,32], label:'turuturu left'});
-    const imgTuruturuRight = await loadImage('./turuturu_right.png?v=20260625-skin', {fallbackSize:[32,32], label:'turuturu right'});
+    roomLabel.textContent = room;
+    nameLabel.textContent = playerName;
+    roomShareInput.value = room;
 
-    const SKINS = {
-      nikorihito:{name:'ニコリヒト',front:imgNikoriFront,back:imgNikoriBack,left:imgNikoriLeft,right:imgNikoriRight},
-      turuturu:{name:'つるつる君',front:imgTuruturuFront,back:imgTuruturuBack,left:imgTuruturuLeft,right:imgTuruturuRight}
-    };
-
-    ctx.imageSmoothingEnabled = false;
-    function resize(){
-      canvas.width = innerWidth;
-      canvas.height = innerHeight;
-      ctx.imageSmoothingEnabled = false;
-    }
-    addEventListener('resize', resize);
-    resize();
-
-    const world = {w:imgMap.width, h:imgMap.height};
-    const maskCanvas = typeof OffscreenCanvas !== 'undefined'
-      ? new OffscreenCanvas(imgMask.width,imgMask.height)
-      : Object.assign(document.createElement('canvas'), {width:imgMask.width, height:imgMask.height});
-    const mctx = maskCanvas.getContext('2d');
-    mctx.drawImage(imgMask,0,0);
-    const mdata = mctx.getImageData(0,0,imgMask.width,imgMask.height);
-    const mpix = mdata.data;
-    const MW = imgMask.width;
-
-    function isBlocked(x,y){
-      x = x|0; y = y|0;
-      if (x < 0 || y < 0 || x >= world.w || y >= world.h) return true;
-      const i = (y * MW + x) * 4;
-      const r = mpix[i], g = mpix[i+1], b = mpix[i+2], a = mpix[i+3];
-      if (a < 10) return false;
-      return r >= 180 && g <= 80 && b <= 80;
-    }
-    function hits(x,y){
-      const foot = y + RADIUS * .6;
-      return isBlocked(x, foot) || isBlocked(x - RADIUS*.7, foot) || isBlocked(x + RADIUS*.7, foot);
-    }
-    function safeSpawn(maxTry=500){
-      for (let i=0;i<maxTry;i++){
-        const x = Math.random()*(world.w-64)+32;
-        const y = Math.random()*(world.h-64)+32;
-        if (!hits(x,y)) return {x,y};
-      }
-      return {x:world.w/2,y:world.h/2};
-    }
-
-    await ensureAnonAuth();
-    const meId = crypto.randomUUID ? crypto.randomUUID() : `m${Math.random().toString(36).slice(2)}`;
-    const playersRef = ref(db, `rooms/${ROOM}/players`);
-    const meRef = ref(db, `rooms/${ROOM}/players/${meId}`);
-    const roomMetaRef = ref(db, `roomMeta/${ROOM}`);
-
-    let my = Object.assign({name:NAME,dir:'front',skin:mySkin,ts:now(),fly:false}, safeSpawn());
-    let players = {};
-    let ghosts = {};
-    let isFlying = false;
-    let lastSync = 0;
-    let camX = 0;
-    let camY = 0;
-
-    await update(roomMetaRef, {room:ROOM,noAccountMode:true,passwordEnabled:false,updatedAt:now()});
-    await set(meRef, my);
-    onDisconnect(meRef).remove().catch(()=>{});
-
-    onValue(playersRef, snap => {
-      players = snap.val() || {};
-      countEl.textContent = Object.keys(players).length;
-      for (const [id,p] of Object.entries(players)) {
-        if (!p) continue;
-        if (!ghosts[id]) {
-          ghosts[id] = {x:p.x||0,y:p.y||0,tx:p.x||0,ty:p.y||0,dir:p.dir||'front',skin:normalizeSkin(p.skin),name:p.name||'guest',fly:!!p.fly};
+    const ASSETS = {
+      map: "./map_1.png",
+      collision: "./atarihantei.png",
+      airplane: "./nikori_airplane.png",
+      skins: {
+        nikorihito: {
+          front: "./nikorihito_dot_front.png",
+          behind: "./nikorihito_dot_behind.png",
+          left: "./nikorihito_dot_left.png",
+          right: "./nikorihito_dot_right.png"
+        },
+        turuturu: {
+          front: "./turuturu_front.png",
+          behind: "./turuturu_behind.png",
+          left: "./turuturu_left.png",
+          right: "./turuturu_right.png"
         }
-        Object.assign(ghosts[id], {
-          tx:p.x ?? ghosts[id].x,
-          ty:p.y ?? ghosts[id].y,
-          dir:p.dir || ghosts[id].dir,
-          skin:normalizeSkin(p.skin || ghosts[id].skin),
-          name:p.name || ghosts[id].name,
-          fly:!!p.fly
+      }
+    };
+
+    const DRAW_HEIGHT = {
+      nikorihito: 72,
+      turuturu: 44
+    };
+
+    const AIRPLANE_HEIGHT = 78;
+
+    const player = {
+      uid: "",
+      name: playerName,
+      x: 520 + Math.random() * 160,
+      y: 400 + Math.random() * 120,
+      dir: "front",
+      skin: selectedSkin,
+      flying: false,
+      reaction: "",
+      reactionUntil: 0,
+      updatedAt: Date.now()
+    };
+
+    const camera = {
+      x: 0,
+      y: 0
+    };
+
+    const keys = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    };
+
+    const state = {
+      started: false,
+      players: {},
+      messages: [],
+      worldW: 2200,
+      worldH: 1400,
+      mapLoaded: false,
+      collisionLoaded: false,
+      lastPush: 0,
+      lastFrame: performance.now()
+    };
+
+    const images = {
+      map: new Image(),
+      collision: new Image(),
+      airplane: new Image(),
+      skins: {
+        nikorihito: {
+          front: new Image(),
+          behind: new Image(),
+          left: new Image(),
+          right: new Image()
+        },
+        turuturu: {
+          front: new Image(),
+          behind: new Image(),
+          left: new Image(),
+          right: new Image()
+        }
+      }
+    };
+
+    images.map.src = ASSETS.map;
+    images.collision.src = ASSETS.collision;
+    images.airplane.src = ASSETS.airplane;
+
+    for (const skinName of Object.keys(ASSETS.skins)) {
+      for (const dir of Object.keys(ASSETS.skins[skinName])) {
+        images.skins[skinName][dir].src = ASSETS.skins[skinName][dir];
+      }
+    }
+
+    images.map.onload = () => {
+      state.mapLoaded = true;
+      state.worldW = images.map.naturalWidth || state.worldW;
+      state.worldH = images.map.naturalHeight || state.worldH;
+    };
+
+    images.collision.onload = () => {
+      state.collisionLoaded = true;
+    };
+
+    function resizeCanvas() {
+      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function safeName(value) {
+      const name = String(value || "").trim().slice(0, 16);
+      return name || "ゲスト";
+    }
+
+    function safeRoom(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[.#$/\[\]\/]/g, "-")
+        .replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g, "-")
+        .replace(/-+/g, "-")
+        .slice(0, 32);
+    }
+
+    function normalizeSkin(value) {
+      return value === "turuturu" ? "turuturu" : "nikorihito";
+    }
+
+    function normalizeDir(value) {
+      return ["front", "behind", "left", "right"].includes(value) ? value : "front";
+    }
+
+    function openMenu() {
+      menuBackdrop.hidden = false;
+      refreshSkinButtons();
+    }
+
+    function closeMenu() {
+      menuBackdrop.hidden = true;
+    }
+
+    function refreshSkinButtons() {
+      document.querySelectorAll("[data-skin]").forEach((button) => {
+        const active = button.dataset.skin === selectedSkin;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    async function changeSkin(skin) {
+      selectedSkin = normalizeSkin(skin);
+      player.skin = selectedSkin;
+      localStorage.setItem(LS_SKIN, selectedSkin);
+      refreshSkinButtons();
+
+      if (player.uid) {
+        await pushPlayer(true);
+      }
+    }
+
+    function toggleFlying() {
+      player.flying = !player.flying;
+      flyBtn.textContent = player.flying ? "歩く" : "✈️ 飛行機";
+      pushPlayer(true);
+    }
+
+    function copyRoomName() {
+      const text = roomShareInput.value || room;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyRoomBtn.textContent = "コピー済み";
+          setTimeout(() => {
+            copyRoomBtn.textContent = "コピー";
+          }, 1000);
         });
-      }
-      for (const id of Object.keys(ghosts)) if (!players[id]) delete ghosts[id];
-    });
-
-    function syncMe(force=false){
-      const t = now();
-      if (!force && t - lastSync < SYNC_MS) return;
-      lastSync = t;
-      my.ts = t;
-      my.fly = isFlying;
-      my.skin = mySkin;
-      update(meRef, {x:my.x,y:my.y,dir:my.dir,skin:mySkin,ts:my.ts,fly:my.fly}).catch(console.warn);
-    }
-
-    async function cleanup(){
-      try { await remove(meRef); } catch {}
-    }
-    $('leaveBtn').onclick = async () => { await cleanup(); location.href = './index.html'; };
-    addEventListener('beforeunload', () => cleanup());
-
-    $('menuBtn').onclick = () => { $('roomMenuWrap').style.display = 'flex'; updateRoomSkinButtons(); };
-    $('closeMenuBtn').onclick = () => $('roomMenuWrap').style.display = 'none';
-    addEventListener('keydown', e => {
-      if (e.key === 'Escape') $('roomMenuWrap').style.display = $('roomMenuWrap').style.display === 'flex' ? 'none' : 'flex';
-    });
-    $('copyRoomBtn').onclick = async () => {
-      const u = new URL(location.href);
-      u.searchParams.delete('name');
-      try { await navigator.clipboard.writeText(u.toString()); showToast('ルームURLをコピーしました'); }
-      catch { showToast('コピーできませんでした'); }
-    };
-
-    function updateRoomSkinButtons(){
-      document.querySelectorAll('[data-room-skin]').forEach(btn => {
-        const active = btn.dataset.roomSkin === mySkin;
-        btn.classList.toggle('active', active);
-        btn.setAttribute('aria-pressed', String(active));
-      });
-    }
-    function setRoomSkin(skin){
-      mySkin = normalizeSkin(skin);
-      my.skin = mySkin;
-      localStorage.setItem(LS_SKIN, mySkin);
-      updateRoomSkinButtons();
-      syncMe(true);
-      showToast(`${SKINS[mySkin].name}に変更しました`);
-    }
-    document.querySelectorAll('[data-room-skin]').forEach(btn => btn.onclick = () => setRoomSkin(btn.dataset.roomSkin));
-    updateRoomSkinButtons();
-
-    const chatRef = ref(db, `rooms/${ROOM}/chat`);
-    function addChatItem(id,m){
-      const el = document.createElement('div');
-      el.className = 'chatItem' + (m.uid === meId ? ' me' : '');
-      const n = document.createElement('div');
-      n.className = 'nameLine';
-      n.textContent = m.name || 'guest';
-      const line = document.createElement('div');
-      line.textContent = m.text || '';
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = new Date(m.ts || now()).toLocaleString();
-      el.append(n,line,meta);
-      chatView.appendChild(el);
-      chatView.scrollTop = chatView.scrollHeight;
-      while (chatView.children.length > MAX_MSG) chatView.firstChild.remove();
-    }
-    onChildAdded(query(chatRef, limitToLast(MAX_MSG)), snap => addChatItem(snap.key, snap.val() || {}));
-
-    async function sendChat(){
-      const text = textEl.value.trim();
-      if (!text) return;
-      textEl.value = '';
-      await push(chatRef, {uid:meId,name:NAME,text:text.slice(0,500),ts:now()});
-    }
-    sendBtn.onclick = sendChat;
-    textEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
-    $('toggleChat').onclick = () => chatView.classList.toggle('mobileOpen');
-
-    const bubblesRef = ref(db, `rooms/${ROOM}/bubbles`);
-    reactFab.onclick = () => {
-      reactMenu.innerHTML = '';
-      EMOJIS.forEach(emoji => {
-        const b = document.createElement('button');
-        b.textContent = emoji;
-        b.onclick = () => { push(bubblesRef,{uid:meId,emoji,ts:now()}); reactMenu.style.display = 'none'; };
-        reactMenu.appendChild(b);
-      });
-      reactMenu.style.display = reactMenu.style.display === 'block' ? 'none' : 'block';
-    };
-    const bubbles = new Map();
-    function showBubbleFor(uid, emoji){
-      let b = bubbles.get(uid);
-      if (!b) { b = document.createElement('div'); b.className = 'bubble'; document.body.appendChild(b); bubbles.set(uid,b); }
-      b.textContent = emoji;
-      b.style.display = 'block';
-      clearTimeout(b._t);
-      b._t = setTimeout(() => b.style.display = 'none', 1800);
-    }
-    onChildAdded(query(bubblesRef, limitToLast(50)), snap => {
-      const {uid,emoji,ts} = snap.val() || {};
-      if (uid && emoji && now() - (ts || 0) <= 5000) showBubbleFor(uid, emoji);
-    });
-
-    const keys = new Set();
-    addEventListener('keydown', e => {
-      if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return;
-      const k = e.key.toLowerCase();
-      keys.add(k);
-      if (k === 'f') setFlight(!isFlying);
-    });
-    addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
-
-    let joy = {x:0,y:0,active:false};
-    function updateJoy(touch){
-      const r = joyBase.getBoundingClientRect();
-      const cx = r.left + r.width/2;
-      const cy = r.top + r.height/2;
-      const dx = touch.clientX - cx;
-      const dy = touch.clientY - cy;
-      const max = r.width * .34;
-      joy.x = clamp(dx/max,-1,1);
-      joy.y = clamp(dy/max,-1,1);
-      joyStick.style.transform = `translate(calc(-50% + ${clamp(dx,-max,max)}px), calc(-50% + ${clamp(dy,-max,max)}px))`;
-    }
-    joyBase.addEventListener('touchstart', e => { joy.active=true; updateJoy(e.touches[0]); }, {passive:false});
-    joyBase.addEventListener('touchmove', e => { e.preventDefault(); updateJoy(e.touches[0]); }, {passive:false});
-    joyBase.addEventListener('touchend', () => { joy.active=false; joy.x=0; joy.y=0; joyStick.style.transform='translate(-50%,-50%)'; });
-
-    function setFlight(on){
-      if (on === isFlying) return;
-      if (!on && hits(my.x,my.y)) { showToast('ここでは着地できません。赤い当たり判定の外に移動してください。'); return; }
-      isFlying = on;
-      flyBtn.classList.toggle('on', isFlying);
-      syncMe(true);
-    }
-    flyBtn.onclick = () => setFlight(!isFlying);
-
-    function move(dt){
-      let dx=0, dy=0;
-      if (keys.has('arrowleft') || keys.has('a')) dx -= 1;
-      if (keys.has('arrowright') || keys.has('d')) dx += 1;
-      if (keys.has('arrowup') || keys.has('w')) dy -= 1;
-      if (keys.has('arrowdown') || keys.has('s')) dy += 1;
-      if (joy.active) { dx += joy.x; dy += joy.y; }
-      if (dx === 0 && dy === 0) return;
-      const len = Math.hypot(dx,dy) || 1;
-      dx /= len; dy /= len;
-      if (Math.abs(dx) > Math.abs(dy)) my.dir = dx < 0 ? 'left' : 'right';
-      else my.dir = dy < 0 ? 'back' : 'front';
-      const speed = isFlying ? FLY_SPEED_PPS : SPEED_PPS;
-      const nx = clamp(my.x + dx*speed*dt, 0, world.w-1);
-      const ny = clamp(my.y + dy*speed*dt, 0, world.h-1);
-      if (isFlying || !hits(nx,my.y)) my.x = nx;
-      if (isFlying || !hits(my.x,ny)) my.y = ny;
-      syncMe();
-    }
-
-    function spriteByDir(d, skinId=mySkin){
-      const skin = SKINS[normalizeSkin(skinId)] || SKINS.nikorihito;
-      if (d === 'back') return {img:skin.back, flip:false};
-      if (d === 'left') return {img:skin.left, flip:false};
-      if (d === 'right') return {img:skin.right, flip:false};
-      return {img:skin.front, flip:false};
-    }
-
-    function camera(dt){
-      const tx = Math.round(my.x - canvas.width/2);
-      const ty = Math.round(my.y - canvas.height/2);
-      const k = Math.min(1, dt*CAM_INTERP);
-      camX += (tx - camX) * k;
-      camY += (ty - camY) * k;
-      camX = clamp(camX, 0, Math.max(0, world.w - canvas.width));
-      camY = clamp(camY, 0, Math.max(0, world.h - canvas.height));
-      return {x:camX,y:camY};
-    }
-
-    function drawImageCentered(img,x,y,w,h,flip=false,alpha=1){
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(x,y);
-      if (flip) ctx.scale(-1,1);
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img,-w/2,-h/2,w,h);
-      ctx.restore();
-    }
-    function roundRect(g,x,y,w,h,r){
-      g.beginPath();
-      g.moveTo(x+r,y);
-      g.arcTo(x+w,y,x+w,y+h,r);
-      g.arcTo(x+w,y+h,x,y+h,r);
-      g.arcTo(x,y+h,x,y,r);
-      g.arcTo(x,y,x+w,y,r);
-      g.closePath();
-    }
-    function drawPlayer(p,id,cam){
-      const sx = Math.round(p.x - cam.x);
-      const sy = Math.round(p.y - cam.y);
-      let labelY;
-      if (p.fly) {
-        const planeW = Math.max(PLANE_MIN_SIZE, imgPlane.width * PLANE_SCALE);
-        const planeH = Math.max(PLANE_MIN_SIZE, imgPlane.height * PLANE_SCALE);
-        drawImageCentered(imgPlane, sx, sy + 8, planeW, planeH, false, 1);
-        labelY = sy + 8 - planeH/2 - 16;
       } else {
-        const sp = spriteByDir(p.dir || 'front', p.skin || mySkin);
-        const w = sp.img.width * SCALE;
-        const h = sp.img.height * SCALE;
-        drawImageCentered(sp.img, sx, sy, w, h, sp.flip, 1);
-        labelY = sy - h/2 - 16;
+        roomShareInput.select();
+        document.execCommand("copy");
       }
-      const name = p.name || 'guest';
-      ctx.save();
-      ctx.font = '700 13px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const textW = ctx.measureText(name).width;
-      ctx.fillStyle = 'rgba(15,23,42,.72)';
-      ctx.strokeStyle = 'rgba(148,163,184,.45)';
+    }
+
+    function leaveRoom() {
+      location.href = "./index.html";
+    }
+
+    function isChatFocused() {
+      return document.activeElement === chatInput;
+    }
+
+    window.addEventListener("keydown", (event) => {
+      if (isChatFocused()) return;
+
+      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
+        keys.up = true;
+        event.preventDefault();
+      }
+
+      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+        keys.down = true;
+        event.preventDefault();
+      }
+
+      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+        keys.left = true;
+        event.preventDefault();
+      }
+
+      if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+        keys.right = true;
+        event.preventDefault();
+      }
+
+      if (event.key.toLowerCase() === "f") {
+        toggleFlying();
+        event.preventDefault();
+      }
+
+      if (event.key === "Escape") {
+        if (menuBackdrop.hidden) {
+          openMenu();
+        } else {
+          closeMenu();
+        }
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") keys.up = false;
+      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") keys.down = false;
+      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") keys.left = false;
+      if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") keys.right = false;
+    });
+
+    document.querySelectorAll("[data-pad]").forEach((button) => {
+      const key = button.dataset.pad;
+
+      if (key === "fly") {
+        button.addEventListener("click", toggleFlying);
+        return;
+      }
+
+      const setPressed = (pressed) => {
+        keys[key] = pressed;
+      };
+
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        setPressed(true);
+        button.setPointerCapture(event.pointerId);
+      });
+
+      button.addEventListener("pointerup", () => setPressed(false));
+      button.addEventListener("pointercancel", () => setPressed(false));
+      button.addEventListener("pointerleave", () => setPressed(false));
+    });
+
+    menuBtn.addEventListener("click", openMenu);
+    closeMenuBtn.addEventListener("click", closeMenu);
+    leaveBtn.addEventListener("click", leaveRoom);
+    copyRoomBtn.addEventListener("click", copyRoomName);
+    flyBtn.addEventListener("click", toggleFlying);
+
+    document.querySelectorAll("[data-skin]").forEach((button) => {
+      button.addEventListener("click", () => {
+        changeSkin(button.dataset.skin);
+      });
+    });
+
+    document.querySelectorAll("[data-reaction]").forEach((button) => {
+      button.addEventListener("click", () => {
+        sendReaction(button.dataset.reaction);
+      });
+    });
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const text = chatInput.value.trim().slice(0, 80);
+      if (!text || !player.uid) return;
+
+      chatInput.value = "";
+
+      await set(push(ref(db, `rooms/${room}/messages`)), {
+        uid: player.uid,
+        name: player.name,
+        text,
+        createdAt: serverTimestamp()
+      });
+    });
+
+    async function sendReaction(emoji) {
+      player.reaction = emoji;
+      player.reactionUntil = Date.now() + 1800;
+      await pushPlayer(true);
+    }
+
+    async function pushPlayer(force = false) {
+      if (!player.uid) return;
+
+      const now = Date.now();
+
+      if (!force && now - state.lastPush < 70) {
+        return;
+      }
+
+      state.lastPush = now;
+      player.updatedAt = now;
+
+      await update(ref(db, `rooms/${room}/players/${player.uid}`), {
+        uid: player.uid,
+        name: player.name,
+        x: Math.round(player.x),
+        y: Math.round(player.y),
+        dir: player.dir,
+        skin: player.skin,
+        flying: player.flying,
+        reaction: player.reaction || "",
+        reactionUntil: player.reactionUntil || 0,
+        updatedAt: player.updatedAt
+      });
+    }
+
+    function subscribePlayers() {
+      const playersRef = ref(db, `rooms/${room}/players`);
+
+      onValue(playersRef, (snapshot) => {
+        state.players = snapshot.val() || {};
+        countLabel.textContent = String(Object.keys(state.players).length);
+      });
+    }
+
+    function subscribeMessages() {
+      const messagesRef = query(ref(db, `rooms/${room}/messages`), limitToLast(40));
+
+      onValue(messagesRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        state.messages = Object.entries(data)
+          .map(([id, value]) => ({
+            id,
+            ...value
+          }))
+          .sort((a, b) => {
+            const av = typeof a.createdAt === "number" ? a.createdAt : 0;
+            const bv = typeof b.createdAt === "number" ? b.createdAt : 0;
+            return av - bv;
+          });
+
+        renderMessages();
+      });
+    }
+
+    function renderMessages() {
+      chatList.innerHTML = "";
+
+      for (const message of state.messages) {
+        const item = document.createElement("div");
+        item.className = "message";
+
+        const name = document.createElement("span");
+        name.className = "message-name";
+        name.textContent = safeName(message.name) + ":";
+
+        const text = document.createElement("span");
+        text.textContent = " " + String(message.text || "");
+
+        item.append(name, text);
+        chatList.appendChild(item);
+      }
+
+      chatList.scrollTop = chatList.scrollHeight;
+    }
+
+    function updatePlayerMovement(dt) {
+      let dx = 0;
+      let dy = 0;
+
+      if (keys.up) dy -= 1;
+      if (keys.down) dy += 1;
+      if (keys.left) dx -= 1;
+      if (keys.right) dx += 1;
+
+      if (dx === 0 && dy === 0) {
+        return;
+      }
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        player.dir = dx < 0 ? "left" : "right";
+      } else {
+        player.dir = dy < 0 ? "behind" : "front";
+      }
+
+      const len = Math.hypot(dx, dy) || 1;
+      dx /= len;
+      dy /= len;
+
+      const speed = player.flying ? 250 : 150;
+      const step = speed * dt;
+
+      const nx = clamp(player.x + dx * step, 20, state.worldW - 20);
+      const ny = clamp(player.y + dy * step, 20, state.worldH - 20);
+
+      if (player.flying || canStandAt(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
+      } else {
+        const nxOnly = clamp(player.x + dx * step, 20, state.worldW - 20);
+        const nyOnly = clamp(player.y + dy * step, 20, state.worldH - 20);
+
+        if (canStandAt(nxOnly, player.y)) {
+          player.x = nxOnly;
+        }
+
+        if (canStandAt(player.x, nyOnly)) {
+          player.y = nyOnly;
+        }
+      }
+
+      pushPlayer(false);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function canStandAt(x, y) {
+      if (!state.collisionLoaded) {
+        return true;
+      }
+
+      const image = images.collision;
+
+      if (!image.naturalWidth || !image.naturalHeight) {
+        return true;
+      }
+
+      const sx = Math.floor((x / state.worldW) * image.naturalWidth);
+      const sy = Math.floor((y / state.worldH) * image.naturalHeight);
+
+      try {
+        const off = canStandAt.offscreen || document.createElement("canvas");
+        const offCtx = canStandAt.ctx || off.getContext("2d", { willReadFrequently: true });
+
+        if (!canStandAt.offscreen) {
+          off.width = image.naturalWidth;
+          off.height = image.naturalHeight;
+          offCtx.drawImage(image, 0, 0);
+          canStandAt.offscreen = off;
+          canStandAt.ctx = offCtx;
+        }
+
+        const pixel = offCtx.getImageData(sx, sy, 1, 1).data;
+        const r = pixel[0];
+        const g = pixel[1];
+        const b = pixel[2];
+        const a = pixel[3];
+
+        if (a < 10) {
+          return true;
+        }
+
+        const brightness = (r + g + b) / 3;
+
+        return brightness > 45;
+      } catch (error) {
+        return true;
+      }
+    }
+
+    function updateCamera() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      camera.x = clamp(player.x - vw / 2, 0, Math.max(0, state.worldW - vw));
+      camera.y = clamp(player.y - vh / 2, 0, Math.max(0, state.worldH - vh));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      drawMap();
+
+      const players = Object.values(state.players || {})
+        .filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y))
+        .sort((a, b) => {
+          const ay = a.flying ? a.y + 1000 : a.y;
+          const by = b.flying ? b.y + 1000 : b.y;
+          return ay - by;
+        });
+
+      for (const p of players) {
+        drawPlayer(p);
+      }
+    }
+
+    function drawMap() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      if (state.mapLoaded) {
+        ctx.drawImage(
+          images.map,
+          camera.x,
+          camera.y,
+          vw,
+          vh,
+          0,
+          0,
+          vw,
+          vh
+        );
+        return;
+      }
+
+      ctx.fillStyle = "#123524";
+      ctx.fillRect(0, 0, vw, vh);
+
+      const gridSize = 64;
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
       ctx.lineWidth = 1;
-      roundRect(ctx, sx-textW/2-8, labelY-10, textW+16, 20, 8);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillText(name, sx, labelY);
+
+      const startX = -camera.x % gridSize;
+      const startY = -camera.y % gridSize;
+
+      for (let x = startX; x < vw; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, vh);
+        ctx.stroke();
+      }
+
+      for (let y = startY; y < vh; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(vw, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawPlayer(p) {
+      const skin = normalizeSkin(p.skin);
+      const dir = normalizeDir(p.dir);
+      const flying = Boolean(p.flying);
+
+      const sx = p.x - camera.x;
+      const sy = p.y - camera.y;
+
+      ctx.save();
+
+      ctx.globalAlpha = p.uid === player.uid ? 1 : 0.92;
+
+      if (flying) {
+        drawAirplane(p, sx, sy);
+      } else {
+        drawCharacter(skin, dir, sx, sy);
+      }
+
+      drawName(p, sx, sy, flying);
+      drawReaction(p, sx, sy, flying);
+
       ctx.restore();
     }
 
-    function updateBubbles(cam){
-      for (const [uid,el] of bubbles) {
-        const p = uid === meId ? my : ghosts[uid];
-        if (!p) { el.style.display = 'none'; continue; }
-        el.style.left = `${p.x - cam.x}px`;
-        el.style.top = `${p.y - cam.y - 72}px`;
+    function drawAirplane(p, sx, sy) {
+      const image = images.airplane;
+      const skin = normalizeSkin(p.skin);
+
+      let w = 86;
+      let h = AIRPLANE_HEIGHT;
+
+      if (image.complete && image.naturalWidth) {
+        h = AIRPLANE_HEIGHT;
+        w = h * image.naturalWidth / image.naturalHeight;
+        ctx.drawImage(image, sx - w / 2, sy - h + 18, w, h);
+      } else {
+        ctx.fillStyle = "#e0f2fe";
+        ctx.beginPath();
+        ctx.ellipse(sx, sy - 25, 44, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(sx - 8, sy - 33, 16, 16);
       }
+
+      drawTinyPilot(skin, sx, sy - 36);
     }
-    function interpolateGhosts(dt){
-      const k = Math.min(1, dt*PLAYER_INTERP);
-      for (const [id,g] of Object.entries(ghosts)) {
-        if (id === meId) continue;
-        if (typeof g.tx === 'number') g.x += (g.tx - g.x) * k;
-        if (typeof g.ty === 'number') g.y += (g.ty - g.y) * k;
+
+    function drawTinyPilot(skin, sx, sy) {
+      const image = images.skins[skin]?.front;
+      const h = skin === "turuturu" ? 20 : 26;
+      const w = h;
+
+      if (image && image.complete && image.naturalWidth) {
+        ctx.drawImage(image, sx - w / 2, sy - h / 2, w, h);
       }
     }
 
-    let last = performance.now();
-    function frame(t){
-      const dt = Math.min(.05, (t-last)/1000);
-      last = t;
-      move(dt);
-      interpolateGhosts(dt);
-      const cam = camera(dt);
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(imgMap, -Math.round(cam.x), -Math.round(cam.y));
-      const drawList = [];
-      for (const [id,g] of Object.entries(ghosts)) if (id !== meId) drawList.push([id,g]);
-      drawList.push([meId,my]);
-      drawList.sort((a,b) => (a[1].y||0) - (b[1].y||0));
-      for (const [id,p] of drawList) drawPlayer(p,id,cam);
-      updateBubbles(cam);
-      requestAnimationFrame(frame);
+    function drawCharacter(skin, dir, sx, sy) {
+      const image = images.skins[skin]?.[dir] || images.skins.nikorihito.front;
+      const h = DRAW_HEIGHT[skin] || DRAW_HEIGHT.nikorihito;
+
+      let w = h;
+
+      if (image.complete && image.naturalWidth) {
+        w = h * image.naturalWidth / image.naturalHeight;
+        ctx.drawImage(image, sx - w / 2, sy - h, w, h);
+      } else {
+        ctx.fillStyle = skin === "turuturu" ? "#4dd7f0" : "#ffffff";
+        ctx.fillRect(sx - w / 2, sy - h, w, h);
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(sx - w / 2, sy - h, w, h);
+      }
+
+      ctx.globalAlpha *= 0.28;
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.ellipse(sx, sy + 3, Math.max(14, w * 0.35), 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
     }
-    requestAnimationFrame(frame);
-    setInterval(() => syncMe(true), 2500);
-    showToast('メニューからスキン変更できます。Fキーまたは✈️で飛行できます。', 3600);
+
+    function drawName(p, sx, sy, flying) {
+      const y = flying ? sy - AIRPLANE_HEIGHT - 20 : sy - (DRAW_HEIGHT[normalizeSkin(p.skin)] || 70) - 18;
+
+      ctx.font = "900 13px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const text = safeName(p.name);
+      const metrics = ctx.measureText(text);
+      const width = metrics.width + 16;
+
+      ctx.fillStyle = "rgba(2,6,23,0.68)";
+      roundRect(ctx, sx - width / 2, y - 12, width, 24, 12);
+      ctx.fill();
+
+      ctx.fillStyle = p.uid === player.uid ? "#a5f3fc" : "#e2e8f0";
+      ctx.fillText(text, sx, y);
+    }
+
+    function drawReaction(p, sx, sy, flying) {
+      if (!p.reaction || !p.reactionUntil || Date.now() > p.reactionUntil) {
+        return;
+      }
+
+      const y = flying ? sy - AIRPLANE_HEIGHT - 54 : sy - (DRAW_HEIGHT[normalizeSkin(p.skin)] || 70) - 50;
+
+      ctx.font = "28px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(p.reaction, sx, y);
+    }
+
+    function roundRect(context, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.lineTo(x + w - radius, y);
+      context.quadraticCurveTo(x + w, y, x + w, y + radius);
+      context.lineTo(x + w, y + h - radius);
+      context.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+      context.lineTo(x + radius, y + h);
+      context.quadraticCurveTo(x, y + h, x, y + h - radius);
+      context.lineTo(x, y + radius);
+      context.quadraticCurveTo(x, y, x + radius, y);
+      context.closePath();
+    }
+
+    function loop(now) {
+      const dt = Math.min(0.05, Math.max(0.001, (now - state.lastFrame) / 1000));
+      state.lastFrame = now;
+
+      updatePlayerMovement(dt);
+      updateCamera();
+      draw();
+
+      requestAnimationFrame(loop);
+    }
+
+    async function start(user) {
+      if (state.started) return;
+      state.started = true;
+
+      player.uid = user.uid;
+      player.name = safeName(playerName || user.displayName || "ゲスト");
+      player.skin = selectedSkin;
+      player.dir = "front";
+
+      loading.hidden = true;
+      chatStatus.textContent = "接続済み";
+
+      const playerRef = ref(db, `rooms/${room}/players/${player.uid}`);
+
+      await set(playerRef, {
+        uid: player.uid,
+        name: player.name,
+        x: Math.round(player.x),
+        y: Math.round(player.y),
+        dir: player.dir,
+        skin: player.skin,
+        flying: player.flying,
+        reaction: "",
+        reactionUntil: 0,
+        joinedAt: serverTimestamp(),
+        updatedAt: Date.now()
+      });
+
+      await update(ref(db, `roomMeta/${room}`), {
+        room,
+        passwordEnabled: false,
+        updatedAt: Date.now()
+      });
+
+      onDisconnect(playerRef).remove();
+
+      subscribePlayers();
+      subscribeMessages();
+      refreshSkinButtons();
+
+      requestAnimationFrame((time) => {
+        state.lastFrame = time;
+        requestAnimationFrame(loop);
+      });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (!user) {
+          const result = await signInAnonymously(auth);
+          await start(result.user);
+          return;
+        }
+
+        await start(user);
+      } catch (error) {
+        console.error(error);
+        loading.textContent = "接続に失敗しました。Firebaseの設定を確認してください。";
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (player.uid) {
+        remove(ref(db, `rooms/${room}/players/${player.uid}`));
+      }
+    });
   </script>
 </body>
 </html>
