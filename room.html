@@ -315,6 +315,85 @@
       background: linear-gradient(135deg, rgba(14,165,233,0.34), rgba(15,23,42,0.82));
     }
 
+    .compose-state {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(14, 165, 233, 0.12);
+      color: #bae6fd;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .compose-state[hidden] {
+      display: none;
+    }
+
+    .compose-state button {
+      min-width: 28px;
+      min-height: 28px;
+      border-radius: 9px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .reply-preview {
+      margin: 5px 0 7px;
+      padding: 6px 8px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: rgba(14, 165, 233, 0.10);
+      color: #bae6fd;
+      font-size: 12px;
+    }
+
+    .message-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .message-name {
+      cursor: pointer;
+    }
+
+    .message-text.edited::after {
+      content: "（編集済み）";
+      color: var(--muted);
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .message-actions button {
+      min-height: 26px;
+      padding: 3px 7px;
+      border-radius: 9px;
+      background: rgba(30, 41, 59, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mention {
+      color: #fef08a;
+      font-weight: 900;
+    }
+
     .menu-actions {
       display: flex;
       justify-content: flex-end;
@@ -437,7 +516,7 @@
       ／ 自分: <strong id="nameLabel">-</strong>
       ／ 人数: <strong id="countLabel">0</strong>
       <br />
-      <span id="helpLabel">移動: WASD / 矢印　飛行機: F　メニュー: Esc</span>
+      <span id="helpLabel">移動: WASD / 矢印　飛行機: ↓ + H　メニュー: Esc</span>
     </div>
 
     <div class="top-actions">
@@ -452,10 +531,15 @@
       <span id="chatStatus">接続中...</span>
     </div>
 
+    <div id="composeState" class="compose-state" hidden>
+      <span id="composeStateText"></span>
+      <button id="composeCancelBtn" type="button">×</button>
+    </div>
+
     <div id="chatList" class="chat-list"></div>
 
     <form id="chatForm" class="chat-form">
-      <input id="chatInput" maxlength="80" placeholder="メッセージを入力" autocomplete="off" />
+      <input id="chatInput" maxlength="240" placeholder="メッセージを入力" autocomplete="off" />
       <button class="btn" type="submit">送信</button>
     </form>
 
@@ -481,6 +565,7 @@
       <p>
         このルームはパスワードなしです。同じルーム名を入力すると入れます。
         飛行機はニコリヒト・つるつる君で共通です。
+        キーボードでは「↓を押しながらH」で飛行機を切り替えます。
       </p>
 
       <div class="menu-grid">
@@ -563,6 +648,9 @@
     const chatList = document.getElementById("chatList");
     const chatForm = document.getElementById("chatForm");
     const chatInput = document.getElementById("chatInput");
+    const composeState = document.getElementById("composeState");
+    const composeStateText = document.getElementById("composeStateText");
+    const composeCancelBtn = document.getElementById("composeCancelBtn");
     const flyBtn = document.getElementById("flyBtn");
     const menuBtn = document.getElementById("menuBtn");
     const menuBackdrop = document.getElementById("menuBackdrop");
@@ -616,8 +704,8 @@
     };
 
     const DRAW_HEIGHT = {
-      nikorihito: 72,
-      turuturu: 44
+      nikorihito: 96,
+      turuturu: 88
     };
 
     const AIRPLANE_HEIGHT = 78;
@@ -646,6 +734,10 @@
       left: false,
       right: false
     };
+
+    let flightComboLocked = false;
+    let replyTarget = null;
+    let editingMessage = null;
 
     const state = {
       started: false,
@@ -793,27 +885,30 @@
     window.addEventListener("keydown", (event) => {
       if (isChatFocused()) return;
 
-      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
+      const key = event.key.toLowerCase();
+
+      if (event.key === "ArrowUp" || key === "w") {
         keys.up = true;
         event.preventDefault();
       }
 
-      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+      if (event.key === "ArrowDown" || key === "s") {
         keys.down = true;
         event.preventDefault();
       }
 
-      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+      if (event.key === "ArrowLeft" || key === "a") {
         keys.left = true;
         event.preventDefault();
       }
 
-      if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+      if (event.key === "ArrowRight" || key === "d") {
         keys.right = true;
         event.preventDefault();
       }
 
-      if (event.key.toLowerCase() === "f") {
+      if ((event.key === "ArrowDown" || keys.down) && key === "h" && !flightComboLocked) {
+        flightComboLocked = true;
         toggleFlying();
         event.preventDefault();
       }
@@ -828,10 +923,16 @@
     });
 
     window.addEventListener("keyup", (event) => {
-      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") keys.up = false;
-      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") keys.down = false;
-      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") keys.left = false;
-      if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") keys.right = false;
+      const key = event.key.toLowerCase();
+
+      if (event.key === "ArrowUp" || key === "w") keys.up = false;
+      if (event.key === "ArrowDown" || key === "s") keys.down = false;
+      if (event.key === "ArrowLeft" || key === "a") keys.left = false;
+      if (event.key === "ArrowRight" || key === "d") keys.right = false;
+
+      if (event.key === "ArrowDown" || key === "h") {
+        flightComboLocked = false;
+      }
     });
 
     document.querySelectorAll("[data-pad]").forEach((button) => {
@@ -875,21 +976,109 @@
       });
     });
 
+    composeCancelBtn.addEventListener("click", clearComposeState);
+
     chatForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const text = chatInput.value.trim().slice(0, 80);
+      const text = chatInput.value.trim().slice(0, 240);
       if (!text || !player.uid) return;
 
       chatInput.value = "";
 
-      await set(push(ref(db, `rooms/${room}/messages`)), {
+      if (editingMessage) {
+        await update(ref(db, `rooms/${room}/messages/${editingMessage.id}`), {
+          text,
+          editedAt: serverTimestamp()
+        });
+        clearComposeState();
+        return;
+      }
+
+      const payload = {
         uid: player.uid,
         name: player.name,
         text,
         createdAt: serverTimestamp()
-      });
+      };
+
+      if (replyTarget) {
+        payload.replyTo = {
+          id: replyTarget.id,
+          name: safeName(replyTarget.name),
+          text: String(replyTarget.text || "").slice(0, 80)
+        };
+      }
+
+      clearComposeState();
+
+      await set(push(ref(db, `rooms/${room}/messages`)), payload);
     });
+
+    function clearComposeState() {
+      replyTarget = null;
+      editingMessage = null;
+      composeState.hidden = true;
+      composeStateText.textContent = "";
+      chatInput.placeholder = "メッセージを入力";
+      chatForm.querySelector("button[type='submit']").textContent = "送信";
+    }
+
+    function setReplyTarget(message) {
+      replyTarget = {
+        id: message.id,
+        name: safeName(message.name),
+        text: String(message.text || "")
+      };
+      editingMessage = null;
+      composeState.hidden = false;
+      composeStateText.textContent = `${replyTarget.name} に返信: ${replyTarget.text.slice(0, 40)}`;
+      chatInput.placeholder = "返信を入力";
+      chatForm.querySelector("button[type='submit']").textContent = "送信";
+      chatInput.focus();
+    }
+
+    function setEditTarget(message) {
+      if (message.uid !== player.uid) return;
+
+      editingMessage = {
+        id: message.id,
+        text: String(message.text || "")
+      };
+      replyTarget = null;
+      composeState.hidden = false;
+      composeStateText.textContent = "メッセージを編集中";
+      chatInput.value = editingMessage.text;
+      chatInput.placeholder = "編集内容を入力";
+      chatForm.querySelector("button[type='submit']").textContent = "更新";
+      chatInput.focus();
+    }
+
+    function insertMention(name) {
+      const mention = `@${safeName(name)} `;
+      const start = chatInput.selectionStart || 0;
+      const end = chatInput.selectionEnd || 0;
+      chatInput.value = chatInput.value.slice(0, start) + mention + chatInput.value.slice(end);
+      const pos = start + mention.length;
+      chatInput.focus();
+      chatInput.setSelectionRange(pos, pos);
+    }
+
+    async function deleteMessage(message) {
+      if (message.uid !== player.uid) return;
+
+      const ok = confirm("このメッセージを削除しますか？");
+      if (!ok) return;
+
+      await remove(ref(db, `rooms/${room}/messages/${message.id}`));
+    }
+
+    async function reactToMessage(message, reactionKey) {
+      if (!player.uid) return;
+
+      const reactionPath = `rooms/${room}/messages/${message.id}/reactions/${reactionKey}/${player.uid}`;
+      await set(ref(db, reactionPath), true);
+    }
 
     async function sendReaction(emoji) {
       player.reaction = emoji;
@@ -902,7 +1091,7 @@
 
       const now = Date.now();
 
-      if (!force && now - state.lastPush < 70) {
+      if (!force && now - state.lastPush < 40) {
         return;
       }
 
@@ -958,19 +1147,97 @@
       for (const message of state.messages) {
         const item = document.createElement("div");
         item.className = "message";
+        item.dataset.messageId = message.id;
+
+        if (message.replyTo) {
+          const reply = document.createElement("div");
+          reply.className = "reply-preview";
+          reply.textContent = `↩ ${safeName(message.replyTo.name)}: ${String(message.replyTo.text || "").slice(0, 80)}`;
+          item.appendChild(reply);
+        }
+
+        const head = document.createElement("div");
+        head.className = "message-head";
 
         const name = document.createElement("span");
         name.className = "message-name";
         name.textContent = safeName(message.name) + ":";
+        name.title = "クリックでメンション";
+        name.addEventListener("click", () => insertMention(message.name));
+
+        const time = document.createElement("span");
+        time.style.color = "var(--muted)";
+        time.style.fontSize = "11px";
+        time.textContent = message.editedAt ? "編集済み" : "";
+
+        head.append(name, time);
 
         const text = document.createElement("span");
-        text.textContent = " " + String(message.text || "");
+        text.className = "message-text";
+        if (message.editedAt) text.classList.add("edited");
 
-        item.append(name, text);
+        const rawText = String(message.text || "");
+        const parts = rawText.split(/(@[^\s　]+)/g);
+
+        for (const part of parts) {
+          const span = document.createElement("span");
+          span.textContent = part;
+          if (part.startsWith("@")) {
+            span.className = "mention";
+          }
+          text.appendChild(span);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "message-actions";
+
+        const mentionBtn = document.createElement("button");
+        mentionBtn.type = "button";
+        mentionBtn.textContent = "@";
+        mentionBtn.title = "メンション";
+        mentionBtn.addEventListener("click", () => insertMention(message.name));
+
+        const replyBtn = document.createElement("button");
+        replyBtn.type = "button";
+        replyBtn.textContent = "返信";
+        replyBtn.addEventListener("click", () => setReplyTarget(message));
+
+        const reactSmileBtn = document.createElement("button");
+        reactSmileBtn.type = "button";
+        reactSmileBtn.textContent = `😄 ${countReactions(message, "smile") || ""}`.trim();
+        reactSmileBtn.addEventListener("click", () => reactToMessage(message, "smile"));
+
+        const reactHeartBtn = document.createElement("button");
+        reactHeartBtn.type = "button";
+        reactHeartBtn.textContent = `❤️ ${countReactions(message, "heart") || ""}`.trim();
+        reactHeartBtn.addEventListener("click", () => reactToMessage(message, "heart"));
+
+        actions.append(mentionBtn, replyBtn, reactSmileBtn, reactHeartBtn);
+
+        if (message.uid === player.uid) {
+          const editBtn = document.createElement("button");
+          editBtn.type = "button";
+          editBtn.textContent = "編集";
+          editBtn.addEventListener("click", () => setEditTarget(message));
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.textContent = "削除";
+          deleteBtn.addEventListener("click", () => deleteMessage(message));
+
+          actions.append(editBtn, deleteBtn);
+        }
+
+        item.append(head, text, actions);
         chatList.appendChild(item);
       }
 
       chatList.scrollTop = chatList.scrollHeight;
+    }
+
+    function countReactions(message, key) {
+      const users = message?.reactions?.[key] || {};
+      return Object.keys(users).length;
     }
 
     function updatePlayerMovement(dt) {
@@ -1084,6 +1351,22 @@
 
       const players = Object.values(state.players || {})
         .filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y))
+        .map((p) => {
+          if (p.uid === player.uid) {
+            return {
+              ...p,
+              x: player.x,
+              y: player.y,
+              dir: player.dir,
+              skin: player.skin,
+              flying: player.flying,
+              reaction: player.reaction,
+              reactionUntil: player.reactionUntil
+            };
+          }
+
+          return p;
+        })
         .sort((a, b) => {
           const ay = a.flying ? a.y + 1000 : a.y;
           const by = b.flying ? b.y + 1000 : b.y;
@@ -1188,7 +1471,7 @@
 
     function drawTinyPilot(skin, sx, sy) {
       const image = images.skins[skin]?.front;
-      const h = skin === "turuturu" ? 20 : 26;
+      const h = skin === "turuturu" ? 24 : 26;
       const w = h;
 
       if (image && image.complete && image.naturalWidth) {
