@@ -1,711 +1,120 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>ニコリタウン - ホーム</title>
-
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card: #111827;
-      --panel: #0b1220;
-      --panel2: #152033;
-      --border: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #22d3ee;
-      --accent2: #06b6d4;
-      --white: #ffffff;
-      --danger: #ef4444;
-      --ok: #22c55e;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100svh;
-      padding: 18px;
-      display: grid;
-      place-items: center;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.18), transparent 32%),
-        radial-gradient(circle at 85% 18%, rgba(59, 130, 246, 0.15), transparent 34%),
-        radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.08), transparent 40%),
-        var(--bg);
-      color: var(--text);
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-    }
-
-    .app {
-      width: min(960px, 95vw);
-      background: rgba(17, 24, 39, 0.93);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      border-radius: 26px;
-      padding: 28px;
-      box-shadow:
-        0 28px 90px rgba(0, 0, 0, 0.45),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.045);
-      backdrop-filter: blur(12px);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      margin-bottom: 14px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(14, 165, 233, 0.16);
-      border: 1px solid rgba(34, 211, 238, 0.28);
-      color: #a5f3fc;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 15px;
-      align-items: center;
-      margin-bottom: 22px;
-    }
-
-    .logo {
-      width: 58px;
-      height: 58px;
-      border-radius: 18px;
-      display: grid;
-      place-items: center;
-      font-size: 30px;
-      background: radial-gradient(circle at 35% 30%, #67e8f9, #0891b2 58%, #0f172a);
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.25),
-        0 16px 38px rgba(6,182,212,0.18);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(26px, 4vw, 38px);
-      letter-spacing: 0.04em;
-      line-height: 1.15;
-    }
-
-    .lead {
-      margin: 8px 0 0;
-      color: var(--muted);
-      line-height: 1.75;
-    }
-
-    .screen {
-      margin-top: 16px;
-      padding: 20px;
-      border-radius: 21px;
-      background: rgba(15, 23, 42, 0.78);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-    }
-
-    .screen[hidden] {
-      display: none;
-    }
-
-    .screen-title {
-      margin: 0 0 16px;
-      font-size: 20px;
-      letter-spacing: 0.03em;
-    }
-
-    .form-grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    .two {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    label {
-      display: grid;
-      gap: 8px;
-      color: var(--text);
-      font-weight: 850;
-      font-size: 14px;
-    }
-
-    input {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: #07101f;
-      color: var(--text);
-      padding: 13px 14px;
-      border-radius: 14px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.20);
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .right {
-      justify-content: flex-end;
-    }
-
-    .btn {
-      min-height: 44px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: linear-gradient(180deg, var(--accent), var(--accent2));
-      color: #06202a;
-      font-weight: 950;
-      box-shadow: 0 12px 26px rgba(6, 182, 212, 0.14);
-    }
-
-    .btn:hover {
-      filter: brightness(1.05);
-    }
-
-    .btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      filter: grayscale(0.2);
-    }
-
-    .btn.secondary {
-      background: #1e293b;
-      border: 1px solid var(--border);
-      color: var(--text);
-      box-shadow: none;
-    }
-
-    .btn.google {
-      background: #ffffff;
-      color: #111827;
-      border: 1px solid #e5e7eb;
-      box-shadow: none;
-    }
-
-    .notice {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.75;
-    }
-
-    .status {
-      min-height: 22px;
-      margin-top: 12px;
-      color: #a5f3fc;
-      font-size: 13px;
-      font-weight: 750;
-      line-height: 1.6;
-    }
-
-    .user-box {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      padding: 13px 15px;
-      border-radius: 18px;
-      background: rgba(2, 6, 23, 0.34);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-    }
-
-    .user-name {
-      font-weight: 950;
-      font-size: 16px;
-    }
-
-    .user-sub {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .skin-picker {
-      margin: 16px 0;
-      padding: 15px;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      border-radius: 20px;
-      background: rgba(2, 6, 23, 0.24);
-    }
-
-    .skin-title {
-      font-weight: 950;
-      letter-spacing: 0.04em;
-      margin-bottom: 11px;
-    }
-
-    .skin-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .skin-choice {
-      min-width: 160px;
-      min-height: 64px;
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      padding: 10px 13px;
-      border-radius: 17px;
-      border: 1px solid rgba(148, 163, 184, 0.28);
-      background: rgba(15, 23, 42, 0.78);
-      color: var(--text);
-      font-weight: 900;
-    }
-
-    .skin-choice img {
-      width: 42px;
-      height: 42px;
-      object-fit: contain;
-      image-rendering: pixelated;
-    }
-
-    .skin-choice.active {
-      border-color: rgba(34, 211, 238, 0.92);
-      box-shadow:
-        0 0 0 3px rgba(34, 211, 238, 0.18),
-        0 14px 34px rgba(34, 211, 238, 0.10);
-      background: linear-gradient(135deg, rgba(14,165,233,0.34), rgba(15,23,42,0.78));
-    }
-
-    .skin-note {
-      margin-top: 9px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    @media (max-width: 720px) {
-      body {
-        padding: 12px;
-      }
-
-      .app {
-        padding: 20px;
-        border-radius: 22px;
-      }
-
-      .hero {
-        grid-template-columns: 1fr;
-      }
-
-      .two {
-        grid-template-columns: 1fr;
-      }
-
-      .skin-choice {
-        width: 100%;
-      }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>ニコリタウン - ルーム</title>
+<style>
+:root{--bg:#0b1220;--panel:#101826;--panel2:#0f172a;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--a1:#22d3ee;--a2:#06b6d4;--green:#22c55e;--danger:#ef4444;--mention:#fde68a33;--mentionBorder:#facc15}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;overflow:hidden;touch-action:none}button,input,select{font:inherit}button{cursor:pointer}#game{display:block;width:100vw;height:100vh;image-rendering:pixelated;background:#0b1220}.hidden{display:none!important}
+.hud{position:fixed;left:8px;top:8px;z-index:30;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hud .info{background:rgba(16,24,38,.88);border:1px solid var(--border);padding:6px 10px;border-radius:10px;backdrop-filter:blur(6px);white-space:nowrap}.hud button,#composer button,.primaryBtn{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:800}.subBtn{background:#1e293b!important;color:#e2e8f0!important;border:1px solid var(--border)!important}.dangerBtn{background:#2a1111!important;color:#fecaca!important;border:1px solid #7f1d1d!important}
+.avbar{position:fixed;left:8px;top:58px;z-index:35;display:flex;gap:8px}.avbar button,.mobileToggle{min-width:48px;padding:9px 10px;border-radius:12px;border:1px solid var(--border);background:#101826;color:#e2e8f0;box-shadow:0 8px 22px rgba(0,0,0,.22)}.avbar button.on{background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:900}.avbar button:disabled{opacity:.55;cursor:not-allowed}.mobileToggles{position:fixed;right:10px;top:58px;z-index:35;display:none;gap:8px}.mobileToggle{font-weight:800}
+#audioUnlock{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:42;display:none;padding:10px 14px;border-radius:999px;border:1px solid var(--border);background:rgba(16,24,38,.95);color:#e2e8f0;box-shadow:0 12px 34px rgba(0,0,0,.35)}#avGrid{position:fixed;left:8px;bottom:8px;z-index:26;display:flex;gap:8px;max-width:calc(100vw - 16px);overflow-x:auto;pointer-events:auto}.avCard{width:168px;min-width:168px;height:112px;background:rgba(16,24,38,.92);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;box-shadow:0 10px 26px rgba(0,0,0,.32)}.avCard.speaking{border-color:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.36),0 10px 26px rgba(0,0,0,.32)}.avCard.expandable{cursor:zoom-in}.avCard.expanded{position:fixed;left:50%;top:50%;z-index:91;width:min(92vw,980px);min-width:0;height:min(72vh,560px);transform:translate(-50%,-50%);cursor:zoom-out;border-color:var(--a1);box-shadow:0 0 0 2px rgba(34,211,238,.30),0 24px 80px rgba(0,0,0,.62)}.avCard video{width:100%;height:100%;object-fit:cover;background:#020617}.avCard.expanded video{object-fit:contain}.avCard .audioOnly{height:100%;display:grid;place-items:center;font-size:32px;background:radial-gradient(circle at center,#1e293b,#020617)}.avCard .label{position:absolute;left:0;right:0;bottom:0;padding:4px 7px;font-size:.78rem;background:linear-gradient(transparent,rgba(0,0,0,.72));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.avCard .badges{position:absolute;top:5px;right:5px;display:flex;gap:4px}.badge{font-size:.72rem;padding:2px 5px;border-radius:999px;background:rgba(15,23,42,.82);border:1px solid rgba(148,163,184,.35)}#avBackdrop{position:fixed;inset:0;z-index:90;display:none;background:rgba(2,6,23,.62);backdrop-filter:blur(3px)}
+#chatPanel{position:fixed;right:8px;bottom:8px;z-index:28;width:min(430px,calc(100vw - 16px));max-height:52vh;background:rgba(16,24,38,.90);border:1px solid var(--border);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.42);backdrop-filter:blur(6px);display:flex;flex-direction:column;overflow:hidden}.chatHead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid rgba(148,163,184,.18);font-weight:900}.chatHead small{color:var(--muted);font-weight:700}.chatList{padding:8px;overflow:auto;display:flex;flex-direction:column;gap:8px}.chatMsg{border:1px solid rgba(148,163,184,.20);border-radius:12px;background:rgba(15,23,42,.70);padding:8px 9px}.chatMsg.me{border-color:rgba(34,211,238,.38)}.chatMsg.mentioned{background:var(--mention);border-color:var(--mentionBorder)}.chatTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.chatName{font-size:.82rem;font-weight:900;color:#a5f3fc}.chatTime{font-size:.72rem;color:var(--muted)}.replyBox{margin:5px 0 6px;padding:6px 7px;border-left:3px solid var(--a1);background:rgba(2,6,23,.36);border-radius:8px;color:#cbd5e1;font-size:.82rem}.chatText{line-height:1.45;white-space:pre-wrap;word-break:break-word}.deletedText{color:#94a3b8;font-style:italic}.editedMark{font-size:.72rem;color:var(--muted);margin-left:5px}.chatActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.chatActions button,.reactionPalette button{padding:4px 7px;border-radius:8px;border:1px solid rgba(148,163,184,.25);background:#1e293b;color:#e2e8f0;font-size:.78rem}.reactionLine{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.reactionBadge{padding:2px 6px;border-radius:999px;border:1px solid rgba(148,163,184,.25);background:#0b1220;font-size:.78rem}.reactionPalette{display:none;gap:5px;flex-wrap:wrap;margin-top:6px}.reactionPalette.open{display:flex}.replyComposer{display:none;margin:8px 8px 0;padding:7px 9px;border:1px solid rgba(34,211,238,.35);border-radius:10px;background:rgba(8,47,73,.38);font-size:.85rem}.replyComposer.on{display:flex;justify-content:space-between;gap:8px}.replyComposer button{border:0;background:transparent;color:#a5f3fc;font-weight:900}.mentionBox{display:none;margin:6px 8px 0;padding:6px;border:1px solid rgba(148,163,184,.25);border-radius:10px;background:#0b1220;max-height:120px;overflow:auto}.mentionBox.open{display:block}.mentionBox button{width:100%;text-align:left;padding:6px 8px;margin:2px 0;border-radius:8px;border:1px solid transparent;background:transparent;color:#e2e8f0}.mentionBox button:hover{border-color:var(--a1);background:#102033}#composer{display:flex;gap:8px;padding:8px;border-top:1px solid rgba(148,163,184,.18)}#composer input{flex:1;min-width:0;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:#e2e8f0;outline:none}#composer input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.16)}
+#reactFab{position:fixed;left:16px;bottom:96px;z-index:30;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;box-shadow:0 8px 22px rgba(0,0,0,.35)}#reactMenu{position:fixed;left:16px;bottom:160px;z-index:31;display:none;background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 34px rgba(0,0,0,.35)}#reactMenu button{font-size:22px;line-height:1.2;padding:6px 8px;background:transparent;border:0}.bubble{position:absolute;transform:translate(-50%,-100%);background:#101826;border:1px solid var(--border);border-radius:12px;padding:6px 10px;font-size:20px;pointer-events:none;z-index:23}
+#joyBase{position:fixed;left:16px;bottom:190px;z-index:29;width:108px;height:108px;border-radius:50%;border:1px solid var(--border);background:rgba(15,23,42,.60);display:none;touch-action:none}#joyStick{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid var(--border);background:linear-gradient(180deg,var(--a1),var(--a2))}#toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:120;display:none;max-width:min(92vw,720px);padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(16,24,38,.95);color:#e2e8f0;box-shadow:0 14px 40px rgba(0,0,0,.45)}.modalWrap{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.68);backdrop-filter:blur(4px)}.modal{width:min(600px,92vw);background:#101826;border:1px solid var(--border);border-radius:18px;box-shadow:0 22px 80px rgba(0,0,0,.62);padding:18px}.modal h2{margin:0 0 12px;font-size:18px}.modal p{color:var(--muted);line-height:1.7}.roomSkinPicker{margin:12px 0 14px;padding:12px;border-radius:16px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.36)}.roomSkinTitle{font-weight:900;margin-bottom:8px}.roomSkinChoices{display:flex;gap:10px;flex-wrap:wrap}.roomSkinChoices button{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:14px;border:1px solid rgba(148,163,184,.32);background:rgba(15,23,42,.62);color:#e5f3ff;font-weight:900}.roomSkinChoices button img{width:34px;height:34px;object-fit:contain;image-rendering:pixelated}.roomSkinChoices button.active{border-color:rgba(34,211,238,.9);box-shadow:0 0 0 3px rgba(34,211,238,.18);background:linear-gradient(135deg,rgba(14,165,233,.36),rgba(15,23,42,.76))}.actionRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}.actionRow button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-weight:900}
+@media (pointer:coarse){#joyBase{display:block}.hud .info{max-width:calc(100vw - 18px);overflow:hidden;text-overflow:ellipsis}.hud{right:8px}.mobileToggles{display:flex}.avbar{display:none}#chatPanel{display:none;right:8px;left:8px;width:auto;bottom:8px;max-height:54vh}#chatPanel.mobileOpen{display:flex}.mobileOnly{display:inline-flex!important}}.mobileOnly{display:none!important}
+</style>
 </head>
-
 <body>
-  <main class="app">
-    <div class="badge">β版・テスト中 ／ ニコリタウン</div>
-
-    <section class="hero">
-      <div class="logo">✈️</div>
-      <div>
-        <h1>ニコリタウン</h1>
-        <p class="lead">
-          歩き回って、同じルームの人と話せる2Dタウン。Googleログインまたはゲストログインで入れます。
-        </p>
-      </div>
-    </section>
-
-    <section id="loginScreen" class="screen">
-      <h2 class="screen-title">ログイン</h2>
-
-      <div class="form-grid">
-        <label>
-          ゲスト表示名
-          <input id="guestNameInput" type="text" maxlength="16" placeholder="例）こっぴー" autocomplete="off" />
-        </label>
-
-        <div class="row right">
-          <button id="googleLoginBtn" class="btn google" type="button">Googleでログイン</button>
-          <button id="guestLoginBtn" class="btn" type="button">ゲストとしてログイン</button>
-        </div>
-      </div>
-
-      <p class="notice">
-        ログインID・認証パスワード・アカウント作成は使いません。Googleログインとゲストログインだけを残しています。
-      </p>
-
-      <div id="loginStatus" class="status"></div>
-    </section>
-
-    <section id="roomScreen" class="screen" hidden>
-      <div class="user-box">
-        <div>
-          <div id="currentUserName" class="user-name">ゲスト</div>
-          <div id="currentUserType" class="user-sub">未ログイン</div>
-        </div>
-        <button id="logoutBtn" class="btn secondary" type="button">ログアウト</button>
-      </div>
-
-      <h2 class="screen-title">ルーム</h2>
-
-      <div class="form-grid two">
-        <label>
-          ルーム名
-          <input id="roomNameInput" type="text" maxlength="32" placeholder="例）nikori-room" autocomplete="off" />
-        </label>
-
-        <label>
-          表示名
-          <input id="playerNameInput" type="text" maxlength="16" placeholder="例）こっぴー" autocomplete="off" />
-        </label>
-      </div>
-
-      <section class="skin-picker" aria-label="スキン変更">
-        <div class="skin-title">スキン変更</div>
-
-        <div class="skin-row">
-          <button class="skin-choice" type="button" data-skin="nikorihito" aria-pressed="false">
-            <img src="./nikorihito_dot_front.png" alt="" />
-            <span>ニコリヒト</span>
-          </button>
-
-          <button class="skin-choice" type="button" data-skin="turuturu" aria-pressed="false">
-            <img src="./turuturu_front.png" alt="" />
-            <span>つるつる君</span>
-          </button>
-        </div>
-
-        <div class="skin-note">
-          飛行機はどちらのスキンでも共通です。つるつる君はルーム内で小さめに表示します。
-        </div>
-      </section>
-
-      <div class="row right">
-        <button id="randomRoomBtn" class="btn secondary" type="button">ランダム名</button>
-        <button id="enterRoomBtn" class="btn" type="button">ルームに入る</button>
-      </div>
-
-      <p class="notice">
-        ルームパスワードは使いません。同じルーム名を入力した人が同じ部屋に入ります。
-      </p>
-
-      <div id="roomStatus" class="status"></div>
-    </section>
-  </main>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signInAnonymously,
-      onAuthStateChanged,
-      signOut,
-      updateProfile
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import {
-      getDatabase,
-      ref,
-      update
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ",
-      authDomain: "nikori-town.firebaseapp.com",
-      databaseURL: "https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "nikori-town",
-      storageBucket: "nikori-town.appspot.com",
-      messagingSenderId: "836836010871",
-      appId: "1:836836010871:web:74ae40cb16ee6d50368f72"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app, firebaseConfig.databaseURL);
-
-    const LS_NAME = "nikoriTown.playerName";
-    const LS_ROOM = "nikoriTown.lastRoom";
-    const LS_SKIN = "nikoriTown.skin";
-
-    const loginScreen = document.getElementById("loginScreen");
-    const roomScreen = document.getElementById("roomScreen");
-    const guestNameInput = document.getElementById("guestNameInput");
-    const playerNameInput = document.getElementById("playerNameInput");
-    const roomNameInput = document.getElementById("roomNameInput");
-    const loginStatus = document.getElementById("loginStatus");
-    const roomStatus = document.getElementById("roomStatus");
-    const currentUserName = document.getElementById("currentUserName");
-    const currentUserType = document.getElementById("currentUserType");
-
-    const googleLoginBtn = document.getElementById("googleLoginBtn");
-    const guestLoginBtn = document.getElementById("guestLoginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const enterRoomBtn = document.getElementById("enterRoomBtn");
-    const randomRoomBtn = document.getElementById("randomRoomBtn");
-
-    guestNameInput.value = localStorage.getItem(LS_NAME) || "";
-    playerNameInput.value = localStorage.getItem(LS_NAME) || "";
-    roomNameInput.value = localStorage.getItem(LS_ROOM) || "";
-
-    const googleProvider = new GoogleAuthProvider();
-    googleProvider.setCustomParameters({
-      prompt: "select_account"
-    });
-
-    function setLoginStatus(message) {
-      loginStatus.textContent = message || "";
-    }
-
-    function setRoomStatus(message) {
-      roomStatus.textContent = message || "";
-    }
-
-    function safeName(value) {
-      const name = String(value || "").trim().slice(0, 16);
-      return name || "ゲスト";
-    }
-
-    function safeRoom(value) {
-      return String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/[.#$/\[\]\/]/g, "-")
-        .replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g, "-")
-        .replace(/-+/g, "-")
-        .slice(0, 32);
-    }
-
-    function normalizeSkin(value) {
-      return value === "turuturu" ? "turuturu" : "nikorihito";
-    }
-
-    function getSelectedSkin() {
-      return normalizeSkin(localStorage.getItem(LS_SKIN) || "nikorihito");
-    }
-
-    function setSelectedSkin(skin) {
-      const selected = normalizeSkin(skin);
-      localStorage.setItem(LS_SKIN, selected);
-
-      document.querySelectorAll("[data-skin]").forEach((button) => {
-        const active = button.dataset.skin === selected;
-        button.classList.toggle("active", active);
-        button.setAttribute("aria-pressed", String(active));
-      });
-    }
-
-    function initSkinPicker() {
-      document.querySelectorAll("[data-skin]").forEach((button) => {
-        button.addEventListener("click", () => {
-          setSelectedSkin(button.dataset.skin);
-        });
-      });
-
-      setSelectedSkin(getSelectedSkin());
-    }
-
-    function getUserDisplayName(user) {
-      return safeName(user?.displayName || localStorage.getItem(LS_NAME) || "ゲスト");
-    }
-
-    async function loginWithGoogle() {
-      googleLoginBtn.disabled = true;
-      guestLoginBtn.disabled = true;
-      setLoginStatus("Googleログイン中...");
-
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const name = safeName(result.user.displayName || "Googleユーザー");
-
-        localStorage.setItem(LS_NAME, name);
-        guestNameInput.value = name;
-        playerNameInput.value = name;
-        setLoginStatus("");
-      } catch (error) {
-        console.error(error);
-        setLoginStatus("Googleログインに失敗しました。Firebase Authentication の Google プロバイダ設定を確認してください。");
-      } finally {
-        googleLoginBtn.disabled = false;
-        guestLoginBtn.disabled = false;
-      }
-    }
-
-    async function loginAsGuest() {
-      googleLoginBtn.disabled = true;
-      guestLoginBtn.disabled = true;
-      setLoginStatus("ゲストログイン中...");
-
-      try {
-        const name = safeName(guestNameInput.value || "ゲスト");
-        localStorage.setItem(LS_NAME, name);
-
-        const result = await signInAnonymously(auth);
-
-        try {
-          await updateProfile(result.user, {
-            displayName: name
-          });
-        } catch (profileError) {
-          console.warn(profileError);
-        }
-
-        playerNameInput.value = name;
-        setLoginStatus("");
-      } catch (error) {
-        console.error(error);
-        setLoginStatus("ゲストログインに失敗しました。Firebase Authentication の匿名ログインを有効化してください。");
-      } finally {
-        googleLoginBtn.disabled = false;
-        guestLoginBtn.disabled = false;
-      }
-    }
-
-    async function logout() {
-      await signOut(auth);
-    }
-
-    async function enterRoom() {
-      const user = auth.currentUser;
-
-      if (!user) {
-        setRoomStatus("先にGoogleログインまたはゲストログインしてください。");
-        return;
-      }
-
-      const room = safeRoom(roomNameInput.value);
-      const name = safeName(playerNameInput.value || getUserDisplayName(user));
-      const skin = getSelectedSkin();
-
-      if (!room) {
-        setRoomStatus("ルーム名を入力してください。");
-        roomNameInput.focus();
-        return;
-      }
-
-      localStorage.setItem(LS_ROOM, room);
-      localStorage.setItem(LS_NAME, name);
-      localStorage.setItem(LS_SKIN, skin);
-
-      enterRoomBtn.disabled = true;
-      setRoomStatus("ルームを準備しています...");
-
-      try {
-        if (user.isAnonymous && user.displayName !== name) {
-          try {
-            await updateProfile(user, {
-              displayName: name
-            });
-          } catch (profileError) {
-            console.warn(profileError);
-          }
-        }
-
-        await update(ref(db, `roomMeta/${room}`), {
-          room,
-          passwordEnabled: false,
-          authMode: user.isAnonymous ? "guest" : "google",
-          updatedAt: Date.now(),
-          lastJoinUid: user.uid
-        });
-
-        const url = new URL("./room.html", location.href);
-        url.searchParams.set("room", room);
-        url.searchParams.set("name", name);
-        url.searchParams.set("skin", skin);
-
-        location.href = url.toString();
-      } catch (error) {
-        console.error(error);
-        setRoomStatus("入室準備に失敗しました。Firebaseの設定またはDBルールを確認してください。");
-        enterRoomBtn.disabled = false;
-      }
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      const loggedIn = Boolean(user);
-
-      loginScreen.hidden = loggedIn;
-      roomScreen.hidden = !loggedIn;
-
-      if (!user) {
-        currentUserName.textContent = "ゲスト";
-        currentUserType.textContent = "未ログイン";
-        return;
-      }
-
-      const name = getUserDisplayName(user);
-
-      currentUserName.textContent = name;
-      currentUserType.textContent = user.isAnonymous ? "ゲストログイン" : "Googleログイン";
-
-      if (!playerNameInput.value) {
-        playerNameInput.value = name;
-      }
-
-      if (!guestNameInput.value) {
-        guestNameInput.value = name;
-      }
-
-      localStorage.setItem(LS_NAME, name);
-    });
-
-    googleLoginBtn.addEventListener("click", loginWithGoogle);
-    guestLoginBtn.addEventListener("click", loginAsGuest);
-    logoutBtn.addEventListener("click", logout);
-    enterRoomBtn.addEventListener("click", enterRoom);
-
-    randomRoomBtn.addEventListener("click", () => {
-      roomNameInput.value = "room-" + Math.random().toString(36).slice(2, 7);
-      roomNameInput.focus();
-    });
-
-    guestNameInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        loginAsGuest();
-      }
-    });
-
-    playerNameInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        enterRoom();
-      }
-    });
-
-    roomNameInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        enterRoom();
-      }
-    });
-
-    initSkinPicker();
-  </script>
+<canvas id="game"></canvas>
+<div class="hud"><button id="leaveBtn">退室</button><button id="menuBtn">メニュー</button><button id="toggleChat" class="mobileOnly">チャット</button><div class="info">ルーム: <span id="roomId">-</span> ／ 自分: <span id="who">-</span> ／ 人数: <span id="count">0</span> ／ 飛行機: ↓+H</div><button id="copyRoomBtn">コピー</button></div>
+<div class="avbar"><button id="micBtn" title="マイク">🎙️</button><button id="camBtn" title="カメラ">📷</button><button id="screenBtn" title="画面共有">🖥️</button></div>
+<div class="mobileToggles"><button id="mobileMicBtn" class="mobileToggle">🎙️</button><button id="mobileCamBtn" class="mobileToggle">📷</button></div>
+<button id="audioUnlock">クリックして音声を有効化</button><div id="avBackdrop"></div><div id="avGrid"></div>
+<section id="chatPanel"><div class="chatHead"><span>通話チャット</span><small>メンション・返信・編集・削除対応</small></div><div id="chatList" class="chatList"></div><div id="replyComposer" class="replyComposer"><span id="replyText"></span><button id="cancelReplyBtn">×</button></div><div id="mentionBox" class="mentionBox"></div><form id="composer"><input id="text" maxlength="500" placeholder="@でメンション。Enterで送信" autocomplete="off" /><button id="send">送信</button></form></section>
+<button id="reactFab" title="リアクション">😊</button><div id="reactMenu"></div><div id="joyBase"><div id="joyStick"></div></div><div id="toast"></div>
+<div id="roomMenuWrap" class="modalWrap"><div class="modal"><h2>ルームメニュー</h2><section class="roomSkinPicker"><div class="roomSkinTitle">スキン変更</div><div class="roomSkinChoices"><button type="button" data-room-skin="nikorihito" aria-pressed="false"><img src="./nikorihito_dot_front.png" alt="" /><span>ニコリヒト</span></button><button type="button" data-room-skin="turuturu" aria-pressed="false"><img src="./turuturu_front.png" alt="" /><span>つるつる君</span></button></div></section><p>ルームはパスワードなしです。同じルーム名を入力すると入れます。飛行機はFではなく、<b>↓を押しながらH</b>で切り替えます。</p><div class="actionRow"><button id="closeMenuBtn" class="subBtn">閉じる</button></div></div></div>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
+import { getDatabase, ref, onDisconnect, set, update, remove, onValue, push, query, limitToLast, onChildAdded, get } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+
+const firebaseConfig={apiKey:'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',authDomain:'nikori-town.firebaseapp.com',databaseURL:'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'nikori-town',storageBucket:'nikori-town.appspot.com',messagingSenderId:'836836010871',appId:'1:836836010871:web:74ae40cb16ee6d50368f72'};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app,firebaseConfig.databaseURL);
+const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d');
+const roomIdEl=$('roomId'),whoEl=$('who'),countEl=$('count'),chatList=$('chatList'),textEl=$('text'),toastEl=$('toast'),reactFab=$('reactFab'),reactMenu=$('reactMenu'),joyBase=$('joyBase'),joyStick=$('joyStick');
+const LS_SKIN='nikoriTown.skin',LS_NAME='nikoriTown.playerName';
+const url=new URL(location.href),ROOM=safeKey(url.searchParams.get('room')||'room-001'),NAME=safeName(url.searchParams.get('name')||localStorage.getItem(LS_NAME)||'ゲスト');
+let mySkin=normalizeSkin(url.searchParams.get('skin')||localStorage.getItem(LS_SKIN)||'nikorihito');
+localStorage.setItem(LS_SKIN,mySkin);localStorage.setItem(LS_NAME,NAME);roomIdEl.textContent=ROOM;whoEl.textContent=NAME;
+const SPEED_PPS=320,FLY_SPEED_PPS=704,RADIUS=11,PLAYER_INTERP=12,CAM_INTERP=10,SYNC_MS=50,MAX_MSG=120,EMOJIS=['😊','❤️','👏','🎉','👍','✨','😂','😮'];
+const DRAW_HEIGHT={nikorihito:96,turuturu:116};
+const AIRPLANE_HEIGHT=190;
+let viewW=innerWidth,viewH=innerHeight,dpr=1;
+function resize(){dpr=Math.max(1,Math.min(devicePixelRatio||1,2));viewW=innerWidth;viewH=innerHeight;canvas.width=Math.floor(viewW*dpr);canvas.height=Math.floor(viewH*dpr);canvas.style.width=viewW+'px';canvas.style.height=viewH+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
+function showToast(message,ms=2600){toastEl.textContent=message;toastEl.style.display='block';clearTimeout(showToast._t);showToast._t=setTimeout(()=>toastEl.style.display='none',ms)}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}function now(){return Date.now()}function safeKey(s){return String(s||'').trim().toLowerCase().replace(/[.#$/\[\]\/]/g,'-').replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g,'-').replace(/-+/g,'-').slice(0,32)||'room-001'}function safeName(s){return String(s||'guest').trim().slice(0,24)||'guest'}function normalizeSkin(s){return s==='turuturu'?'turuturu':'nikorihito'}function assetW(a){return a.naturalWidth||a.width||1}function assetH(a){return a.naturalHeight||a.height||1}
+function loadImage(src,{fallbackW=2048,fallbackH=1400,transparent=false,label='asset'}={}){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{const c=document.createElement('canvas');c.width=fallbackW;c.height=fallbackH;const g=c.getContext('2d');if(!transparent){g.fillStyle='#143b2a';g.fillRect(0,0,c.width,c.height);g.strokeStyle='rgba(255,255,255,.10)';for(let x=0;x<c.width;x+=64){g.beginPath();g.moveTo(x,0);g.lineTo(x,c.height);g.stroke()}for(let y=0;y<c.height;y+=64){g.beginPath();g.moveTo(0,y);g.lineTo(c.width,y);g.stroke()}g.fillStyle='#a5f3fc';g.font='bold 32px system-ui';g.fillText(label+' missing',40,70)}resolve(c)};img.src=src})}
+const [imgMap,imgMask,imgPlane,nikoF,nikoB,nikoL,nikoR,turuF,turuB,turuL,turuR]=await Promise.all([
+  loadImage('./map_1.png',{label:'map_1.png'}),
+  loadImage('./atarihantei.png',{fallbackW:2048,fallbackH:1400,transparent:true,label:'atarihantei.png'}),
+  loadImage('./nikori_airplane.png',{fallbackW:160,fallbackH:80,transparent:true,label:'nikori_airplane.png'}),
+  loadImage('./nikorihito_dot_front.png',{fallbackW:96,fallbackH:96,transparent:true}),loadImage('./nikorihito_dot_behind.png',{fallbackW:96,fallbackH:96,transparent:true}),loadImage('./nikorihito_dot_left.png',{fallbackW:96,fallbackH:96,transparent:true}),loadImage('./nikorihito_dot_right.png',{fallbackW:96,fallbackH:96,transparent:true}),
+  loadImage('./turuturu_front.png',{fallbackW:64,fallbackH:64,transparent:true}),loadImage('./turuturu_behind.png',{fallbackW:64,fallbackH:64,transparent:true}),loadImage('./turuturu_left.png',{fallbackW:64,fallbackH:64,transparent:true}),loadImage('./turuturu_right.png',{fallbackW:64,fallbackH:64,transparent:true})
+]);
+const SKINS={nikorihito:{name:'ニコリヒト',front:nikoF,behind:nikoB,left:nikoL,right:nikoR},turuturu:{name:'つるつる君',front:turuF,behind:turuB,left:turuL,right:turuR}};
+const world={w:assetW(imgMap),h:assetH(imgMap)};
+const maskCanvas=document.createElement('canvas'),maskCtx=maskCanvas.getContext('2d',{willReadFrequently:true});maskCanvas.width=assetW(imgMask);maskCanvas.height=assetH(imgMask);maskCtx.drawImage(imgMask,0,0);let maskPixels=null;try{maskPixels=maskCtx.getImageData(0,0,maskCanvas.width,maskCanvas.height).data}catch{maskPixels=null}
+function isBlockedPixel(mx,my){if(!maskPixels)return false;if(mx<0||my<0||mx>=maskCanvas.width||my>=maskCanvas.height)return true;const i=(my*maskCanvas.width+mx)*4,r=maskPixels[i],g=maskPixels[i+1],b=maskPixels[i+2],a=maskPixels[i+3];if(a<10)return false;const redBlock=r>140&&r>g+35&&r>b+35;const blackBlock=a>220&&r<24&&g<24&&b<24;return redBlock||blackBlock}
+function isBlockedWorld(x,y){const mx=Math.floor((x/world.w)*maskCanvas.width),my=Math.floor((y/world.h)*maskCanvas.height);return isBlockedPixel(mx,my)}
+function hits(x,y){const foot=y+RADIUS*.7;return isBlockedWorld(x,foot)||isBlockedWorld(x-RADIUS*.8,foot)||isBlockedWorld(x+RADIUS*.8,foot)||isBlockedWorld(x,y)}
+function safeSpawn(){for(let i=0;i<700;i++){const x=Math.random()*(world.w-80)+40,y=Math.random()*(world.h-80)+40;if(!hits(x,y))return{x,y}}return{x:world.w/2,y:world.h/2}}
+async function ensureAuth(){if(auth.currentUser)return auth.currentUser;return await new Promise(resolve=>{const stop=onAuthStateChanged(auth,async user=>{stop();if(user)return resolve(user);const cred=await signInAnonymously(auth);resolve(cred.user)})})}
+const authUser=await ensureAuth();
+const meId='s_'+(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)).replace(/[^a-zA-Z0-9_]/g,'_');
+const playersRef=ref(db,`rooms/${ROOM}/players`),meRef=ref(db,`rooms/${ROOM}/players/${meId}`),roomMetaRef=ref(db,`roomMeta/${ROOM}`);
+let my=Object.assign({sessionId:meId,uid:authUser.uid,name:NAME,dir:'front',skin:mySkin,ts:now(),fly:false,loginType:authUser.isAnonymous?'guest':'google'},safeSpawn());
+let players={},ghosts={},isFlying=false,lastSync=0,camX=0,camY=0;
+await update(roomMetaRef,{room:ROOM,noAccountMode:true,passwordEnabled:false,updatedAt:now(),lastJoinUid:authUser.uid});await set(meRef,my);onDisconnect(meRef).remove().catch(()=>{});
+onValue(playersRef,snap=>{players=snap.val()||{};countEl.textContent=String(Object.keys(players).length);for(const[id,p]of Object.entries(players)){if(!p)continue;if(!ghosts[id])ghosts[id]={x:p.x||0,y:p.y||0,tx:p.x||0,ty:p.y||0,dir:p.dir||'front',skin:normalizeSkin(p.skin),name:p.name||'guest',fly:!!p.fly,uid:p.uid||''};Object.assign(ghosts[id],{tx:p.x??ghosts[id].x,ty:p.y??ghosts[id].y,dir:p.dir||ghosts[id].dir,skin:normalizeSkin(p.skin||ghosts[id].skin),name:p.name||ghosts[id].name,fly:!!p.fly,uid:p.uid||ghosts[id].uid});}for(const id of Object.keys(ghosts))if(!players[id]){delete ghosts[id];closePeer(id);removeAvCard(id)}reconcilePeers();});
+function syncMe(force=false){const t=now();if(!force&&t-lastSync<SYNC_MS)return;lastSync=t;my.ts=t;my.fly=isFlying;my.skin=mySkin;update(meRef,{x:Math.round(my.x),y:Math.round(my.y),dir:my.dir,skin:mySkin,ts:my.ts,fly:my.fly}).catch(console.warn)}
+async function cleanup(){try{await remove(meRef)}catch{} for(const pc of peers.values())pc.close()}$('leaveBtn').onclick=async()=>{await cleanup();location.href='./index.html'};addEventListener('beforeunload',()=>cleanup());
+$('menuBtn').onclick=()=>{$('roomMenuWrap').style.display='flex';updateRoomSkinButtons()};$('closeMenuBtn').onclick=()=>$('roomMenuWrap').style.display='none';addEventListener('keydown',e=>{if(e.key==='Escape'&&!isTyping())$('roomMenuWrap').style.display=$('roomMenuWrap').style.display==='flex'?'none':'flex'});$('copyRoomBtn').onclick=async()=>{const u=new URL(location.href);u.searchParams.delete('name');try{await navigator.clipboard.writeText(u.toString());showToast('ルームURLをコピーしました')}catch{showToast('コピーできませんでした')}};
+function updateRoomSkinButtons(){document.querySelectorAll('[data-room-skin]').forEach(btn=>{const active=btn.dataset.roomSkin===mySkin;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))})}function setRoomSkin(skin){mySkin=normalizeSkin(skin);my.skin=mySkin;localStorage.setItem(LS_SKIN,mySkin);updateRoomSkinButtons();syncMe(true);showToast(`${SKINS[mySkin].name}に変更しました`)}document.querySelectorAll('[data-room-skin]').forEach(btn=>btn.onclick=()=>setRoomSkin(btn.dataset.roomSkin));updateRoomSkinButtons();
+
+const chatRef=ref(db,`rooms/${ROOM}/chat`);let messages={},replyTarget=null;const replyComposer=$('replyComposer'),replyText=$('replyText'),mentionBox=$('mentionBox');
+function extractMentions(text){const out=[];const re=/@([^\s@]+)/g;let m;while((m=re.exec(text))){out.push(m[1].slice(0,24))}return [...new Set(out)]}
+function messageSummary(m){if(!m||m.deleted)return '削除済み';return String(m.text||'').slice(0,80)}
+function isMine(m){return m&&m.sessionId===meId}
+function timeText(ts){try{return new Date(ts||now()).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}catch{return''}}
+function renderChat(){const list=Object.entries(messages).sort((a,b)=>(a[1].ts||0)-(b[1].ts||0)).slice(-MAX_MSG);chatList.innerHTML='';for(const[id,m]of list){const mentioned=(m.mentions||[]).includes(NAME)||String(m.text||'').includes('@'+NAME);const item=document.createElement('article');item.className='chatMsg'+(isMine(m)?' me':'')+(mentioned?' mentioned':'');const top=document.createElement('div');top.className='chatTop';const name=document.createElement('span');name.className='chatName';name.textContent=m.name||'guest';const tm=document.createElement('span');tm.className='chatTime';tm.textContent=timeText(m.editedAt||m.ts);top.append(name,tm);item.appendChild(top);if(m.replyTo){const r=document.createElement('div');r.className='replyBox';r.textContent=`返信先 ${m.replyTo.name||''}: ${m.replyTo.text||''}`;item.appendChild(r)}const body=document.createElement('div');body.className='chatText'+(m.deleted?' deletedText':'');body.textContent=m.deleted?'このメッセージは削除されました':(m.text||'');if(m.edited&&!m.deleted){const ed=document.createElement('span');ed.className='editedMark';ed.textContent='（編集済み）';body.appendChild(ed)}item.appendChild(body);if(m.reactions){const line=document.createElement('div');line.className='reactionLine';const grouped={};for(const emoji of Object.values(m.reactions))grouped[emoji]=(grouped[emoji]||0)+1;for(const[emoji,c]of Object.entries(grouped)){const b=document.createElement('span');b.className='reactionBadge';b.textContent=emoji+(c>1?' '+c:'');line.appendChild(b)}item.appendChild(line)}if(!m.deleted){const acts=document.createElement('div');acts.className='chatActions';const rep=document.createElement('button');rep.type='button';rep.textContent='返信';rep.onclick=()=>setReply(id,m);const react=document.createElement('button');react.type='button';react.textContent='リアクション';react.onclick=()=>toggleReactionPalette(item,id);acts.append(rep,react);if(isMine(m)){const edit=document.createElement('button');edit.type='button';edit.textContent='編集';edit.onclick=()=>editMessage(id,m);const del=document.createElement('button');del.type='button';del.textContent='削除';del.onclick=()=>deleteMessage(id);acts.append(edit,del)}item.appendChild(acts);const pal=document.createElement('div');pal.className='reactionPalette';for(const emoji of EMOJIS){const b=document.createElement('button');b.type='button';b.textContent=emoji;b.onclick=()=>reactMessage(id,emoji);pal.appendChild(b)}item.appendChild(pal)}chatList.appendChild(item)}chatList.scrollTop=chatList.scrollHeight}
+function toggleReactionPalette(item){const pal=item.querySelector('.reactionPalette');if(pal)pal.classList.toggle('open')}
+function setReply(id,m){replyTarget={id,name:m.name||'',text:messageSummary(m)};replyText.textContent=`${replyTarget.name} に返信: ${replyTarget.text}`;replyComposer.classList.add('on');textEl.focus()}
+$('cancelReplyBtn').onclick=()=>{replyTarget=null;replyComposer.classList.remove('on')};
+async function sendChat(){const text=textEl.value.trim();if(!text)return;textEl.value='';mentionBox.classList.remove('open');const data={sessionId:meId,uid:authUser.uid,name:NAME,text:text.slice(0,500),mentions:extractMentions(text),ts:now(),edited:false,deleted:false};if(replyTarget)data.replyTo=replyTarget;replyTarget=null;replyComposer.classList.remove('on');await push(chatRef,data)}$('composer').addEventListener('submit',e=>{e.preventDefault();sendChat()});
+async function editMessage(id,m){const next=prompt('メッセージを編集',m.text||'');if(next===null)return;const text=next.trim().slice(0,500);if(!text)return;await update(ref(db,`rooms/${ROOM}/chat/${id}`),{text,mentions:extractMentions(text),edited:true,editedAt:now()})}
+async function deleteMessage(id){if(!confirm('このメッセージを削除しますか？'))return;await update(ref(db,`rooms/${ROOM}/chat/${id}`),{deleted:true,text:'',deletedAt:now()})}
+async function reactMessage(id,emoji){await update(ref(db,`rooms/${ROOM}/chat/${id}/reactions`),{[meId]:emoji})}
+onValue(query(chatRef,limitToLast(MAX_MSG)),snap=>{messages=snap.val()||{};renderChat()});
+textEl.addEventListener('input',renderMentionBox);textEl.addEventListener('keydown',e=>{if(e.key==='Escape')mentionBox.classList.remove('open')});function currentMentionQuery(){const pos=textEl.selectionStart||0;const before=textEl.value.slice(0,pos);const m=before.match(/@([^@\s]*)$/);return m?m[1]:null}
+function renderMentionBox(){const q=currentMentionQuery();if(q===null){mentionBox.classList.remove('open');return}const names=Object.values(ghosts).map(p=>p.name).concat([NAME]).filter(Boolean);const unique=[...new Set(names)].filter(n=>n!==NAME&&n.toLowerCase().includes(q.toLowerCase())).slice(0,8);mentionBox.innerHTML='';if(!unique.length){mentionBox.classList.remove('open');return}for(const n of unique){const b=document.createElement('button');b.type='button';b.textContent='@'+n;b.onclick=()=>insertMention(n);mentionBox.appendChild(b)}mentionBox.classList.add('open')}
+function insertMention(name){const pos=textEl.selectionStart||0;const before=textEl.value.slice(0,pos).replace(/@([^@\s]*)$/,'@'+name+' ');const after=textEl.value.slice(pos);textEl.value=before+after;textEl.focus();textEl.selectionStart=textEl.selectionEnd=before.length;mentionBox.classList.remove('open')}
+$('toggleChat').onclick=()=>$('chatPanel').classList.toggle('mobileOpen');
+
+const bubblesRef=ref(db,`rooms/${ROOM}/bubbles`);const bubbles=new Map();reactFab.onclick=()=>{reactMenu.innerHTML='';EMOJIS.forEach(emoji=>{const b=document.createElement('button');b.textContent=emoji;b.onclick=()=>{push(bubblesRef,{sessionId:meId,emoji,ts:now()});reactMenu.style.display='none'};reactMenu.appendChild(b)});reactMenu.style.display=reactMenu.style.display==='block'?'none':'block'};function showBubbleFor(uid,emoji){let b=bubbles.get(uid);if(!b){b=document.createElement('div');b.className='bubble';document.body.appendChild(b);bubbles.set(uid,b)}b.textContent=emoji;b.style.display='block';clearTimeout(b._t);b._t=setTimeout(()=>b.style.display='none',1800)}onChildAdded(query(bubblesRef,limitToLast(50)),snap=>{const{sessionId,emoji,ts}=snap.val()||{};if(sessionId&&emoji&&now()-(ts||0)<=5000)showBubbleFor(sessionId,emoji)});
+
+function isTyping(){return ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)}const keys=new Set();addEventListener('keydown',e=>{if(isTyping())return;keys.add(e.key);const k=e.key.toLowerCase();if(!e.repeat&&k==='h'&&keys.has('ArrowDown')){setFlight(!isFlying);e.preventDefault()}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)||['w','a','s','d'].includes(k))e.preventDefault()});addEventListener('keyup',e=>keys.delete(e.key));
+let joy={x:0,y:0,active:false};function updateJoy(touch){const r=joyBase.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=touch.clientX-cx,dy=touch.clientY-cy,max=r.width*.34;joy.x=clamp(dx/max,-1,1);joy.y=clamp(dy/max,-1,1);joyStick.style.transform=`translate(calc(-50% + ${clamp(dx,-max,max)}px), calc(-50% + ${clamp(dy,-max,max)}px))`}joyBase.addEventListener('touchstart',e=>{joy.active=true;updateJoy(e.touches[0])},{passive:false});joyBase.addEventListener('touchmove',e=>{e.preventDefault();updateJoy(e.touches[0])},{passive:false});joyBase.addEventListener('touchend',()=>{joy.active=false;joy.x=0;joy.y=0;joyStick.style.transform='translate(-50%,-50%)'});
+function setFlight(on){if(on===isFlying)return;if(!on&&hits(my.x,my.y)){showToast('ここでは着地できません。当たり判定の外で着地してください。');return}isFlying=on;my.fly=isFlying;syncMe(true);showToast(isFlying?'飛行機に乗りました':'歩きに戻りました')}function move(dt){let dx=0,dy=0;if(keys.has('ArrowLeft')||keys.has('a')||keys.has('A'))dx-=1;if(keys.has('ArrowRight')||keys.has('d')||keys.has('D'))dx+=1;if(keys.has('ArrowUp')||keys.has('w')||keys.has('W'))dy-=1;if(keys.has('ArrowDown')||keys.has('s')||keys.has('S'))dy+=1;if(joy.active){dx+=joy.x;dy+=joy.y}if(dx===0&&dy===0)return;const len=Math.hypot(dx,dy)||1;dx/=len;dy/=len;if(Math.abs(dx)>Math.abs(dy))my.dir=dx<0?'left':'right';else my.dir=dy<0?'behind':'front';const speed=isFlying?FLY_SPEED_PPS:SPEED_PPS,nx=clamp(my.x+dx*speed*dt,0,world.w-1),ny=clamp(my.y+dy*speed*dt,0,world.h-1);if(isFlying||!hits(nx,my.y))my.x=nx;if(isFlying||!hits(my.x,ny))my.y=ny;syncMe()}
+function spriteByDir(d,skinId=mySkin){const skin=SKINS[normalizeSkin(skinId)]||SKINS.nikorihito;if(d==='behind')return{img:skin.behind,skinId:normalizeSkin(skinId)};if(d==='left')return{img:skin.left,skinId:normalizeSkin(skinId)};if(d==='right')return{img:skin.right,skinId:normalizeSkin(skinId)};return{img:skin.front,skinId:normalizeSkin(skinId)}}
+function camera(dt){const tx=Math.round(my.x-viewW/2),ty=Math.round(my.y-viewH/2),k=Math.min(1,dt*CAM_INTERP);camX+=(tx-camX)*k;camY+=(ty-camY)*k;camX=clamp(camX,0,Math.max(0,world.w-viewW));camY=clamp(camY,0,Math.max(0,world.h-viewH));return{x:camX,y:camY}}function drawImageCentered(img,x,y,w,h,alpha=1){ctx.save();ctx.globalAlpha=alpha;ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x-w/2,y-h/2,w,h);ctx.restore()}function roundRect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+function drawPlayer(p,id,cam){const sx=Math.round(p.x-cam.x),sy=Math.round(p.y-cam.y);let labelY;if(p.fly){const h=AIRPLANE_HEIGHT,w=h*(assetW(imgPlane)/assetH(imgPlane));drawImageCentered(imgPlane,sx,sy+8,w,h,1);labelY=sy+8-h/2-16;drawTinyPilot(p.skin||'nikorihito',sx,sy-28)}else{const sp=spriteByDir(p.dir||'front',p.skin||mySkin),targetH=DRAW_HEIGHT[sp.skinId]||96,targetW=assetW(sp.img)*(targetH/assetH(sp.img));drawImageCentered(sp.img,sx,sy,targetW,targetH,1);ctx.save();ctx.globalAlpha=.28;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(sx,sy+targetH*.42,Math.max(15,targetW*.32),7,0,0,Math.PI*2);ctx.fill();ctx.restore();labelY=sy-targetH/2-16}const name=p.name||'guest';ctx.save();ctx.font='700 13px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';const textW=ctx.measureText(name).width;ctx.fillStyle='rgba(15,23,42,.72)';ctx.strokeStyle='rgba(148,163,184,.45)';ctx.lineWidth=1;roundRect(ctx,sx-textW/2-8,labelY-10,textW+16,20,8);ctx.fill();ctx.stroke();ctx.fillStyle='#e2e8f0';ctx.fillText(name,sx,labelY);ctx.restore()}
+function drawTinyPilot(skinId,x,y){const img=SKINS[normalizeSkin(skinId)].front;const h=normalizeSkin(skinId)==='turuturu'?34:28,w=assetW(img)*(h/assetH(img));drawImageCentered(img,x,y,w,h,1)}
+function updateBubbles(cam){for(const[uid,el]of bubbles){const p=uid===meId?my:ghosts[uid];if(!p){el.style.display='none';continue}el.style.left=`${p.x-cam.x}px`;el.style.top=`${p.y-cam.y-72}px`}}function interpolateGhosts(dt){const k=Math.min(1,dt*PLAYER_INTERP);for(const[id,g]of Object.entries(ghosts)){if(id===meId)continue;if(typeof g.tx==='number')g.x+=(g.tx-g.x)*k;if(typeof g.ty==='number')g.y+=(g.ty-g.y)*k}}
+let last=performance.now();function frame(t){const dt=Math.min(.05,(t-last)/1000);last=t;move(dt);interpolateGhosts(dt);const cam=camera(dt);ctx.clearRect(0,0,viewW,viewH);ctx.imageSmoothingEnabled=false;ctx.drawImage(imgMap,-Math.round(cam.x),-Math.round(cam.y));const drawList=[];for(const[id,g]of Object.entries(ghosts))if(id!==meId)drawList.push([id,g]);drawList.push([meId,my]);drawList.sort((a,b)=>(a[1].y||0)-(b[1].y||0));for(const[id,p]of drawList)drawPlayer(p,id,cam);updateBubbles(cam);requestAnimationFrame(frame)}requestAnimationFrame(frame);setInterval(()=>syncMe(true),2500);
+
+const avGrid=$('avGrid'),audioUnlock=$('audioUnlock');let localStream=new MediaStream(),screenStream=null,peers=new Map(),remoteStreams=new Map(),mediaState={mic:false,cam:false,screen:false};const signalToMe=ref(db,`rooms/${ROOM}/signals/${meId}`);
+function setBtnState(){for(const id of ['micBtn','mobileMicBtn'])$(id).classList.toggle('on',mediaState.mic);for(const id of ['camBtn','mobileCamBtn'])$(id).classList.toggle('on',mediaState.cam);$('screenBtn').classList.toggle('on',mediaState.screen)}function addLocalTrack(track){localStream.addTrack(track);track.onended=()=>{removeLocalTrack(track)}}function removeLocalTrack(track){try{track.stop()}catch{}try{localStream.removeTrack(track)}catch{}}function clearKind(kind){for(const t of localStream.getTracks().filter(t=>t.kind===kind))removeLocalTrack(t)}
+async function toggleMic(){try{if(mediaState.mic){clearKind('audio');mediaState.mic=false}else{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getAudioTracks().forEach(addLocalTrack);mediaState.mic=true}setBtnState();renderLocalAv();rebuildPeers()}catch(e){console.error(e);showToast('マイクを開始できませんでした')}}
+async function toggleCam(){try{if(mediaState.cam){clearKind('video');mediaState.cam=false}else{const s=await navigator.mediaDevices.getUserMedia({video:true,audio:false});s.getVideoTracks().forEach(addLocalTrack);mediaState.cam=true}setBtnState();renderLocalAv();rebuildPeers()}catch(e){console.error(e);showToast('カメラを開始できませんでした')}}
+async function toggleScreen(){try{if(mediaState.screen){if(screenStream)screenStream.getTracks().forEach(t=>t.stop());screenStream=null;clearKind('video');mediaState.screen=false}else{if(mediaState.cam){clearKind('video');mediaState.cam=false}screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});screenStream.getVideoTracks().forEach(t=>{addLocalTrack(t);t.onended=()=>{mediaState.screen=false;clearKind('video');setBtnState();renderLocalAv();rebuildPeers()}});mediaState.screen=true}setBtnState();renderLocalAv();rebuildPeers()}catch(e){console.error(e);showToast('画面共有を開始できませんでした')}}
+$('micBtn').onclick=toggleMic;$('mobileMicBtn').onclick=toggleMic;$('camBtn').onclick=toggleCam;$('mobileCamBtn').onclick=toggleCam;$('screenBtn').onclick=toggleScreen;audioUnlock.onclick=()=>{document.querySelectorAll('video,audio').forEach(v=>v.play?.().catch(()=>{}));audioUnlock.style.display='none'};
+function renderLocalAv(){renderAvCard(meId,NAME,localStream,true)}function renderAvCard(id,name,stream,isLocal=false){let card=document.querySelector(`[data-av-id="${id}"]`);if(!stream||stream.getTracks().length===0){if(card)card.remove();return}if(!card){card=document.createElement('div');card.className='avCard';card.dataset.avId=id;card.onclick=()=>card.classList.toggle('expanded');avGrid.appendChild(card)}card.innerHTML='';const hasVideo=stream.getVideoTracks().length>0;if(hasVideo){const video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=isLocal;video.srcObject=stream;card.appendChild(video);video.play().catch(()=>audioUnlock.style.display='block')}else{const box=document.createElement('div');box.className='audioOnly';box.textContent='🎙️';card.appendChild(box)}const label=document.createElement('div');label.className='label';label.textContent=isLocal?`${name}（自分）`:name;card.appendChild(label)}function removeAvCard(id){const card=document.querySelector(`[data-av-id="${id}"]`);if(card)card.remove()}
+function sendSignal(to,type,data){return push(ref(db,`rooms/${ROOM}/signals/${to}`),{from:meId,to,type,data,ts:now()})}function getPeer(id){if(peers.has(id))return peers.get(id);const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});peers.set(id,pc);for(const track of localStream.getTracks())pc.addTrack(track,localStream);pc.onicecandidate=e=>{if(e.candidate)sendSignal(id,'candidate',e.candidate.toJSON())};pc.ontrack=e=>{let s=remoteStreams.get(id);if(!s){s=new MediaStream();remoteStreams.set(id,s)}s.addTrack(e.track);renderAvCard(id,ghosts[id]?.name||'相手',s,false)};pc.onconnectionstatechange=()=>{if(['closed','failed','disconnected'].includes(pc.connectionState)){removeAvCard(id)}};return pc}
+async function makeOffer(id){if(!localStream.getTracks().length)return;if(id===meId||meId>id)return;const pc=getPeer(id);if(pc.signalingState!=='stable')return;try{const offer=await pc.createOffer();await pc.setLocalDescription(offer);await sendSignal(id,'offer',pc.localDescription.toJSON())}catch(e){console.warn(e)}}async function handleSignal(msg){if(!msg||msg.from===meId)return;const pc=getPeer(msg.from);try{if(msg.type==='offer'){await pc.setRemoteDescription(new RTCSessionDescription(msg.data));const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await sendSignal(msg.from,'answer',pc.localDescription.toJSON())}else if(msg.type==='answer'){if(pc.signalingState!=='stable')await pc.setRemoteDescription(new RTCSessionDescription(msg.data))}else if(msg.type==='candidate'){await pc.addIceCandidate(new RTCIceCandidate(msg.data))}else if(msg.type==='bye'){closePeer(msg.from)}}catch(e){console.warn(e)}}onChildAdded(signalToMe,async snap=>{const msg=snap.val();try{await remove(snap.ref)}catch{}handleSignal(msg)});
+function reconcilePeers(){if(!localStream.getTracks().length)return;for(const id of Object.keys(ghosts)){if(id!==meId)makeOffer(id)}}function closePeer(id){const pc=peers.get(id);if(pc){try{pc.close()}catch{}peers.delete(id)}remoteStreams.delete(id);removeAvCard(id)}function rebuildPeers(){for(const id of peers.keys()){sendSignal(id,'bye',{});closePeer(id)}setTimeout(reconcilePeers,500)}
+showToast('移動はWASD/矢印、飛行機は「↓を押しながらH」です。',4200);
+</script>
 </body>
 </html>
