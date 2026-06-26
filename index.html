@@ -2,297 +2,708 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>ニコリタウン - ホーム</title>
+
   <style>
-    :root{
-      color-scheme:dark;
-      --bg:#0f172a;
-      --card:#111827;
-      --panel:#0b1220;
-      --border:#334155;
-      --text:#e2e8f0;
-      --muted:#94a3b8;
-      --a1:#22d3ee;
-      --a2:#06b6d4;
-      --danger:#ef4444;
-      --ok:#22c55e;
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --panel: #0b1220;
+      --panel2: #152033;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #22d3ee;
+      --accent2: #06b6d4;
+      --white: #ffffff;
+      --danger: #ef4444;
+      --ok: #22c55e;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      min-height:100svh;
-      padding:18px;
-      display:grid;
-      place-items:center;
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      padding: 18px;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
       background:
-        radial-gradient(circle at 20% 12%,rgba(34,211,238,.18),transparent 32%),
-        radial-gradient(circle at 85% 18%,rgba(59,130,246,.14),transparent 30%),
+        radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.18), transparent 32%),
+        radial-gradient(circle at 85% 18%, rgba(59, 130, 246, 0.15), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.08), transparent 40%),
         var(--bg);
-      color:var(--text);
+      color: var(--text);
     }
-    .card{
-      width:min(860px,94vw);
-      background:rgba(17,24,39,.92);
-      border:1px solid rgba(148,163,184,.18);
-      border-radius:22px;
-      padding:28px;
-      box-shadow:0 24px 80px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,255,255,.04);
-      backdrop-filter:blur(10px);
+
+    button,
+    input {
+      font: inherit;
     }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:5px 10px;
-      margin-bottom:12px;
-      border-radius:999px;
-      background:rgba(14,165,233,.16);
-      border:1px solid rgba(34,211,238,.25);
-      color:#a5f3fc;
-      font-size:12px;
-      font-weight:800;
+
+    button {
+      border: 0;
+      cursor: pointer;
     }
-    .logo-line{display:flex;gap:12px;align-items:center;margin-bottom:8px}
-    .logo-mark{
-      width:50px;height:50px;border-radius:15px;
-      display:grid;place-items:center;font-size:27px;
-      background:radial-gradient(circle at 35% 30%,#67e8f9,#0891b2 58%,#0f172a);
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 14px 34px rgba(6,182,212,.16);
-      flex-shrink:0;
+
+    .app {
+      width: min(960px, 95vw);
+      background: rgba(17, 24, 39, 0.93);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow:
+        0 28px 90px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.045);
+      backdrop-filter: blur(12px);
     }
-    h1{margin:0;font-size:clamp(24px,4vw,34px);letter-spacing:.03em}
-    .lead{margin:8px 0 22px;color:var(--muted);line-height:1.75}
-    .screen{
-      margin-top:18px;
-      padding:18px;
-      border-radius:18px;
-      background:rgba(15,23,42,.72);
-      border:1px solid rgba(148,163,184,.20);
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 14px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(14, 165, 233, 0.16);
+      border: 1px solid rgba(34, 211, 238, 0.28);
+      color: #a5f3fc;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
     }
-    .grid{display:grid;gap:14px}
-    .two{grid-template-columns:repeat(2,minmax(0,1fr))}
-    @media(max-width:720px){.two{grid-template-columns:1fr}.card{padding:22px}}
-    label{display:grid;gap:8px;font-weight:800;font-size:14px}
-    input,button{font:inherit;border-radius:13px;outline:none}
-    input{
-      width:100%;
-      border:1px solid var(--border);
-      background:#07101f;
-      color:var(--text);
-      padding:12px 13px;
+
+    .hero {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 22px;
     }
-    input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.20)}
-    button{
-      border:0;
-      padding:12px 14px;
-      background:linear-gradient(180deg,var(--a1),var(--a2));
-      color:#06202a;
-      font-weight:900;
-      cursor:pointer;
+
+    .logo {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      background: radial-gradient(circle at 35% 30%, #67e8f9, #0891b2 58%, #0f172a);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.25),
+        0 16px 38px rgba(6,182,212,0.18);
     }
-    button.secondary{background:#1e293b;border:1px solid var(--border);color:var(--text)}
-    button:disabled{opacity:.55;cursor:not-allowed}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .right{justify-content:flex-end}
-    .notice{margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
-    .skin-picker{
-      margin:16px 0;
-      padding:14px;
-      border:1px solid rgba(148,163,184,.24);
-      border-radius:18px;
-      background:rgba(2,6,23,.25);
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing: 0.04em;
+      line-height: 1.15;
     }
-    .skin-picker-title{font-weight:900;letter-spacing:.04em;margin-bottom:10px}
-    .skin-choice-row{display:flex;gap:10px;flex-wrap:wrap}
-    .skin-choice{
-      min-width:150px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,.28);
-      background:rgba(15,23,42,.70);
-      color:#e5f3ff;
+
+    .lead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.75;
     }
-    .skin-choice img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}
-    .skin-choice.active{
-      border-color:rgba(34,211,238,.9);
-      box-shadow:0 0 0 3px rgba(34,211,238,.18),0 14px 30px rgba(34,211,238,.10);
-      background:linear-gradient(135deg,rgba(14,165,233,.36),rgba(15,23,42,.78));
+
+    .screen {
+      margin-top: 16px;
+      padding: 20px;
+      border-radius: 21px;
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.22);
     }
-    .skin-picker-note{margin-top:8px;font-size:12px;color:var(--muted)}
-    .status{min-height:22px;margin-top:12px;color:#a5f3fc;font-size:13px;font-weight:700}
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    .screen-title {
+      margin: 0 0 16px;
+      font-size: 20px;
+      letter-spacing: 0.03em;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--text);
+      font-weight: 850;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #07101f;
+      color: var(--text);
+      padding: 13px 14px;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.20);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .right {
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      color: #06202a;
+      font-weight: 950;
+      box-shadow: 0 12px 26px rgba(6, 182, 212, 0.14);
+    }
+
+    .btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: grayscale(0.2);
+    }
+
+    .btn.secondary {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .btn.google {
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      box-shadow: none;
+    }
+
+    .notice {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 12px;
+      color: #a5f3fc;
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.6;
+    }
+
+    .user-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 13px 15px;
+      border-radius: 18px;
+      background: rgba(2, 6, 23, 0.34);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+    }
+
+    .user-name {
+      font-weight: 950;
+      font-size: 16px;
+    }
+
+    .user-sub {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .skin-picker {
+      margin: 16px 0;
+      padding: 15px;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 20px;
+      background: rgba(2, 6, 23, 0.24);
+    }
+
+    .skin-title {
+      font-weight: 950;
+      letter-spacing: 0.04em;
+      margin-bottom: 11px;
+    }
+
+    .skin-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .skin-choice {
+      min-width: 160px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 13px;
+      border-radius: 17px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.78);
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .skin-choice img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .skin-choice.active {
+      border-color: rgba(34, 211, 238, 0.92);
+      box-shadow:
+        0 0 0 3px rgba(34, 211, 238, 0.18),
+        0 14px 34px rgba(34, 211, 238, 0.10);
+      background: linear-gradient(135deg, rgba(14,165,233,0.34), rgba(15,23,42,0.78));
+    }
+
+    .skin-note {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 12px;
+      }
+
+      .app {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .two {
+        grid-template-columns: 1fr;
+      }
+
+      .skin-choice {
+        width: 100%;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <main class="card">
-    <div class="pill">β版・テスト中 ／ アカウントなし版</div>
-    <div class="logo-line">
-      <div class="logo-mark">✈️</div>
+  <main class="app">
+    <div class="badge">β版・テスト中 ／ ニコリタウン</div>
+
+    <section class="hero">
+      <div class="logo">✈️</div>
       <div>
         <h1>ニコリタウン</h1>
-        <p class="lead">ルーム名を入力するだけで、同じルームの人と歩き回って話せる2Dタウン。</p>
+        <p class="lead">
+          歩き回って、同じルームの人と話せる2Dタウン。Googleログインまたはゲストログインで入れます。
+        </p>
       </div>
-    </div>
+    </section>
 
-    <section class="screen">
-      <div class="grid two">
-        <label>ルーム名
-          <input id="roomName" maxlength="32" placeholder="例）park-001" autocomplete="off" />
+    <section id="loginScreen" class="screen">
+      <h2 class="screen-title">ログイン</h2>
+
+      <div class="form-grid">
+        <label>
+          ゲスト表示名
+          <input id="guestNameInput" type="text" maxlength="16" placeholder="例）こっぴー" autocomplete="off" />
         </label>
-        <label>表示名（空ならゲスト）
-          <input id="playerName" maxlength="16" placeholder="例）こっぴー" autocomplete="off" />
+
+        <div class="row right">
+          <button id="googleLoginBtn" class="btn google" type="button">Googleでログイン</button>
+          <button id="guestLoginBtn" class="btn" type="button">ゲストとしてログイン</button>
+        </div>
+      </div>
+
+      <p class="notice">
+        ログインID・認証パスワード・アカウント作成は使いません。Googleログインとゲストログインだけを残しています。
+      </p>
+
+      <div id="loginStatus" class="status"></div>
+    </section>
+
+    <section id="roomScreen" class="screen" hidden>
+      <div class="user-box">
+        <div>
+          <div id="currentUserName" class="user-name">ゲスト</div>
+          <div id="currentUserType" class="user-sub">未ログイン</div>
+        </div>
+        <button id="logoutBtn" class="btn secondary" type="button">ログアウト</button>
+      </div>
+
+      <h2 class="screen-title">ルーム</h2>
+
+      <div class="form-grid two">
+        <label>
+          ルーム名
+          <input id="roomNameInput" type="text" maxlength="32" placeholder="例）nikori-room" autocomplete="off" />
+        </label>
+
+        <label>
+          表示名
+          <input id="playerNameInput" type="text" maxlength="16" placeholder="例）こっぴー" autocomplete="off" />
         </label>
       </div>
 
-      <div id="skinPicker" class="skin-picker" aria-label="スキン変更">
-        <div class="skin-picker-title">スキン変更</div>
-        <div class="skin-choice-row">
-          <button type="button" class="skin-choice" data-skin="nikorihito" aria-pressed="false">
+      <section class="skin-picker" aria-label="スキン変更">
+        <div class="skin-title">スキン変更</div>
+
+        <div class="skin-row">
+          <button class="skin-choice" type="button" data-skin="nikorihito" aria-pressed="false">
             <img src="./nikorihito_dot_front.png" alt="" />
             <span>ニコリヒト</span>
           </button>
-          <button type="button" class="skin-choice" data-skin="turuturu" aria-pressed="false">
+
+          <button class="skin-choice" type="button" data-skin="turuturu" aria-pressed="false">
             <img src="./turuturu_front.png" alt="" />
             <span>つるつる君</span>
           </button>
         </div>
-        <div class="skin-picker-note">飛行機はどちらのスキンでも共通です。</div>
-      </div>
+
+        <div class="skin-note">
+          飛行機はどちらのスキンでも共通です。つるつる君はルーム内で小さめに表示します。
+        </div>
+      </section>
 
       <div class="row right">
-        <button id="enterRoomBtn">ルームに入る</button>
-        <button id="randomRoomBtn" class="secondary">ランダム名</button>
+        <button id="randomRoomBtn" class="btn secondary" type="button">ランダム名</button>
+        <button id="enterRoomBtn" class="btn" type="button">ルームに入る</button>
       </div>
-      <p class="notice">アカウント作成・ログイン・ルームパスワードは使いません。同じルーム名を入力した人が同じ部屋に入ります。</p>
-      <div id="status" class="status"></div>
+
+      <p class="notice">
+        ルームパスワードは使いません。同じルーム名を入力した人が同じ部屋に入ります。
+      </p>
+
+      <div id="roomStatus" class="status"></div>
     </section>
   </main>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-    import { getDatabase, ref, update } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signInAnonymously,
+      onAuthStateChanged,
+      signOut,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      update
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
-      authDomain: 'nikori-town.firebaseapp.com',
-      databaseURL: 'https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app',
-      projectId: 'nikori-town',
-      storageBucket: 'nikori-town.appspot.com',
-      messagingSenderId: '836836010871',
-      appId: '1:836836010871:web:74ae40cb16ee6d50368f72'
+      apiKey: "AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ",
+      authDomain: "nikori-town.firebaseapp.com",
+      databaseURL: "https://nikori-town-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "nikori-town",
+      storageBucket: "nikori-town.appspot.com",
+      messagingSenderId: "836836010871",
+      appId: "1:836836010871:web:74ae40cb16ee6d50368f72"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app, firebaseConfig.databaseURL);
-    const $ = id => document.getElementById(id);
 
-    const LS_ROOM = 'nikoriTown.lastRoom';
-    const LS_NAME = 'nikoriTown.playerName';
-    const LS_SKIN = 'nikoriTown.skin';
+    const LS_NAME = "nikoriTown.playerName";
+    const LS_ROOM = "nikoriTown.lastRoom";
+    const LS_SKIN = "nikoriTown.skin";
 
-    $('roomName').value = localStorage.getItem(LS_ROOM) || '';
-    $('playerName').value = localStorage.getItem(LS_NAME) || '';
+    const loginScreen = document.getElementById("loginScreen");
+    const roomScreen = document.getElementById("roomScreen");
+    const guestNameInput = document.getElementById("guestNameInput");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const roomNameInput = document.getElementById("roomNameInput");
+    const loginStatus = document.getElementById("loginStatus");
+    const roomStatus = document.getElementById("roomStatus");
+    const currentUserName = document.getElementById("currentUserName");
+    const currentUserType = document.getElementById("currentUserType");
 
-    function status(text){ $('status').textContent = text || ''; }
+    const googleLoginBtn = document.getElementById("googleLoginBtn");
+    const guestLoginBtn = document.getElementById("guestLoginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const enterRoomBtn = document.getElementById("enterRoomBtn");
+    const randomRoomBtn = document.getElementById("randomRoomBtn");
 
-    function safeRoom(raw){
-      return String(raw || '')
+    guestNameInput.value = localStorage.getItem(LS_NAME) || "";
+    playerNameInput.value = localStorage.getItem(LS_NAME) || "";
+    roomNameInput.value = localStorage.getItem(LS_ROOM) || "";
+
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({
+      prompt: "select_account"
+    });
+
+    function setLoginStatus(message) {
+      loginStatus.textContent = message || "";
+    }
+
+    function setRoomStatus(message) {
+      roomStatus.textContent = message || "";
+    }
+
+    function safeName(value) {
+      const name = String(value || "").trim().slice(0, 16);
+      return name || "ゲスト";
+    }
+
+    function safeRoom(value) {
+      return String(value || "")
         .trim()
         .toLowerCase()
-        .replace(/[.#$/\[\]\/]/g,'-')
-        .replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g,'-')
-        .slice(0,32);
+        .replace(/[.#$/\[\]\/]/g, "-")
+        .replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g, "-")
+        .replace(/-+/g, "-")
+        .slice(0, 32);
     }
 
-    function safeName(raw){
-      const name = String(raw || '').trim().slice(0,16);
-      return name || 'ゲスト';
+    function normalizeSkin(value) {
+      return value === "turuturu" ? "turuturu" : "nikorihito";
     }
 
-    function normalizeSkin(raw){
-      return raw === 'turuturu' ? 'turuturu' : 'nikorihito';
+    function getSelectedSkin() {
+      return normalizeSkin(localStorage.getItem(LS_SKIN) || "nikorihito");
     }
 
-    function getSelectedSkin(){
-      return normalizeSkin(localStorage.getItem(LS_SKIN) || 'nikorihito');
-    }
+    function setSelectedSkin(skin) {
+      const selected = normalizeSkin(skin);
+      localStorage.setItem(LS_SKIN, selected);
 
-    function setSelectedSkin(skin){
-      const value = normalizeSkin(skin);
-      localStorage.setItem(LS_SKIN, value);
-      document.querySelectorAll('[data-skin]').forEach(btn => {
-        const active = btn.dataset.skin === value;
-        btn.classList.toggle('active', active);
-        btn.setAttribute('aria-pressed', String(active));
+      document.querySelectorAll("[data-skin]").forEach((button) => {
+        const active = button.dataset.skin === selected;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
       });
     }
 
-    function initSkinPicker(){
-      document.querySelectorAll('[data-skin]').forEach(btn => {
-        btn.onclick = () => setSelectedSkin(btn.dataset.skin);
+    function initSkinPicker() {
+      document.querySelectorAll("[data-skin]").forEach((button) => {
+        button.addEventListener("click", () => {
+          setSelectedSkin(button.dataset.skin);
+        });
       });
+
       setSelectedSkin(getSelectedSkin());
     }
 
-    async function ensureAnonAuth(){
-      if (auth.currentUser) return auth.currentUser;
-      await signInAnonymously(auth);
-      return await new Promise(resolve => {
-        const stop = onAuthStateChanged(auth, user => {
-          if (user) { stop(); resolve(user); }
-        });
-      });
+    function getUserDisplayName(user) {
+      return safeName(user?.displayName || localStorage.getItem(LS_NAME) || "ゲスト");
     }
 
-    async function enterRoom(){
-      const room = safeRoom($('roomName').value);
-      if (!room) {
-        status('ルーム名を入力してください。');
-        $('roomName').focus();
+    async function loginWithGoogle() {
+      googleLoginBtn.disabled = true;
+      guestLoginBtn.disabled = true;
+      setLoginStatus("Googleログイン中...");
+
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const name = safeName(result.user.displayName || "Googleユーザー");
+
+        localStorage.setItem(LS_NAME, name);
+        guestNameInput.value = name;
+        playerNameInput.value = name;
+        setLoginStatus("");
+      } catch (error) {
+        console.error(error);
+        setLoginStatus("Googleログインに失敗しました。Firebase Authentication の Google プロバイダ設定を確認してください。");
+      } finally {
+        googleLoginBtn.disabled = false;
+        guestLoginBtn.disabled = false;
+      }
+    }
+
+    async function loginAsGuest() {
+      googleLoginBtn.disabled = true;
+      guestLoginBtn.disabled = true;
+      setLoginStatus("ゲストログイン中...");
+
+      try {
+        const name = safeName(guestNameInput.value || "ゲスト");
+        localStorage.setItem(LS_NAME, name);
+
+        const result = await signInAnonymously(auth);
+
+        try {
+          await updateProfile(result.user, {
+            displayName: name
+          });
+        } catch (profileError) {
+          console.warn(profileError);
+        }
+
+        playerNameInput.value = name;
+        setLoginStatus("");
+      } catch (error) {
+        console.error(error);
+        setLoginStatus("ゲストログインに失敗しました。Firebase Authentication の匿名ログインを有効化してください。");
+      } finally {
+        googleLoginBtn.disabled = false;
+        guestLoginBtn.disabled = false;
+      }
+    }
+
+    async function logout() {
+      await signOut(auth);
+    }
+
+    async function enterRoom() {
+      const user = auth.currentUser;
+
+      if (!user) {
+        setRoomStatus("先にGoogleログインまたはゲストログインしてください。");
         return;
       }
-      const name = safeName($('playerName').value);
+
+      const room = safeRoom(roomNameInput.value);
+      const name = safeName(playerNameInput.value || getUserDisplayName(user));
       const skin = getSelectedSkin();
+
+      if (!room) {
+        setRoomStatus("ルーム名を入力してください。");
+        roomNameInput.focus();
+        return;
+      }
+
       localStorage.setItem(LS_ROOM, room);
       localStorage.setItem(LS_NAME, name);
       localStorage.setItem(LS_SKIN, skin);
 
-      $('enterRoomBtn').disabled = true;
-      status('ルームを準備しています...');
+      enterRoomBtn.disabled = true;
+      setRoomStatus("ルームを準備しています...");
+
       try {
-        const user = await ensureAnonAuth();
+        if (user.isAnonymous && user.displayName !== name) {
+          try {
+            await updateProfile(user, {
+              displayName: name
+            });
+          } catch (profileError) {
+            console.warn(profileError);
+          }
+        }
+
         await update(ref(db, `roomMeta/${room}`), {
           room,
-          noAccountMode: true,
           passwordEnabled: false,
+          authMode: user.isAnonymous ? "guest" : "google",
           updatedAt: Date.now(),
           lastJoinUid: user.uid
         });
-        const u = new URL('./room.html', location.href);
-        u.searchParams.set('room', room);
-        u.searchParams.set('name', name);
-        u.searchParams.set('skin', skin);
-        location.href = u.toString();
+
+        const url = new URL("./room.html", location.href);
+        url.searchParams.set("room", room);
+        url.searchParams.set("name", name);
+        url.searchParams.set("skin", skin);
+
+        location.href = url.toString();
       } catch (error) {
         console.error(error);
-        status('入室準備に失敗しました。Firebaseの設定またはDBルールを確認してください。');
-        $('enterRoomBtn').disabled = false;
+        setRoomStatus("入室準備に失敗しました。Firebaseの設定またはDBルールを確認してください。");
+        enterRoomBtn.disabled = false;
       }
     }
 
-    $('enterRoomBtn').onclick = enterRoom;
-    $('roomName').addEventListener('keydown', e => { if (e.key === 'Enter') enterRoom(); });
-    $('playerName').addEventListener('keydown', e => { if (e.key === 'Enter') enterRoom(); });
-    $('randomRoomBtn').onclick = () => {
-      $('roomName').value = 'room-' + Math.random().toString(36).slice(2,7);
-      $('roomName').focus();
-    };
+    onAuthStateChanged(auth, (user) => {
+      const loggedIn = Boolean(user);
+
+      loginScreen.hidden = loggedIn;
+      roomScreen.hidden = !loggedIn;
+
+      if (!user) {
+        currentUserName.textContent = "ゲスト";
+        currentUserType.textContent = "未ログイン";
+        return;
+      }
+
+      const name = getUserDisplayName(user);
+
+      currentUserName.textContent = name;
+      currentUserType.textContent = user.isAnonymous ? "ゲストログイン" : "Googleログイン";
+
+      if (!playerNameInput.value) {
+        playerNameInput.value = name;
+      }
+
+      if (!guestNameInput.value) {
+        guestNameInput.value = name;
+      }
+
+      localStorage.setItem(LS_NAME, name);
+    });
+
+    googleLoginBtn.addEventListener("click", loginWithGoogle);
+    guestLoginBtn.addEventListener("click", loginAsGuest);
+    logoutBtn.addEventListener("click", logout);
+    enterRoomBtn.addEventListener("click", enterRoom);
+
+    randomRoomBtn.addEventListener("click", () => {
+      roomNameInput.value = "room-" + Math.random().toString(36).slice(2, 7);
+      roomNameInput.focus();
+    });
+
+    guestNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        loginAsGuest();
+      }
+    });
+
+    playerNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        enterRoom();
+      }
+    });
+
+    roomNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        enterRoom();
+      }
+    });
 
     initSkinPicker();
   </script>
