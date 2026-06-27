@@ -108,6 +108,16 @@
       box-shadow: none;
     }
 
+    #flyBtn.is-flying,
+    .pad-fly.is-flying {
+      background: linear-gradient(180deg, #3b82f6, #2563eb);
+      border-color: rgba(147, 197, 253, 0.9);
+      color: #ffffff;
+      box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.22),
+        0 12px 26px rgba(37, 99, 235, 0.22);
+    }
+
     .btn.danger {
       background: rgba(239, 68, 68, 0.95);
       color: white;
@@ -749,7 +759,12 @@
 
     const WALK_SPEED = 400;
     const FLY_SPEED = WALK_SPEED * 2;
-    const AIRPLANE_HEIGHT = 145;
+
+    /*
+      飛行機サイズ。
+      前回145だった想定から約2倍。
+    */
+    const AIRPLANE_HEIGHT = 290;
 
     const COLLISION_WALKABLE_BRIGHTNESS = 100;
     const COLLISION_STEP_SIZE = 5;
@@ -779,6 +794,7 @@
       right: false
     };
 
+    let arrowDownHeld = false;
     let flightComboLocked = false;
     let replyTarget = null;
     let editingMessage = null;
@@ -906,6 +922,7 @@
       menuBackdrop.hidden = false;
       refreshSkinButtons();
       refreshMapButtons();
+      updateFlyButtonState();
     }
 
     function closeMenu() {
@@ -964,9 +981,29 @@
       }
     }
 
+    function updateFlyButtonState() {
+      flyBtn.textContent = "✈️ 飛行機";
+      flyBtn.classList.toggle("is-flying", player.flying);
+
+      document.querySelectorAll(".pad-fly").forEach((button) => {
+        button.classList.toggle("is-flying", player.flying);
+      });
+    }
+
     function toggleFlying() {
-      player.flying = !player.flying;
-      flyBtn.textContent = player.flying ? "歩く" : "✈️ 飛行機";
+      if (player.flying) {
+        if (!canStandAt(player.x, player.y)) {
+          alert("ここには降りられません。通れる場所まで移動してから飛行機を降りてください。");
+          updateFlyButtonState();
+          return;
+        }
+
+        player.flying = false;
+      } else {
+        player.flying = true;
+      }
+
+      updateFlyButtonState();
       pushPlayer(true);
     }
 
@@ -1004,7 +1041,13 @@
         event.preventDefault();
       }
 
-      if (event.key === "ArrowDown" || key === "s") {
+      if (event.key === "ArrowDown") {
+        keys.down = true;
+        arrowDownHeld = true;
+        event.preventDefault();
+      }
+
+      if (key === "s") {
         keys.down = true;
         event.preventDefault();
       }
@@ -1019,7 +1062,7 @@
         event.preventDefault();
       }
 
-      if ((event.key === "ArrowDown" || keys.down) && key === "h" && !flightComboLocked) {
+      if (arrowDownHeld && key === "h" && !flightComboLocked) {
         flightComboLocked = true;
         toggleFlying();
         event.preventDefault();
@@ -1038,11 +1081,16 @@
       const key = event.key.toLowerCase();
 
       if (event.key === "ArrowUp" || key === "w") keys.up = false;
-      if (event.key === "ArrowDown" || key === "s") keys.down = false;
+      if (event.key === "ArrowDown") {
+        keys.down = false;
+        arrowDownHeld = false;
+        flightComboLocked = false;
+      }
+      if (key === "s") keys.down = false;
       if (event.key === "ArrowLeft" || key === "a") keys.left = false;
       if (event.key === "ArrowRight" || key === "d") keys.right = false;
 
-      if (event.key === "ArrowDown" || key === "h") {
+      if (key === "h") {
         flightComboLocked = false;
       }
     });
@@ -1638,29 +1686,46 @@
     function drawAirplane(p, sx, sy) {
       const image = images.airplane;
       const skin = normalizeSkin(p.skin);
+      const dir = normalizeDir(p.dir);
 
-      let w = 120;
+      let w = 240;
       let h = AIRPLANE_HEIGHT;
 
       if (image.complete && image.naturalWidth) {
         h = AIRPLANE_HEIGHT;
         w = h * image.naturalWidth / image.naturalHeight;
-        ctx.drawImage(image, sx - w / 2, sy - h + 18, w, h);
+
+        ctx.save();
+
+        /*
+          nikori_airplane.png が右向き画像前提。
+          左移動時だけ左右反転する。
+          もし向きが逆だった場合は、ここを dir === "right" に変更。
+        */
+        if (dir === "left") {
+          ctx.translate(sx, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(image, -w / 2, sy - h + 18, w, h);
+        } else {
+          ctx.drawImage(image, sx - w / 2, sy - h + 18, w, h);
+        }
+
+        ctx.restore();
       } else {
         ctx.fillStyle = "#e0f2fe";
         ctx.beginPath();
-        ctx.ellipse(sx, sy - 25, 64, 25, 0, 0, Math.PI * 2);
+        ctx.ellipse(sx, sy - 105, 120, 48, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#0f172a";
-        ctx.fillRect(sx - 10, sy - 40, 20, 20);
+        ctx.fillRect(sx - 18, sy - 135, 36, 36);
       }
 
-      drawTinyPilot(skin, sx, sy - 52);
+      drawTinyPilot(skin, sx, sy - 210);
     }
 
     function drawTinyPilot(skin, sx, sy) {
       const image = images.skins[skin]?.front;
-      const h = skin === "turuturu" ? 32 : 34;
+      const h = skin === "turuturu" ? 56 : 60;
       const w = h;
 
       if (image && image.complete && image.naturalWidth) {
@@ -1798,6 +1863,7 @@
       subscribeRoomState();
       refreshSkinButtons();
       refreshMapButtons();
+      updateFlyButtonState();
 
       requestAnimationFrame((time) => {
         state.lastFrame = time;
