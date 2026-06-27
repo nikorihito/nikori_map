@@ -164,10 +164,86 @@
       word-break: break-word;
     }
 
+    .message-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
     .message-name {
       color: #67e8f9;
       font-weight: 950;
       margin-right: 5px;
+      cursor: pointer;
+    }
+
+    .message-text.edited::after {
+      content: "（編集済み）";
+      color: var(--muted);
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    .mention {
+      color: #fef08a;
+      font-weight: 900;
+    }
+
+    .reply-preview {
+      margin: 5px 0 7px;
+      padding: 6px 8px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: rgba(14, 165, 233, 0.10);
+      color: #bae6fd;
+      font-size: 12px;
+    }
+
+    .message-actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .message-actions button {
+      min-height: 26px;
+      padding: 3px 7px;
+      border-radius: 9px;
+      background: rgba(30, 41, 59, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .compose-state {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(14, 165, 233, 0.12);
+      color: #bae6fd;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .compose-state[hidden] {
+      display: none;
+    }
+
+    .compose-state button {
+      min-width: 28px;
+      min-height: 28px;
+      border-radius: 9px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 900;
     }
 
     .chat-form {
@@ -226,7 +302,7 @@
     }
 
     .menu {
-      width: min(560px, 94vw);
+      width: min(620px, 94vw);
       max-height: 90svh;
       overflow: auto;
       border-radius: 24px;
@@ -268,7 +344,8 @@
       color: var(--text);
     }
 
-    .skin-picker {
+    .skin-picker,
+    .map-picker {
       padding: 14px;
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -288,7 +365,7 @@
     }
 
     .skin-choice {
-      min-width: 165px;
+      min-width: 145px;
       display: flex;
       align-items: center;
       gap: 11px;
@@ -313,85 +390,6 @@
         0 0 0 3px rgba(34, 211, 238, 0.18),
         0 14px 34px rgba(34, 211, 238, 0.10);
       background: linear-gradient(135deg, rgba(14,165,233,0.34), rgba(15,23,42,0.82));
-    }
-
-    .compose-state {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(14, 165, 233, 0.12);
-      color: #bae6fd;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .compose-state[hidden] {
-      display: none;
-    }
-
-    .compose-state button {
-      min-width: 28px;
-      min-height: 28px;
-      border-radius: 9px;
-      background: rgba(30, 41, 59, 0.9);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-weight: 900;
-    }
-
-    .reply-preview {
-      margin: 5px 0 7px;
-      padding: 6px 8px;
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      background: rgba(14, 165, 233, 0.10);
-      color: #bae6fd;
-      font-size: 12px;
-    }
-
-    .message-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 3px;
-    }
-
-    .message-name {
-      cursor: pointer;
-    }
-
-    .message-text.edited::after {
-      content: "（編集済み）";
-      color: var(--muted);
-      font-size: 11px;
-      margin-left: 4px;
-    }
-
-    .message-actions {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    .message-actions button {
-      min-height: 26px;
-      padding: 3px 7px;
-      border-radius: 9px;
-      background: rgba(30, 41, 59, 0.82);
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .mention {
-      color: #fef08a;
-      font-weight: 900;
     }
 
     .menu-actions {
@@ -423,30 +421,11 @@
       box-shadow: 0 10px 26px rgba(0,0,0,0.25);
     }
 
-    .pad-up {
-      grid-column: 2;
-      grid-row: 1;
-    }
-
-    .pad-left {
-      grid-column: 1;
-      grid-row: 2;
-    }
-
-    .pad-fly {
-      grid-column: 2;
-      grid-row: 2;
-    }
-
-    .pad-right {
-      grid-column: 3;
-      grid-row: 2;
-    }
-
-    .pad-down {
-      grid-column: 2;
-      grid-row: 3;
-    }
+    .pad-up { grid-column: 2; grid-row: 1; }
+    .pad-left { grid-column: 1; grid-row: 2; }
+    .pad-fly { grid-column: 2; grid-row: 2; }
+    .pad-right { grid-column: 3; grid-row: 2; }
+    .pad-down { grid-column: 2; grid-row: 3; }
 
     .loading {
       position: fixed;
@@ -515,6 +494,7 @@
       ルーム: <strong id="roomLabel">-</strong>
       ／ 自分: <strong id="nameLabel">-</strong>
       ／ 人数: <strong id="countLabel">0</strong>
+      ／ マップ: <strong id="mapLabel">-</strong>
       <br />
       <span id="helpLabel">移動: WASD / 矢印　飛行機: ↓ + H　メニュー: Esc</span>
     </div>
@@ -576,6 +556,27 @@
             <button id="copyRoomBtn" class="btn secondary" type="button">コピー</button>
           </div>
         </div>
+
+        <section class="map-picker" aria-label="マップ変更">
+          <div class="skin-title">マップ変更</div>
+          <div class="skin-row">
+            <button class="skin-choice" type="button" data-map="0" aria-pressed="false">
+              <span>マップ1</span>
+            </button>
+            <button class="skin-choice" type="button" data-map="1" aria-pressed="false">
+              <span>マップ2</span>
+            </button>
+            <button class="skin-choice" type="button" data-map="2" aria-pressed="false">
+              <span>マップ3</span>
+            </button>
+            <button class="skin-choice" type="button" data-map="3" aria-pressed="false">
+              <span>マップ4</span>
+            </button>
+            <button class="skin-choice" type="button" data-map="4" aria-pressed="false">
+              <span>マップ5</span>
+            </button>
+          </div>
+        </section>
 
         <section class="skin-picker" aria-label="スキン変更">
           <div class="skin-title">スキン変更</div>
@@ -644,6 +645,7 @@
     const roomLabel = document.getElementById("roomLabel");
     const nameLabel = document.getElementById("nameLabel");
     const countLabel = document.getElementById("countLabel");
+    const mapLabel = document.getElementById("mapLabel");
     const chatStatus = document.getElementById("chatStatus");
     const chatList = document.getElementById("chatList");
     const chatForm = document.getElementById("chatForm");
@@ -663,6 +665,45 @@
     const LS_NAME = "nikoriTown.playerName";
     const LS_ROOM = "nikoriTown.lastRoom";
     const LS_SKIN = "nikoriTown.skin";
+    const LS_MAP = "nikoriTown.currentMap";
+
+    const MAPS = [
+      {
+        name: "マップ1",
+        map: "./map_1.png",
+        collision: "./atarihantei.png",
+        spawn: { x: 520, y: 400 }
+      },
+      {
+        name: "マップ2",
+        map: "./map_2.png",
+        collision: "./atarihantei_2.png",
+        spawn: { x: 520, y: 400 }
+      },
+      {
+        name: "マップ3",
+        map: "./map_3.png",
+        collision: "./atarihantei_3.png",
+        spawn: { x: 520, y: 400 }
+      },
+      {
+        name: "マップ4",
+        map: "./map_4.png",
+        collision: "./atarihantei_4.png",
+        spawn: { x: 520, y: 400 }
+      },
+      {
+        name: "マップ5",
+        map: "./map_5.png",
+        collision: "./atarihantei_5.png",
+        spawn: { x: 520, y: 400 }
+      }
+    ];
+
+    let currentMapIndex = Number(localStorage.getItem(LS_MAP) || "0");
+    if (!Number.isFinite(currentMapIndex) || currentMapIndex < 0 || currentMapIndex >= MAPS.length) {
+      currentMapIndex = 0;
+    }
 
     const params = new URLSearchParams(location.search);
 
@@ -684,8 +725,6 @@
     roomShareInput.value = room;
 
     const ASSETS = {
-      map: "./map_1.png",
-      collision: "./atarihantei.png",
       airplane: "./nikori_airplane.png",
       skins: {
         nikorihito: {
@@ -708,13 +747,18 @@
       turuturu: 88
     };
 
-    const AIRPLANE_HEIGHT = 78;
+    const WALK_SPEED = 400;
+    const FLY_SPEED = WALK_SPEED * 2;
+    const AIRPLANE_HEIGHT = 145;
+
+    const COLLISION_WALKABLE_BRIGHTNESS = 100;
+    const COLLISION_STEP_SIZE = 5;
 
     const player = {
       uid: "",
       name: playerName,
-      x: 520 + Math.random() * 160,
-      y: 400 + Math.random() * 120,
+      x: MAPS[currentMapIndex].spawn.x + Math.random() * 160,
+      y: MAPS[currentMapIndex].spawn.y + Math.random() * 120,
       dir: "front",
       skin: selectedSkin,
       flying: false,
@@ -771,8 +815,6 @@
       }
     };
 
-    images.map.src = ASSETS.map;
-    images.collision.src = ASSETS.collision;
     images.airplane.src = ASSETS.airplane;
 
     for (const skinName of Object.keys(ASSETS.skins)) {
@@ -785,11 +827,47 @@
       state.mapLoaded = true;
       state.worldW = images.map.naturalWidth || state.worldW;
       state.worldH = images.map.naturalHeight || state.worldH;
+
+      player.x = clamp(player.x, 20, state.worldW - 20);
+      player.y = clamp(player.y, 20, state.worldH - 20);
+    };
+
+    images.map.onerror = () => {
+      console.warn("マップ画像が読み込めません:", MAPS[currentMapIndex].map);
+      state.mapLoaded = false;
     };
 
     images.collision.onload = () => {
       state.collisionLoaded = true;
+      canStandAt.offscreen = null;
+      canStandAt.ctx = null;
+      canStandAt.mapIndex = -1;
     };
+
+    images.collision.onerror = () => {
+      console.warn("当たり判定画像が読み込めません:", MAPS[currentMapIndex].collision);
+      state.collisionLoaded = false;
+    };
+
+    function loadCurrentMapAssets() {
+      const mapData = MAPS[currentMapIndex] || MAPS[0];
+
+      state.mapLoaded = false;
+      state.collisionLoaded = false;
+
+      canStandAt.offscreen = null;
+      canStandAt.ctx = null;
+      canStandAt.mapIndex = -1;
+
+      images.map.src = mapData.map + "?v=" + Date.now();
+      images.collision.src = mapData.collision + "?v=" + Date.now();
+
+      localStorage.setItem(LS_MAP, String(currentMapIndex));
+      mapLabel.textContent = mapData.name;
+      refreshMapButtons();
+    }
+
+    loadCurrentMapAssets();
 
     function resizeCanvas() {
       const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -827,6 +905,7 @@
     function openMenu() {
       menuBackdrop.hidden = false;
       refreshSkinButtons();
+      refreshMapButtons();
     }
 
     function closeMenu() {
@@ -841,6 +920,14 @@
       });
     }
 
+    function refreshMapButtons() {
+      document.querySelectorAll("[data-map]").forEach((button) => {
+        const active = Number(button.dataset.map) === currentMapIndex;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
     async function changeSkin(skin) {
       selectedSkin = normalizeSkin(skin);
       player.skin = selectedSkin;
@@ -849,6 +936,31 @@
 
       if (player.uid) {
         await pushPlayer(true);
+      }
+    }
+
+    async function changeMap(index) {
+      const next = Number(index);
+
+      if (!Number.isFinite(next) || next < 0 || next >= MAPS.length) {
+        return;
+      }
+
+      currentMapIndex = next;
+      localStorage.setItem(LS_MAP, String(currentMapIndex));
+
+      const spawn = MAPS[currentMapIndex].spawn || { x: 520, y: 400 };
+      player.x = spawn.x + Math.random() * 80;
+      player.y = spawn.y + Math.random() * 80;
+
+      loadCurrentMapAssets();
+      await pushPlayer(true);
+
+      if (player.uid) {
+        await update(ref(db, `rooms/${room}/roomState`), {
+          mapIndex: currentMapIndex,
+          updatedAt: serverTimestamp()
+        }).catch(console.warn);
       }
     }
 
@@ -967,6 +1079,12 @@
     document.querySelectorAll("[data-skin]").forEach((button) => {
       button.addEventListener("click", () => {
         changeSkin(button.dataset.skin);
+      });
+    });
+
+    document.querySelectorAll("[data-map]").forEach((button) => {
+      button.addEventListener("click", () => {
+        changeMap(button.dataset.map);
       });
     });
 
@@ -1091,7 +1209,7 @@
 
       const now = Date.now();
 
-      if (!force && now - state.lastPush < 40) {
+      if (!force && now - state.lastPush < 35) {
         return;
       }
 
@@ -1138,6 +1256,32 @@
           });
 
         renderMessages();
+      });
+    }
+
+    function subscribeRoomState() {
+      const roomStateRef = ref(db, `rooms/${room}/roomState`);
+
+      onValue(roomStateRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        const nextMapIndex = Number(data.mapIndex ?? currentMapIndex);
+
+        if (
+          Number.isFinite(nextMapIndex) &&
+          nextMapIndex >= 0 &&
+          nextMapIndex < MAPS.length &&
+          nextMapIndex !== currentMapIndex
+        ) {
+          currentMapIndex = nextMapIndex;
+          localStorage.setItem(LS_MAP, String(currentMapIndex));
+
+          const spawn = MAPS[currentMapIndex].spawn || { x: 520, y: 400 };
+          player.x = spawn.x + Math.random() * 80;
+          player.y = spawn.y + Math.random() * 80;
+
+          loadCurrentMapAssets();
+          pushPlayer(true);
+        }
       });
     }
 
@@ -1263,29 +1407,42 @@
       dx /= len;
       dy /= len;
 
-      const speed = player.flying ? 250 : 150;
-      const step = speed * dt;
+      const speed = player.flying ? FLY_SPEED : WALK_SPEED;
+      const distance = speed * dt;
 
-      const nx = clamp(player.x + dx * step, 20, state.worldW - 20);
-      const ny = clamp(player.y + dy * step, 20, state.worldH - 20);
+      movePlayerWithCollision(dx, dy, distance);
+      pushPlayer(false);
+    }
 
-      if (player.flying || canStandAt(nx, ny)) {
-        player.x = nx;
-        player.y = ny;
-      } else {
-        const nxOnly = clamp(player.x + dx * step, 20, state.worldW - 20);
-        const nyOnly = clamp(player.y + dy * step, 20, state.worldH - 20);
+    function movePlayerWithCollision(dx, dy, distance) {
+      const steps = Math.max(1, Math.ceil(distance / COLLISION_STEP_SIZE));
+      const stepX = (dx * distance) / steps;
+      const stepY = (dy * distance) / steps;
 
-        if (canStandAt(nxOnly, player.y)) {
-          player.x = nxOnly;
+      for (let i = 0; i < steps; i++) {
+        const nextX = clamp(player.x + stepX, 20, state.worldW - 20);
+        const nextY = clamp(player.y + stepY, 20, state.worldH - 20);
+
+        if (player.flying) {
+          player.x = nextX;
+          player.y = nextY;
+          continue;
         }
 
-        if (canStandAt(player.x, nyOnly)) {
-          player.y = nyOnly;
+        if (canStandAt(nextX, nextY)) {
+          player.x = nextX;
+          player.y = nextY;
+          continue;
+        }
+
+        if (canStandAt(nextX, player.y)) {
+          player.x = nextX;
+        }
+
+        if (canStandAt(player.x, nextY)) {
+          player.y = nextY;
         }
       }
-
-      pushPlayer(false);
     }
 
     function clamp(value, min, max) {
@@ -1297,6 +1454,24 @@
         return true;
       }
 
+      const skin = normalizeSkin(player.skin);
+      const radiusX = skin === "turuturu" ? 24 : 18;
+      const footY = y;
+      const bodyY = y - 18;
+
+      const points = [
+        [x, footY],
+        [x - radiusX, footY],
+        [x + radiusX, footY],
+        [x, bodyY],
+        [x - radiusX, bodyY],
+        [x + radiusX, bodyY]
+      ];
+
+      return points.every(([px, py]) => canStandAtPoint(px, py));
+    }
+
+    function canStandAtPoint(x, y) {
       const image = images.collision;
 
       if (!image.naturalWidth || !image.naturalHeight) {
@@ -1306,16 +1481,25 @@
       const sx = Math.floor((x / state.worldW) * image.naturalWidth);
       const sy = Math.floor((y / state.worldH) * image.naturalHeight);
 
-      try {
-        const off = canStandAt.offscreen || document.createElement("canvas");
-        const offCtx = canStandAt.ctx || off.getContext("2d", { willReadFrequently: true });
+      if (sx < 0 || sy < 0 || sx >= image.naturalWidth || sy >= image.naturalHeight) {
+        return false;
+      }
 
-        if (!canStandAt.offscreen) {
+      try {
+        let off = canStandAt.offscreen;
+        let offCtx = canStandAt.ctx;
+
+        if (!off || canStandAt.mapIndex !== currentMapIndex) {
+          off = document.createElement("canvas");
           off.width = image.naturalWidth;
           off.height = image.naturalHeight;
+
+          offCtx = off.getContext("2d", { willReadFrequently: true });
           offCtx.drawImage(image, 0, 0);
+
           canStandAt.offscreen = off;
           canStandAt.ctx = offCtx;
+          canStandAt.mapIndex = currentMapIndex;
         }
 
         const pixel = offCtx.getImageData(sx, sy, 1, 1).data;
@@ -1330,8 +1514,9 @@
 
         const brightness = (r + g + b) / 3;
 
-        return brightness > 45;
+        return brightness >= COLLISION_WALKABLE_BRIGHTNESS;
       } catch (error) {
+        console.warn(error);
         return true;
       }
     }
@@ -1420,6 +1605,10 @@
         ctx.lineTo(vw, y);
         ctx.stroke();
       }
+
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "900 18px system-ui, sans-serif";
+      ctx.fillText("マップ画像を読み込み中、または未配置です", 24, 42);
     }
 
     function drawPlayer(p) {
@@ -1450,7 +1639,7 @@
       const image = images.airplane;
       const skin = normalizeSkin(p.skin);
 
-      let w = 86;
+      let w = 120;
       let h = AIRPLANE_HEIGHT;
 
       if (image.complete && image.naturalWidth) {
@@ -1460,18 +1649,18 @@
       } else {
         ctx.fillStyle = "#e0f2fe";
         ctx.beginPath();
-        ctx.ellipse(sx, sy - 25, 44, 18, 0, 0, Math.PI * 2);
+        ctx.ellipse(sx, sy - 25, 64, 25, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#0f172a";
-        ctx.fillRect(sx - 8, sy - 33, 16, 16);
+        ctx.fillRect(sx - 10, sy - 40, 20, 20);
       }
 
-      drawTinyPilot(skin, sx, sy - 36);
+      drawTinyPilot(skin, sx, sy - 52);
     }
 
     function drawTinyPilot(skin, sx, sy) {
       const image = images.skins[skin]?.front;
-      const h = skin === "turuturu" ? 24 : 26;
+      const h = skin === "turuturu" ? 32 : 34;
       const w = h;
 
       if (image && image.complete && image.naturalWidth) {
@@ -1597,11 +1786,18 @@
         updatedAt: Date.now()
       });
 
+      await update(ref(db, `rooms/${room}/roomState`), {
+        mapIndex: currentMapIndex,
+        updatedAt: serverTimestamp()
+      }).catch(console.warn);
+
       onDisconnect(playerRef).remove();
 
       subscribePlayers();
       subscribeMessages();
+      subscribeRoomState();
       refreshSkinButtons();
+      refreshMapButtons();
 
       requestAnimationFrame((time) => {
         state.lastFrame = time;
