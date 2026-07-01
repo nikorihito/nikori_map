@@ -394,6 +394,18 @@
       image-rendering: pixelated;
     }
 
+    .map-choice {
+      min-width: 190px;
+    }
+
+    .map-choice img {
+      width: 64px;
+      height: 42px;
+      border-radius: 8px;
+      object-fit: cover;
+      image-rendering: auto;
+    }
+
     .skin-choice.active {
       border-color: rgba(34, 211, 238, 0.95);
       box-shadow:
@@ -569,23 +581,7 @@
 
         <section class="map-picker" aria-label="マップ変更">
           <div class="skin-title">マップ変更</div>
-          <div class="skin-row">
-            <button class="skin-choice" type="button" data-map="0" aria-pressed="false">
-              <span>マップ1</span>
-            </button>
-            <button class="skin-choice" type="button" data-map="1" aria-pressed="false">
-              <span>マップ2</span>
-            </button>
-            <button class="skin-choice" type="button" data-map="2" aria-pressed="false">
-              <span>マップ3</span>
-            </button>
-            <button class="skin-choice" type="button" data-map="3" aria-pressed="false">
-              <span>マップ4</span>
-            </button>
-            <button class="skin-choice" type="button" data-map="4" aria-pressed="false">
-              <span>マップ5</span>
-            </button>
-          </div>
+          <div id="mapChoiceRow" class="skin-row"></div>
         </section>
 
         <section class="skin-picker" aria-label="スキン変更">
@@ -670,6 +666,7 @@
     const leaveBtn = document.getElementById("leaveBtn");
     const copyRoomBtn = document.getElementById("copyRoomBtn");
     const roomShareInput = document.getElementById("roomShareInput");
+    const mapChoiceRow = document.getElementById("mapChoiceRow");
     const loading = document.getElementById("loading");
 
     const LS_NAME = "nikoriTown.playerName";
@@ -677,45 +674,30 @@
     const LS_SKIN = "nikoriTown.skin";
     const LS_MAP = "nikoriTown.currentMap";
 
+    const params = new URLSearchParams(location.search);
+
     const MAPS = [
-      {
-        name: "マップ1",
-        map: "./map_1.png",
-        collision: "./atarihantei.png",
-        spawn: { x: 520, y: 400 }
-      },
-      {
-        name: "マップ2",
-        map: "./map_2.png",
-        collision: "./atarihantei_2.png",
-        spawn: { x: 520, y: 400 }
-      },
-      {
-        name: "マップ3",
-        map: "./map_3.png",
-        collision: "./atarihantei_3.png",
-        spawn: { x: 520, y: 400 }
-      },
-      {
-        name: "マップ4",
-        map: "./map_4.png",
-        collision: "./atarihantei_4.png",
-        spawn: { x: 520, y: 400 }
-      },
-      {
-        name: "マップ5",
-        map: "./map_5.png",
-        collision: "./atarihantei_5.png",
-        spawn: { x: 520, y: 400 }
-      }
+      { name: "タウン", map: "./map_1.png", collision: "./atarihantei.png", spawn: { x: 520, y: 400 } },
+      { name: "湖畔公園", map: "./map/textures/lakeside_park.png", collision: "./map/atarihantei/lakeside_park.png", spawn: { x: 1024, y: 680 } },
+      { name: "森", map: "./map/textures/forest.png", collision: "./map/atarihantei/forest_atarihantei.png", spawn: { x: 1024, y: 680 } },
+      { name: "海底都市", map: "./map/textures/underwater_city.png", collision: "./map/atarihantei/underwater_city.png", spawn: { x: 1024, y: 680 } },
+      { name: "空中都市", map: "./map/textures/sky_city.png", collision: "./map/atarihantei/sky_city.png", spawn: { x: 1024, y: 680 } },
+      { name: "サイバーシティ", map: "./map/textures/cyber_city.png", collision: "./map/atarihantei/cyber_city_atarihantei.png", spawn: { x: 1024, y: 680 } },
+      { name: "白オフィス 1F", map: "./map/textures/office_white/office_white_1f.png", collision: "./map/atarihantei/office_white/office_white_1f.png", spawn: { x: 1024, y: 680 } },
+      { name: "白オフィス 2F", map: "./map/textures/office_white/office_white_2f.png", collision: "./map/atarihantei/office_white/office_white_2f.png", spawn: { x: 1024, y: 680 } },
+      { name: "白オフィス 屋上", map: "./map/textures/office_white/office_white_rooftop.png", collision: "./map/atarihantei/office_white/office_white_rooftop.png", spawn: { x: 1024, y: 680 } },
+      { name: "黒オフィス 1F", map: "./map/textures/office_black/office_black_1f.png", collision: "./map/atarihantei/office_black/office_black_1f.png", spawn: { x: 1024, y: 680 } },
+      { name: "黒オフィス 2F", map: "./map/textures/office_black/office_black_2f.png", collision: "./map/atarihantei/office_black/office_black_2f.png", spawn: { x: 1024, y: 680 } },
+      { name: "黒オフィス 屋上", map: "./map/textures/office_black/office_black_rooftop.png", collision: "./map/atarihantei/office_black/office_black_rooftop.png", spawn: { x: 1024, y: 680 } },
+      { name: "カフェ 1F", map: "./map/textures/cafe/cafe_1f.png", collision: "./map/atarihantei/cafe/cafe_1f.png", spawn: { x: 1024, y: 680 } },
+      { name: "カフェ 2F", map: "./map/textures/cafe/cafe_2f.png", collision: "./map/atarihantei/cafe/cafe_2f.png", spawn: { x: 1024, y: 680 } },
+      { name: "カフェ 屋上", map: "./map/textures/cafe/cafe_rooftop.png", collision: "./map/atarihantei/cafe/cafe_rooftop.png", spawn: { x: 1024, y: 680 } }
     ];
 
-    let currentMapIndex = Number(localStorage.getItem(LS_MAP) || "0");
+    let currentMapIndex = Number(params.get("map") ?? localStorage.getItem(LS_MAP) ?? "0");
     if (!Number.isFinite(currentMapIndex) || currentMapIndex < 0 || currentMapIndex >= MAPS.length) {
       currentMapIndex = 0;
     }
-
-    const params = new URLSearchParams(location.search);
 
     const room = safeRoom(params.get("room") || localStorage.getItem(LS_ROOM) || "");
     const playerName = safeName(params.get("name") || localStorage.getItem(LS_NAME) || "ゲスト");
@@ -876,13 +858,19 @@
       canStandAt.mapIndex = -1;
 
       images.map.src = mapData.map + "?v=" + Date.now();
-      images.collision.src = mapData.collision + "?v=" + Date.now();
+      if (mapData.collision) {
+        images.collision.src = mapData.collision + "?v=" + Date.now();
+      } else {
+        images.collision.removeAttribute("src");
+        state.collisionLoaded = false;
+      }
 
       localStorage.setItem(LS_MAP, String(currentMapIndex));
       mapLabel.textContent = mapData.name;
       refreshMapButtons();
     }
 
+    renderMapButtons();
     loadCurrentMapAssets();
 
     function resizeCanvas() {
@@ -943,6 +931,23 @@
         button.classList.toggle("active", active);
         button.setAttribute("aria-pressed", String(active));
       });
+    }
+
+    function renderMapButtons() {
+      mapChoiceRow.innerHTML = "";
+      MAPS.forEach((mapData, index) => {
+        const button = document.createElement("button");
+        button.className = "skin-choice map-choice";
+        button.type = "button";
+        button.dataset.map = String(index);
+        button.setAttribute("aria-pressed", "false");
+        button.innerHTML = `<img src="${mapData.map}" alt="" /><span>${mapData.name}</span>`;
+        button.addEventListener("click", () => {
+          changeMap(index);
+        });
+        mapChoiceRow.appendChild(button);
+      });
+      refreshMapButtons();
     }
 
     async function changeSkin(skin) {
@@ -1127,12 +1132,6 @@
     document.querySelectorAll("[data-skin]").forEach((button) => {
       button.addEventListener("click", () => {
         changeSkin(button.dataset.skin);
-      });
-    });
-
-    document.querySelectorAll("[data-map]").forEach((button) => {
-      button.addEventListener("click", () => {
-        changeMap(button.dataset.map);
       });
     });
 
