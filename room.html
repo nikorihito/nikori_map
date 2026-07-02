@@ -579,9 +579,9 @@
           </div>
         </div>
 
-        <section class="map-picker" aria-label="マップ変更">
-          <div class="skin-title">マップ変更</div>
-          <div id="mapChoiceRow" class="skin-row"></div>
+        <section id="floorPicker" class="map-picker" aria-label="階移動" hidden>
+          <div class="skin-title">階移動</div>
+          <div id="floorChoiceRow" class="skin-row"></div>
         </section>
 
         <section class="skin-picker" aria-label="スキン変更">
@@ -666,37 +666,109 @@
     const leaveBtn = document.getElementById("leaveBtn");
     const copyRoomBtn = document.getElementById("copyRoomBtn");
     const roomShareInput = document.getElementById("roomShareInput");
-    const mapChoiceRow = document.getElementById("mapChoiceRow");
+    const floorPicker = document.getElementById("floorPicker");
+    const floorChoiceRow = document.getElementById("floorChoiceRow");
     const loading = document.getElementById("loading");
 
     const LS_NAME = "nikoriTown.playerName";
     const LS_ROOM = "nikoriTown.lastRoom";
     const LS_SKIN = "nikoriTown.skin";
     const LS_MAP = "nikoriTown.currentMap";
+    const LS_FLOOR = "nikoriTown.currentFloor";
 
     const params = new URLSearchParams(location.search);
 
     const MAPS = [
-      { name: "タウン", map: "./map_1.png", collision: "./atarihantei.png", spawn: { x: 520, y: 400 } },
-      { name: "湖畔公園", map: "./map/textures/lakeside_park.png", collision: "./map/atarihantei/lakeside_park.png", spawn: { x: 1024, y: 680 } },
-      { name: "森", map: "./map/textures/forest.png", collision: "./map/atarihantei/forest_atarihantei.png", spawn: { x: 1024, y: 680 } },
-      { name: "海底都市", map: "./map/textures/underwater_city.png", collision: "./map/atarihantei/underwater_city.png", spawn: { x: 1024, y: 680 } },
-      { name: "空中都市", map: "./map/textures/sky_city.png", collision: "./map/atarihantei/sky_city.png", spawn: { x: 1024, y: 680 } },
-      { name: "サイバーシティ", map: "./map/textures/cyber_city.png", collision: "./map/atarihantei/cyber_city_atarihantei.png", spawn: { x: 1024, y: 680 } },
-      { name: "白オフィス 1F", map: "./map/textures/office_white/office_white_1f.png", collision: "./map/atarihantei/office_white/office_white_1f.png", spawn: { x: 1024, y: 680 } },
-      { name: "白オフィス 2F", map: "./map/textures/office_white/office_white_2f.png", collision: "./map/atarihantei/office_white/office_white_2f.png", spawn: { x: 1024, y: 680 } },
-      { name: "白オフィス 屋上", map: "./map/textures/office_white/office_white_rooftop.png", collision: "./map/atarihantei/office_white/office_white_rooftop.png", spawn: { x: 1024, y: 680 } },
-      { name: "黒オフィス 1F", map: "./map/textures/office_black/office_black_1f.png", collision: "./map/atarihantei/office_black/office_black_1f.png", spawn: { x: 1024, y: 680 } },
-      { name: "黒オフィス 2F", map: "./map/textures/office_black/office_black_2f.png", collision: "./map/atarihantei/office_black/office_black_2f.png", spawn: { x: 1024, y: 680 } },
-      { name: "黒オフィス 屋上", map: "./map/textures/office_black/office_black_rooftop.png", collision: "./map/atarihantei/office_black/office_black_rooftop.png", spawn: { x: 1024, y: 680 } },
-      { name: "カフェ 1F", map: "./map/textures/cafe/cafe_1f.png", collision: "./map/atarihantei/cafe/cafe_1f.png", spawn: { x: 1024, y: 680 } },
-      { name: "カフェ 2F", map: "./map/textures/cafe/cafe_2f.png", collision: "./map/atarihantei/cafe/cafe_2f.png", spawn: { x: 1024, y: 680 } },
-      { name: "カフェ 屋上", map: "./map/textures/cafe/cafe_rooftop.png", collision: "./map/atarihantei/cafe/cafe_rooftop.png", spawn: { x: 1024, y: 680 } }
+      {
+        id: "lakeside_park",
+        name: "公園",
+        type: "single",
+        texture: "./map/textures/lakeside_park.png",
+        mask: "./map/atarihantei/lakeside_park.png",
+        spawn: { x: 1024, y: 680 }
+      },
+      {
+        id: "forest",
+        name: "森林",
+        type: "single",
+        texture: "./map/textures/forest.png",
+        mask: "./map/atarihantei/forest_atarihantei.png",
+        spawn: { x: 1024, y: 680 }
+      },
+      {
+        id: "underwater_city",
+        name: "海底都市",
+        type: "single",
+        texture: "./map/textures/underwater_city.png",
+        mask: "./map/atarihantei/underwater_city.png",
+        spawn: { x: 1024, y: 680 }
+      },
+      {
+        id: "sky_city",
+        name: "空中都市",
+        type: "single",
+        texture: "./map/textures/sky_city.png",
+        mask: "./map/atarihantei/sky_city.png",
+        spawn: { x: 1024, y: 680 }
+      },
+      {
+        id: "cyber_city",
+        name: "未来電脳都市",
+        type: "single",
+        texture: "./map/textures/cyber_city.png",
+        mask: "./map/atarihantei/cyber_city_atarihantei.png",
+        spawn: { x: 1024, y: 680 }
+      },
+      {
+        id: "office_white",
+        name: "白オフィス",
+        type: "building",
+        floors: [
+          { id: "1f", name: "1F", texture: "./map/textures/office_white/office_white_1f.png", mask: "./map/atarihantei/office_white/office_white_1f.png", spawn: { x: 1024, y: 680 } },
+          { id: "2f", name: "2F", texture: "./map/textures/office_white/office_white_2f.png", mask: "./map/atarihantei/office_white/office_white_2f.png", spawn: { x: 1024, y: 680 } },
+          { id: "rooftop", name: "屋上", texture: "./map/textures/office_white/office_white_rooftop.png", mask: "./map/atarihantei/office_white/office_white_rooftop.png", spawn: { x: 1024, y: 680 } }
+        ]
+      },
+      {
+        id: "office_black",
+        name: "黒オフィス",
+        type: "building",
+        floors: [
+          { id: "1f", name: "1F", texture: "./map/textures/office_black/office_black_1f.png", mask: "./map/atarihantei/office_black/office_black_1f.png", spawn: { x: 1024, y: 680 } },
+          { id: "2f", name: "2F", texture: "./map/textures/office_black/office_black_2f.png", mask: "./map/atarihantei/office_black/office_black_2f.png", spawn: { x: 1024, y: 680 } },
+          { id: "rooftop", name: "屋上", texture: "./map/textures/office_black/office_black_rooftop.png", mask: "./map/atarihantei/office_black/office_black_rooftop.png", spawn: { x: 1024, y: 680 } }
+        ]
+      },
+      {
+        id: "cafe",
+        name: "カフェ",
+        type: "building",
+        floors: [
+          { id: "1f", name: "1F", texture: "./map/textures/cafe/cafe_1f.png", mask: "./map/atarihantei/cafe/cafe_1f.png", spawn: { x: 1024, y: 680 } },
+          { id: "2f", name: "2F", texture: "./map/textures/cafe/cafe_2f.png", mask: "./map/atarihantei/cafe/cafe_2f.png", spawn: { x: 1024, y: 680 } },
+          { id: "rooftop", name: "屋上", texture: "./map/textures/cafe/cafe_rooftop.png", mask: "./map/atarihantei/cafe/cafe_rooftop.png", spawn: { x: 1024, y: 680 } }
+        ]
+      }
     ];
 
-    let currentMapIndex = Number(params.get("map") ?? localStorage.getItem(LS_MAP) ?? "0");
+    function resolveMapIndex(value) {
+      const raw = String(value ?? "").trim();
+      const byId = MAPS.findIndex((map) => map.id === raw);
+      if (byId >= 0) return byId;
+
+      const byIndex = Number(raw);
+      return Number.isFinite(byIndex) && byIndex >= 0 && byIndex < MAPS.length ? byIndex : 0;
+    }
+
+    let currentMapIndex = resolveMapIndex(params.get("map") ?? localStorage.getItem(LS_MAP) ?? "0");
     if (!Number.isFinite(currentMapIndex) || currentMapIndex < 0 || currentMapIndex >= MAPS.length) {
       currentMapIndex = 0;
+    }
+    let currentFloorId = params.get("floor") || localStorage.getItem(LS_FLOOR) || "1f";
+    if (MAPS[currentMapIndex]?.type !== "building") {
+      currentFloorId = "";
+    } else if (!MAPS[currentMapIndex].floors.some((floor) => floor.id === currentFloorId)) {
+      currentFloorId = MAPS[currentMapIndex].floors[0].id;
     }
 
     const room = safeRoom(params.get("room") || localStorage.getItem(LS_ROOM) || "");
@@ -711,6 +783,37 @@
     localStorage.setItem(LS_ROOM, room);
     localStorage.setItem(LS_NAME, playerName);
     localStorage.setItem(LS_SKIN, selectedSkin);
+
+    function getMapDefinition(index = currentMapIndex) {
+      return MAPS[index] || MAPS[0];
+    }
+
+    function getFloorDefinition(map = getMapDefinition(), floorId = currentFloorId) {
+      if (map.type !== "building") return null;
+      return map.floors.find((floor) => floor.id === floorId) || map.floors[0];
+    }
+
+    function getActiveMapData() {
+      const map = getMapDefinition();
+      const floor = getFloorDefinition(map);
+
+      return {
+        id: map.id,
+        name: floor ? `${map.name} / ${floor.name}` : map.name,
+        type: map.type,
+        floorId: floor?.id || "",
+        floorName: floor?.name || "",
+        texture: floor?.texture || map.texture,
+        mask: floor?.mask || map.mask,
+        spawn: floor?.spawn || map.spawn || { x: 1024, y: 680 }
+      };
+    }
+
+    function setPlayerToSpawn(spread = 80) {
+      const spawn = getActiveMapData().spawn;
+      player.x = spawn.x + Math.random() * spread;
+      player.y = spawn.y + Math.random() * spread;
+    }
 
     roomLabel.textContent = room;
     nameLabel.textContent = playerName;
@@ -746,19 +849,21 @@
       飛行機サイズ。
       前回145だった想定から約2倍。
     */
-    const AIRPLANE_HEIGHT = 290;
+    const AIRPLANE_HEIGHT = 220;
 
-    const COLLISION_WALKABLE_BRIGHTNESS = 100;
     const COLLISION_STEP_SIZE = 5;
 
     const player = {
       uid: "",
       name: playerName,
-      x: MAPS[currentMapIndex].spawn.x + Math.random() * 160,
-      y: MAPS[currentMapIndex].spawn.y + Math.random() * 120,
+      x: getActiveMapData().spawn.x + Math.random() * 160,
+      y: getActiveMapData().spawn.y + Math.random() * 120,
       dir: "front",
       skin: selectedSkin,
       flying: false,
+      mapId: getActiveMapData().id,
+      floorId: getActiveMapData().floorId,
+      meetingScope: null,
       reaction: "",
       reactionUntil: 0,
       updatedAt: Date.now()
@@ -789,6 +894,7 @@
       worldH: 1400,
       mapLoaded: false,
       collisionLoaded: false,
+      inMeetingArea: false,
       lastPush: 0,
       lastFrame: performance.now()
     };
@@ -831,46 +937,46 @@
     };
 
     images.map.onerror = () => {
-      console.warn("マップ画像が読み込めません:", MAPS[currentMapIndex].map);
+      console.warn("マップ画像が読み込めません:", getActiveMapData().texture);
       state.mapLoaded = false;
     };
 
     images.collision.onload = () => {
       state.collisionLoaded = true;
-      canStandAt.offscreen = null;
-      canStandAt.ctx = null;
-      canStandAt.mapIndex = -1;
+      resetMaskCache();
     };
 
     images.collision.onerror = () => {
-      console.warn("当たり判定画像が読み込めません:", MAPS[currentMapIndex].collision);
+      console.warn("当たり判定画像が読み込めません:", getActiveMapData().mask);
       state.collisionLoaded = false;
     };
 
     function loadCurrentMapAssets() {
-      const mapData = MAPS[currentMapIndex] || MAPS[0];
+      const mapData = getActiveMapData();
 
       state.mapLoaded = false;
       state.collisionLoaded = false;
+      state.inMeetingArea = false;
 
-      canStandAt.offscreen = null;
-      canStandAt.ctx = null;
-      canStandAt.mapIndex = -1;
+      resetMaskCache();
 
-      images.map.src = mapData.map + "?v=" + Date.now();
-      if (mapData.collision) {
-        images.collision.src = mapData.collision + "?v=" + Date.now();
+      images.map.src = mapData.texture + "?v=" + Date.now();
+      if (mapData.mask) {
+        images.collision.src = mapData.mask + "?v=" + Date.now();
       } else {
         images.collision.removeAttribute("src");
         state.collisionLoaded = false;
       }
 
-      localStorage.setItem(LS_MAP, String(currentMapIndex));
+      localStorage.setItem(LS_MAP, mapData.id);
+      localStorage.setItem(LS_FLOOR, currentFloorId);
+      player.mapId = mapData.id;
+      player.floorId = mapData.floorId;
+      player.meetingScope = null;
       mapLabel.textContent = mapData.name;
-      refreshMapButtons();
+      renderFloorButtons();
     }
 
-    renderMapButtons();
     loadCurrentMapAssets();
 
     function resizeCanvas() {
@@ -909,7 +1015,7 @@
     function openMenu() {
       menuBackdrop.hidden = false;
       refreshSkinButtons();
-      refreshMapButtons();
+      renderFloorButtons();
       updateFlyButtonState();
     }
 
@@ -925,29 +1031,30 @@
       });
     }
 
-    function refreshMapButtons() {
-      document.querySelectorAll("[data-map]").forEach((button) => {
-        const active = Number(button.dataset.map) === currentMapIndex;
-        button.classList.toggle("active", active);
-        button.setAttribute("aria-pressed", String(active));
-      });
-    }
+    function renderFloorButtons() {
+      const mapData = getMapDefinition();
+      floorChoiceRow.innerHTML = "";
 
-    function renderMapButtons() {
-      mapChoiceRow.innerHTML = "";
-      MAPS.forEach((mapData, index) => {
+      if (mapData.type !== "building") {
+        floorPicker.hidden = true;
+        return;
+      }
+
+      floorPicker.hidden = false;
+
+      for (const floor of mapData.floors) {
         const button = document.createElement("button");
         button.className = "skin-choice map-choice";
         button.type = "button";
-        button.dataset.map = String(index);
-        button.setAttribute("aria-pressed", "false");
-        button.innerHTML = `<img src="${mapData.map}" alt="" /><span>${mapData.name}</span>`;
+        button.dataset.floor = floor.id;
+        button.setAttribute("aria-pressed", String(floor.id === currentFloorId));
+        button.classList.toggle("active", floor.id === currentFloorId);
+        button.innerHTML = `<img src="${floor.texture}" alt="" /><span>${floor.name}</span>`;
         button.addEventListener("click", () => {
-          changeMap(index);
+          changeFloor(floor.id);
         });
-        mapChoiceRow.appendChild(button);
-      });
-      refreshMapButtons();
+        floorChoiceRow.appendChild(button);
+      }
     }
 
     async function changeSkin(skin) {
@@ -961,19 +1068,15 @@
       }
     }
 
-    async function changeMap(index) {
-      const next = Number(index);
-
-      if (!Number.isFinite(next) || next < 0 || next >= MAPS.length) {
+    async function changeFloor(floorId) {
+      const mapData = getMapDefinition();
+      if (mapData.type !== "building" || !mapData.floors.some((floor) => floor.id === floorId)) {
         return;
       }
 
-      currentMapIndex = next;
-      localStorage.setItem(LS_MAP, String(currentMapIndex));
-
-      const spawn = MAPS[currentMapIndex].spawn || { x: 520, y: 400 };
-      player.x = spawn.x + Math.random() * 80;
-      player.y = spawn.y + Math.random() * 80;
+      currentFloorId = floorId;
+      localStorage.setItem(LS_FLOOR, currentFloorId);
+      setPlayerToSpawn();
 
       loadCurrentMapAssets();
       await pushPlayer(true);
@@ -981,6 +1084,8 @@
       if (player.uid) {
         await update(ref(db, `rooms/${room}/roomState`), {
           mapIndex: currentMapIndex,
+          mapId: getActiveMapData().id,
+          floorId: currentFloorId,
           updatedAt: serverTimestamp()
         }).catch(console.warn);
       }
@@ -1164,6 +1269,7 @@
         uid: player.uid,
         name: player.name,
         text,
+        chatScope: getMeetingScopeAt(player.x, player.y) || { type: "public" },
         createdAt: serverTimestamp()
       };
 
@@ -1262,6 +1368,10 @@
 
       state.lastPush = now;
       player.updatedAt = now;
+      player.mapId = getActiveMapData().id;
+      player.floorId = getActiveMapData().floorId;
+      player.meetingScope = getMeetingScopeAt(player.x, player.y);
+      state.inMeetingArea = Boolean(player.meetingScope);
 
       await update(ref(db, `rooms/${room}/players/${player.uid}`), {
         uid: player.uid,
@@ -1271,6 +1381,9 @@
         dir: player.dir,
         skin: player.skin,
         flying: player.flying,
+        mapId: player.mapId,
+        floorId: player.floorId || "",
+        meetingScope: player.meetingScope || null,
         reaction: player.reaction || "",
         reactionUntil: player.reactionUntil || 0,
         updatedAt: player.updatedAt
@@ -1311,20 +1424,18 @@
 
       onValue(roomStateRef, (snapshot) => {
         const data = snapshot.val() || {};
-        const nextMapIndex = Number(data.mapIndex ?? currentMapIndex);
+        const currentMap = getMapDefinition();
+        const nextFloorId = currentMap.type === "building" ? (data.floorId || currentFloorId || currentMap.floors[0].id) : "";
 
         if (
-          Number.isFinite(nextMapIndex) &&
-          nextMapIndex >= 0 &&
-          nextMapIndex < MAPS.length &&
-          nextMapIndex !== currentMapIndex
+          currentMap.type === "building" &&
+          nextFloorId !== currentFloorId &&
+          currentMap.floors.some((floor) => floor.id === nextFloorId)
         ) {
-          currentMapIndex = nextMapIndex;
-          localStorage.setItem(LS_MAP, String(currentMapIndex));
+          currentFloorId = nextFloorId;
+          localStorage.setItem(LS_FLOOR, currentFloorId);
 
-          const spawn = MAPS[currentMapIndex].spawn || { x: 520, y: 400 };
-          player.x = spawn.x + Math.random() * 80;
-          player.y = spawn.y + Math.random() * 80;
+          setPlayerToSpawn();
 
           loadCurrentMapAssets();
           pushPlayer(true);
@@ -1336,6 +1447,10 @@
       chatList.innerHTML = "";
 
       for (const message of state.messages) {
+        if (!canSeeMessage(message)) {
+          continue;
+        }
+
         const item = document.createElement("div");
         item.className = "message";
         item.dataset.messageId = message.id;
@@ -1426,6 +1541,12 @@
       chatList.scrollTop = chatList.scrollHeight;
     }
 
+    function canSeeMessage(message) {
+      const scope = message.chatScope || { type: "public" };
+      if (scope.type !== "meeting") return true;
+      return sameMeetingScope(scope, getMeetingScopeAt(player.x, player.y));
+    }
+
     function countReactions(message, key) {
       const users = message?.reactions?.[key] || {};
       return Object.keys(users).length;
@@ -1458,7 +1579,20 @@
       const distance = speed * dt;
 
       movePlayerWithCollision(dx, dy, distance);
+      updateAreaState();
       pushPlayer(false);
+    }
+
+    function updateAreaState() {
+      const nextScope = getMeetingScopeAt(player.x, player.y);
+      const wasInMeeting = state.inMeetingArea;
+      state.inMeetingArea = Boolean(nextScope);
+      player.meetingScope = nextScope;
+
+      if (wasInMeeting !== state.inMeetingArea) {
+        renderMessages();
+        pushPlayer(true);
+      }
     }
 
     function movePlayerWithCollision(dx, dy, distance) {
@@ -1518,25 +1652,37 @@
       return points.every(([px, py]) => canStandAtPoint(px, py));
     }
 
-    function canStandAtPoint(x, y) {
+    function resetMaskCache() {
+      getMaskPixel.offscreen = null;
+      getMaskPixel.ctx = null;
+      getMaskPixel.key = "";
+    }
+
+    function getMaskKey() {
+      const mapData = getActiveMapData();
+      return `${mapData.id}:${mapData.floorId || "single"}`;
+    }
+
+    function getMaskPixel(x, y) {
       const image = images.collision;
 
       if (!image.naturalWidth || !image.naturalHeight) {
-        return true;
+        return null;
       }
 
       const sx = Math.floor((x / state.worldW) * image.naturalWidth);
       const sy = Math.floor((y / state.worldH) * image.naturalHeight);
 
       if (sx < 0 || sy < 0 || sx >= image.naturalWidth || sy >= image.naturalHeight) {
-        return false;
+        return { r: 255, g: 0, b: 0, a: 255 };
       }
 
       try {
-        let off = canStandAt.offscreen;
-        let offCtx = canStandAt.ctx;
+        let off = getMaskPixel.offscreen;
+        let offCtx = getMaskPixel.ctx;
+        const key = getMaskKey();
 
-        if (!off || canStandAt.mapIndex !== currentMapIndex) {
+        if (!off || getMaskPixel.key !== key) {
           off = document.createElement("canvas");
           off.width = image.naturalWidth;
           off.height = image.naturalHeight;
@@ -1544,28 +1690,69 @@
           offCtx = off.getContext("2d", { willReadFrequently: true });
           offCtx.drawImage(image, 0, 0);
 
-          canStandAt.offscreen = off;
-          canStandAt.ctx = offCtx;
-          canStandAt.mapIndex = currentMapIndex;
+          getMaskPixel.offscreen = off;
+          getMaskPixel.ctx = offCtx;
+          getMaskPixel.key = key;
         }
 
         const pixel = offCtx.getImageData(sx, sy, 1, 1).data;
-        const r = pixel[0];
-        const g = pixel[1];
-        const b = pixel[2];
-        const a = pixel[3];
-
-        if (a < 10) {
-          return true;
-        }
-
-        const brightness = (r + g + b) / 3;
-
-        return brightness >= COLLISION_WALKABLE_BRIGHTNESS;
+        return { r: pixel[0], g: pixel[1], b: pixel[2], a: pixel[3] };
       } catch (error) {
         console.warn(error);
-        return true;
+        return null;
       }
+    }
+
+    function isNearColor(pixel, r, g, b, tolerance = 28) {
+      return pixel &&
+        Math.abs(pixel.r - r) <= tolerance &&
+        Math.abs(pixel.g - g) <= tolerance &&
+        Math.abs(pixel.b - b) <= tolerance;
+    }
+
+    function getMaskKindAtPoint(x, y) {
+      if (!state.collisionLoaded) {
+        return "walkable";
+      }
+
+      const pixel = getMaskPixel(x, y);
+
+      if (!pixel || pixel.a < 10) {
+        return "walkable";
+      }
+
+      if (isNearColor(pixel, 255, 0, 0)) return "blocked";
+      if (isNearColor(pixel, 129, 255, 125)) return "meeting";
+      if (isNearColor(pixel, 125, 129, 255)) return "behind";
+
+      return "walkable";
+    }
+
+    function canStandAtPoint(x, y) {
+      return getMaskKindAtPoint(x, y) !== "blocked";
+    }
+
+    function isInMeetingArea(x, y) {
+      return getMaskKindAtPoint(x, y) === "meeting";
+    }
+
+    function isInBehindArea(x, y) {
+      return getMaskKindAtPoint(x, y) === "behind";
+    }
+
+    function getMeetingScopeAt(x, y) {
+      if (!isInMeetingArea(x, y)) return null;
+      const mapData = getActiveMapData();
+      return {
+        type: "meeting",
+        mapId: mapData.id,
+        floorId: mapData.floorId || "",
+        areaId: "mask-green"
+      };
+    }
+
+    function sameMeetingScope(a, b) {
+      return Boolean(a && b && a.type === b.type && a.mapId === b.mapId && a.floorId === b.floorId && a.areaId === b.areaId);
     }
 
     function updateCamera() {
@@ -1583,6 +1770,10 @@
 
       const players = Object.values(state.players || {})
         .filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y))
+        .filter((p) => {
+          const mapData = getActiveMapData();
+          return !p.mapId || (p.mapId === mapData.id && (p.floorId || "") === (mapData.floorId || ""));
+        })
         .map((p) => {
           if (p.uid === player.uid) {
             return {
@@ -1606,8 +1797,10 @@
         });
 
       for (const p of players) {
-        drawPlayer(p);
+        drawPlayer(p, isInBehindArea(p.x, p.y));
       }
+
+      drawMeetingOverlay();
     }
 
     function drawMap() {
@@ -1658,7 +1851,15 @@
       ctx.fillText("マップ画像を読み込み中、または未配置です", 24, 42);
     }
 
-    function drawPlayer(p) {
+    function drawMeetingOverlay() {
+      if (!state.inMeetingArea) return;
+      ctx.save();
+      ctx.fillStyle = "rgba(129, 255, 125, 0.14)";
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.restore();
+    }
+
+    function drawPlayer(p, behindTexture = false) {
       const skin = normalizeSkin(p.skin);
       const dir = normalizeDir(p.dir);
       const flying = Boolean(p.flying);
@@ -1668,7 +1869,7 @@
 
       ctx.save();
 
-      ctx.globalAlpha = p.uid === player.uid ? 1 : 0.92;
+      ctx.globalAlpha = behindTexture ? 0.48 : (p.uid === player.uid ? 1 : 0.92);
 
       if (flying) {
         drawAirplane(p, sx, sy);
@@ -1719,12 +1920,12 @@
         ctx.fillRect(sx - 18, sy - 135, 36, 36);
       }
 
-      drawTinyPilot(skin, sx, sy - 210);
+      drawTinyPilot(skin, sx, sy - 160);
     }
 
     function drawTinyPilot(skin, sx, sy) {
       const image = images.skins[skin]?.front;
-      const h = skin === "turuturu" ? 56 : 60;
+      const h = skin === "turuturu" ? 42 : 46;
       const w = h;
 
       if (image && image.complete && image.naturalWidth) {
@@ -1810,6 +2011,7 @@
       state.lastFrame = now;
 
       updatePlayerMovement(dt);
+      updateAreaState();
       updateCamera();
       draw();
 
@@ -1838,6 +2040,9 @@
         dir: player.dir,
         skin: player.skin,
         flying: player.flying,
+        mapId: getActiveMapData().id,
+        floorId: getActiveMapData().floorId || "",
+        meetingScope: getMeetingScopeAt(player.x, player.y) || null,
         reaction: "",
         reactionUntil: 0,
         joinedAt: serverTimestamp(),
@@ -1852,6 +2057,8 @@
 
       await update(ref(db, `rooms/${room}/roomState`), {
         mapIndex: currentMapIndex,
+        mapId: getActiveMapData().id,
+        floorId: currentFloorId,
         updatedAt: serverTimestamp()
       }).catch(console.warn);
 
@@ -1861,7 +2068,6 @@
       subscribeMessages();
       subscribeRoomState();
       refreshSkinButtons();
-      refreshMapButtons();
       updateFlyButtonState();
 
       requestAnimationFrame((time) => {

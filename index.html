@@ -18,7 +18,7 @@
     .logo-line{display:flex;gap:12px;align-items:center;margin-bottom:8px}.logo-mark{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:27px;background:radial-gradient(circle at 35% 30%,#67e8f9,#0891b2 58%,#0f172a);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 14px 34px rgba(6,182,212,.16);flex-shrink:0}
     h1{margin:0;font-size:clamp(24px,4vw,34px);letter-spacing:.03em}.lead{margin:8px 0 22px;color:var(--muted);line-height:1.75}.screen{margin-top:18px;padding:18px;border-radius:18px;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.20)}.screen[hidden]{display:none}.grid{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:720px){.two{grid-template-columns:1fr}.card{padding:22px}}
     h2{margin:0 0 14px;font-size:20px}label{display:grid;gap:8px;font-weight:800;font-size:14px}input,button{border-radius:13px;outline:none}input{width:100%;border:1px solid var(--border);background:#07101f;color:var(--text);padding:12px 13px}input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(34,211,238,.20)}button{border:0;padding:12px 14px;background:linear-gradient(180deg,var(--a1),var(--a2));color:#06202a;font-weight:900}button.secondary{background:#1e293b;border:1px solid var(--border);color:var(--text)}button.google{background:#fff;color:#111827;border:1px solid #e5e7eb}button:disabled{opacity:.55;cursor:not-allowed}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.right{justify-content:flex-end}.notice{margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.7}.status{min-height:22px;margin-top:12px;color:#a5f3fc;font-size:13px;font-weight:700}.userBox{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 4px;padding:12px 14px;border-radius:16px;background:rgba(2,6,23,.28);border:1px solid rgba(148,163,184,.22)}.userName{font-weight:900}.userSub{font-size:12px;color:var(--muted);margin-top:3px}
-    .skin-picker{margin:16px 0;padding:14px;border:1px solid rgba(148,163,184,.24);border-radius:18px;background:rgba(2,6,23,.25)}.skin-picker-title{font-weight:900;letter-spacing:.04em;margin-bottom:10px}.skin-choice-row{display:flex;gap:10px;flex-wrap:wrap}.skin-choice{min-width:150px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,.28);background:rgba(15,23,42,.70);color:#e5f3ff}.skin-choice img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}.map-choice{min-width:190px}.map-choice img{width:64px;height:42px;border-radius:8px;image-rendering:auto;object-fit:cover}.skin-choice.active{border-color:rgba(34,211,238,.9);box-shadow:0 0 0 3px rgba(34,211,238,.18),0 14px 30px rgba(34,211,238,.10);background:linear-gradient(135deg,rgba(14,165,233,.36),rgba(15,23,42,.78))}.skin-picker-note{margin-top:8px;font-size:12px;color:var(--muted)}
+    .skin-picker{margin:16px 0;padding:14px;border:1px solid rgba(148,163,184,.24);border-radius:18px;background:rgba(2,6,23,.25)}.skin-picker-title{font-weight:900;letter-spacing:.04em;margin-bottom:10px}.skin-choice-row{display:flex;gap:10px;flex-wrap:wrap}.skin-choice{min-width:150px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,.28);background:rgba(15,23,42,.70);color:#e5f3ff}.skin-choice img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}.map-choice{min-width:190px}.map-choice img{width:64px;height:42px;border-radius:8px;image-rendering:auto;object-fit:cover}.skin-choice.active{border-color:rgba(34,211,238,.9);box-shadow:0 0 0 3px rgba(34,211,238,.18),0 14px 30px rgba(34,211,238,.10);background:linear-gradient(135deg,rgba(14,165,233,.36),rgba(15,23,42,.78))}.skin-picker-note{margin-top:8px;font-size:12px;color:var(--muted)}.history-list{display:grid;gap:8px}.history-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid rgba(148,163,184,.22);border-radius:14px;background:rgba(15,23,42,.58)}.history-main{min-width:0}.history-title{font-weight:900}.history-sub{margin-top:3px;color:var(--muted);font-size:12px}.history-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.history-actions button{padding:8px 10px;font-size:12px}.empty-history{color:var(--muted);font-size:13px;line-height:1.7}
   </style>
 </head>
 <body>
@@ -52,7 +52,11 @@
       <div id="mapPicker" class="skin-picker" aria-label="マップ変更">
         <div class="skin-picker-title">マップ変更</div>
         <div id="mapChoiceRow" class="skin-choice-row"></div>
-        <div class="skin-picker-note">ここで選んだマップでルームに入ります。入室後もメニューから変更できます。</div>
+        <div class="skin-picker-note">ここで選んだマップでルームに入ります。入室後は建物内の階移動だけできます。</div>
+      </div>
+      <div id="historyPicker" class="skin-picker" aria-label="過去のマップ">
+        <div class="skin-picker-title">最近入ったマップ</div>
+        <div id="historyList" class="history-list"></div>
       </div>
       <div class="row right"><button id="randomRoomBtn" class="secondary">ランダム名</button><button id="enterRoomBtn">ルームに入る</button></div>
       <p class="notice">ルームパスワードは使いません。同じルーム名を入力した人が同じ部屋に入ります。</p>
@@ -63,7 +67,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-    import { getDatabase, ref, update } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
+    import { getDatabase, ref, update, get, remove } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyCy3P-HQhfd8-zpPUJ5YANxwRMuTCjFFAQ',
@@ -83,23 +87,17 @@
     const LS_NAME = 'nikoriTown.playerName';
     const LS_SKIN = 'nikoriTown.skin';
     const LS_MAP = 'nikoriTown.currentMap';
+    const LS_HISTORY = 'nikoriTown.mapHistory';
 
     const MAPS = [
-      { name: 'タウン', map: './map_1.png' },
-      { name: '湖畔公園', map: './map/textures/lakeside_park.png' },
-      { name: '森', map: './map/textures/forest.png' },
-      { name: '海底都市', map: './map/textures/underwater_city.png' },
-      { name: '空中都市', map: './map/textures/sky_city.png' },
-      { name: 'サイバーシティ', map: './map/textures/cyber_city.png' },
-      { name: '白オフィス 1F', map: './map/textures/office_white/office_white_1f.png' },
-      { name: '白オフィス 2F', map: './map/textures/office_white/office_white_2f.png' },
-      { name: '白オフィス 屋上', map: './map/textures/office_white/office_white_rooftop.png' },
-      { name: '黒オフィス 1F', map: './map/textures/office_black/office_black_1f.png' },
-      { name: '黒オフィス 2F', map: './map/textures/office_black/office_black_2f.png' },
-      { name: '黒オフィス 屋上', map: './map/textures/office_black/office_black_rooftop.png' },
-      { name: 'カフェ 1F', map: './map/textures/cafe/cafe_1f.png' },
-      { name: 'カフェ 2F', map: './map/textures/cafe/cafe_2f.png' },
-      { name: 'カフェ 屋上', map: './map/textures/cafe/cafe_rooftop.png' }
+      { id: 'lakeside_park', name: '公園', type: 'single', texture: './map/textures/lakeside_park.png' },
+      { id: 'forest', name: '森林', type: 'single', texture: './map/textures/forest.png' },
+      { id: 'underwater_city', name: '海底都市', type: 'single', texture: './map/textures/underwater_city.png' },
+      { id: 'sky_city', name: '空中都市', type: 'single', texture: './map/textures/sky_city.png' },
+      { id: 'cyber_city', name: '未来電脳都市', type: 'single', texture: './map/textures/cyber_city.png' },
+      { id: 'office_white', name: '白オフィス', type: 'building', texture: './map/textures/office_white/office_white_1f.png' },
+      { id: 'office_black', name: '黒オフィス', type: 'building', texture: './map/textures/office_black/office_black_1f.png' },
+      { id: 'cafe', name: 'カフェ', type: 'building', texture: './map/textures/cafe/cafe_1f.png' }
     ];
 
     $('guestName').value = localStorage.getItem(LS_NAME) || '';
@@ -116,10 +114,20 @@
     function normalizeSkin(raw){ return raw === 'turuturu' ? 'turuturu' : 'nikorihito'; }
     function getSelectedSkin(){ return normalizeSkin(localStorage.getItem(LS_SKIN) || 'nikorihito'); }
     function normalizeMap(raw){
+      const byId = MAPS.findIndex(map => map.id === String(raw || '').trim());
+      if (byId >= 0) return byId;
       const index = Number(raw);
       return Number.isFinite(index) && index >= 0 && index < MAPS.length ? index : 0;
     }
     function getSelectedMap(){ return normalizeMap(localStorage.getItem(LS_MAP) || '0'); }
+    function getMap(index){ return MAPS[normalizeMap(index)] || MAPS[0]; }
+    function floorName(floorId){ return floorId === '2f' ? '2F' : floorId === 'rooftop' ? '屋上' : '1F'; }
+    function getDefaultFloor(map){ return map.type === 'building' ? { id:'1f', name:'1F' } : null; }
+    function findFloor(map, floorId){
+      if (map.type !== 'building') return null;
+      const id = ['1f', '2f', 'rooftop'].includes(floorId) ? floorId : '1f';
+      return { id, name: floorName(id) };
+    }
     function setSelectedSkin(skin){
       const value = normalizeSkin(skin);
       localStorage.setItem(LS_SKIN, value);
@@ -135,7 +143,7 @@
     }
     function setSelectedMap(index){
       const value = normalizeMap(index);
-      localStorage.setItem(LS_MAP, String(value));
+      localStorage.setItem(LS_MAP, MAPS[value].id);
       document.querySelectorAll('[data-map]').forEach(btn => {
         const active = Number(btn.dataset.map) === value;
         btn.classList.toggle('active', active);
@@ -151,13 +159,160 @@
         button.className = 'skin-choice map-choice';
         button.dataset.map = String(index);
         button.setAttribute('aria-pressed', 'false');
-        button.innerHTML = `<img src="${map.map}" alt="" /><span>${map.name}</span>`;
+        button.innerHTML = `<img src="${map.texture}" alt="" /><span>${map.name}</span>`;
         button.onclick = () => setSelectedMap(index);
         row.appendChild(button);
       });
       setSelectedMap(getSelectedMap());
     }
     function userName(user){ return safeName(user?.displayName || localStorage.getItem(LS_NAME) || 'ゲスト'); }
+    function formatTime(value){
+      const date = new Date(Number(value) || Date.now());
+      return date.toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }
+    function readLocalHistory(){
+      try {
+        const data = JSON.parse(localStorage.getItem(LS_HISTORY) || '{}');
+        return data && typeof data === 'object' ? data : {};
+      } catch {
+        return {};
+      }
+    }
+    function writeLocalHistory(data){
+      localStorage.setItem(LS_HISTORY, JSON.stringify(data || {}));
+    }
+    async function saveMapHistory(user, item){
+      if (!user) return;
+
+      if (user.isAnonymous) {
+        const data = readLocalHistory();
+        data[item.roomId] = item;
+        writeLocalHistory(data);
+        renderHistory(Object.values(data));
+        return;
+      }
+
+      await update(ref(db, `userMapHistory/${user.uid}/${item.roomId}`), item).catch(console.warn);
+      await loadMapHistory(user);
+    }
+    async function loadMapHistory(user = auth.currentUser){
+      if (!user) {
+        renderHistory([]);
+        return;
+      }
+
+      if (user.isAnonymous) {
+        renderHistory(Object.values(readLocalHistory()));
+        return;
+      }
+
+      try {
+        const snapshot = await get(ref(db, `userMapHistory/${user.uid}`));
+        const data = snapshot.val() || {};
+        renderHistory(Object.values(data));
+      } catch (error) {
+        console.warn(error);
+        renderHistory([]);
+      }
+    }
+    async function deleteHistory(roomId){
+      const user = auth.currentUser;
+      if (!user) return;
+
+      if (user.isAnonymous) {
+        const data = readLocalHistory();
+        delete data[roomId];
+        writeLocalHistory(data);
+        renderHistory(Object.values(data));
+        return;
+      }
+
+      await remove(ref(db, `userMapHistory/${user.uid}/${roomId}`)).catch(console.warn);
+      await loadMapHistory(user);
+    }
+    function renderHistory(items){
+      const list = $('historyList');
+      const sorted = [...items]
+        .filter(item => item && item.roomId && item.mapId)
+        .sort((a, b) => Number(b.updatedAt || b.joinedAt || 0) - Number(a.updatedAt || a.joinedAt || 0))
+        .slice(0, 20);
+
+      list.innerHTML = '';
+
+      if (!sorted.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-history';
+        empty.textContent = 'まだ履歴はありません。';
+        list.appendChild(empty);
+        return;
+      }
+
+      for (const item of sorted) {
+        const row = document.createElement('div');
+        row.className = 'history-item';
+
+        const main = document.createElement('div');
+        main.className = 'history-main';
+        const title = document.createElement('div');
+        title.className = 'history-title';
+        title.textContent = item.roomName || item.roomId;
+        const sub = document.createElement('div');
+        sub.className = 'history-sub';
+        const floorText = item.floorName ? ` / ${item.floorName}` : '';
+        sub.textContent = `${item.mapName || item.mapId}${floorText} ・ ${formatTime(item.updatedAt || item.joinedAt)}`;
+        main.append(title, sub);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+        const enterBtn = document.createElement('button');
+        enterBtn.type = 'button';
+        enterBtn.textContent = '入る';
+        enterBtn.onclick = () => enterFromHistory(item);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'secondary';
+        deleteBtn.textContent = '削除';
+        deleteBtn.onclick = () => deleteHistory(item.roomId);
+        actions.append(enterBtn, deleteBtn);
+
+        row.append(main, actions);
+        list.appendChild(row);
+      }
+    }
+    async function enterFromHistory(item){
+      const user = auth.currentUser;
+      if (!user) { setRoomStatus('先にログインしてください。'); return; }
+
+      const name = safeName($('playerName').value || userName(user) || item.lastPlayerName);
+      const mapIndex = normalizeMap(item.mapId);
+      const map = getMap(mapIndex);
+      const floor = findFloor(map, item.floorId);
+      const now = Date.now();
+      localStorage.setItem(LS_ROOM, item.roomId);
+      localStorage.setItem(LS_NAME, name);
+      localStorage.setItem(LS_MAP, map.id);
+      await saveMapHistory(user, {
+        ...item,
+        roomId: item.roomId,
+        roomName: item.roomName || item.roomId,
+        mapId: map.id,
+        mapName: map.name,
+        floorId: floor?.id || '',
+        floorName: floor?.name || '',
+        updatedAt: now,
+        ownerUid: item.ownerUid || user.uid,
+        createdByUid: item.createdByUid || user.uid,
+        lastPlayerName: name
+      });
+
+      const u = new URL('./room.html', location.href);
+      u.searchParams.set('room', item.roomId);
+      u.searchParams.set('name', name);
+      u.searchParams.set('skin', getSelectedSkin());
+      u.searchParams.set('map', map.id);
+      if (floor?.id) u.searchParams.set('floor', floor.id);
+      location.href = u.toString();
+    }
 
     async function loginGuest(){
       $('guestLoginBtn').disabled = true; $('googleLoginBtn').disabled = true; setLoginStatus('ゲストログイン中...');
@@ -199,6 +354,9 @@
         $('currentUserType').textContent = user.isAnonymous ? 'ゲストログイン' : 'Googleログイン';
         if (!$('playerName').value) $('playerName').value = name;
         localStorage.setItem(LS_NAME, name);
+        loadMapHistory(user);
+      } else {
+        renderHistory([]);
       }
     });
 
@@ -210,14 +368,37 @@
       const name = safeName($('playerName').value || userName(user));
       const skin = getSelectedSkin();
       const mapIndex = getSelectedMap();
-      localStorage.setItem(LS_ROOM, room); localStorage.setItem(LS_NAME, name); localStorage.setItem(LS_SKIN, skin); localStorage.setItem(LS_MAP, String(mapIndex));
+      let map = getMap(mapIndex);
+      let floor = getDefaultFloor(map);
+      let floorId = floor?.id || '';
+      const now = Date.now();
       $('enterRoomBtn').disabled = true; setRoomStatus('ルームを準備しています...');
       try {
         if (user.isAnonymous && user.displayName !== name) { try { await updateProfile(user, { displayName:name }); } catch {} }
+        const existingState = await get(ref(db, `rooms/${room}/roomState`)).then(snapshot => snapshot.val()).catch(() => null);
+        if (existingState?.mapId) {
+          map = getMap(normalizeMap(existingState.mapId));
+          floor = findFloor(map, existingState.floorId);
+          floorId = floor?.id || '';
+        }
+        localStorage.setItem(LS_ROOM, room); localStorage.setItem(LS_NAME, name); localStorage.setItem(LS_SKIN, skin); localStorage.setItem(LS_MAP, map.id);
         await update(ref(db, `roomMeta/${room}`), { room, noAccountMode:true, passwordEnabled:false, authMode:user.isAnonymous ? 'guest' : 'google', updatedAt:Date.now(), lastJoinUid:user.uid });
-        await update(ref(db, `rooms/${room}/roomState`), { mapIndex, updatedAt:Date.now() }).catch(console.warn);
+        await update(ref(db, `rooms/${room}/roomState`), { mapIndex: normalizeMap(map.id), mapId: map.id, floorId, updatedAt:now }).catch(console.warn);
+        await saveMapHistory(user, {
+          roomId: room,
+          roomName: room,
+          mapId: map.id,
+          mapName: map.name,
+          floorId,
+          floorName: floor?.name || '',
+          joinedAt: now,
+          updatedAt: now,
+          ownerUid: user.uid,
+          createdByUid: user.uid,
+          lastPlayerName: name
+        });
         const u = new URL('./room.html', location.href);
-        u.searchParams.set('room', room); u.searchParams.set('name', name); u.searchParams.set('skin', skin); u.searchParams.set('map', String(mapIndex));
+        u.searchParams.set('room', room); u.searchParams.set('name', name); u.searchParams.set('skin', skin); u.searchParams.set('map', map.id); if (floorId) u.searchParams.set('floor', floorId);
         location.href = u.toString();
       } catch (e) {
         console.error(e); setRoomStatus('入室準備に失敗しました。Firebaseの設定またはDBルールを確認してください。'); $('enterRoomBtn').disabled = false;
